@@ -1,8 +1,9 @@
 import sys, pygame
 import pygame.gfxdraw
+from enum import Enum, auto
+from classes.GameObject import GameObject
 
-SCREEN_SIZE = 600
-
+BOARD_SIZE = 600 # board size in pixels (determines window size)
 
 def main():
 	game = Game()
@@ -11,18 +12,17 @@ def main():
 class Game:
 
 	def __init__(self, board_size=19):
-		print('init')
 		self.board_size = board_size # number of lines vertically and horizontally
 
 		pygame.init()
 		pygame.display.set_caption('Gomoku')
-		self.screen = pygame.display.set_mode([SCREEN_SIZE, SCREEN_SIZE])
+		self.screen = pygame.display.set_mode([int(BOARD_SIZE * 3 / 2), BOARD_SIZE])
 		self.background = Background(board_size)
 		self.intersections = Intersections(self.background.space_between_lines, board_size, self.background.line_width, size=self.background.space_between_lines)
 		self.game_objects = [
 			self.background, self.intersections
 		]
-		
+
 		self.turn = 1 # 1 is black, 2 is white
 
 	def game_loop(self):
@@ -50,7 +50,7 @@ class Game:
 		pygame.display.flip()
 	
 	def place_stone(self, position):
-		# TODO: handle rules preventing you from placing in certain places
+		# TODO: call model/controller to handle rules preventing you from placing in certain places
 		self.game_objects.append(Stone((240, 240, 240) if self.turn == 2 else (20, 20, 20), position, self.background.space_between_lines/2.2))
 		return True
 	
@@ -58,22 +58,19 @@ class Game:
 		self.turn = 1 if self.turn == 2 else 2
 		print('next turn: ', self.turn)
 
-class GameObject:
-	def render(self, screen): pass
-
 class Background(GameObject):
 	def __init__(self, board_size=19, background_color=(133, 193, 233), line_color=(21, 67, 96), line_width=2):
 		# init background
-		self.surface = pygame.Surface([SCREEN_SIZE, SCREEN_SIZE]).convert()
+		self.surface = pygame.Surface([BOARD_SIZE, BOARD_SIZE]).convert()
 		self.surface.fill(background_color)
 		# init lines
-		self.space_between_lines = SCREEN_SIZE / (board_size + 1)
+		self.space_between_lines = BOARD_SIZE / (board_size + 1)
 		self.line_width = line_width
 		for i in range(board_size):
 			i += 1
 			dist = i * self.space_between_lines # distance from edge
-			pygame.draw.line(self.surface, line_color, (dist, 0), (dist, SCREEN_SIZE), line_width)
-			pygame.draw.line(self.surface, line_color, (0, dist), (SCREEN_SIZE, dist), line_width)
+			pygame.draw.line(self.surface, line_color, (dist, 0), (dist, BOARD_SIZE), line_width)
+			pygame.draw.line(self.surface, line_color, (0, dist), (BOARD_SIZE, dist), line_width)
 		self.position = (0, 0)
 	def render(self, screen):
 		screen.blit(self.surface, self.position)
