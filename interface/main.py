@@ -2,6 +2,8 @@ import sys, pygame
 import pygame.gfxdraw
 from enum import Enum, auto
 from classes.GameObject import GameObject
+from classes.gui.Gui import Gui
+from classes.gui.Button import Button
 
 BOARD_SIZE = 600 # board size in pixels (determines window size)
 
@@ -10,20 +12,32 @@ def main():
 	game.game_loop()
 
 class Game:
+	ratio = 3 / 2
 
-	def __init__(self, board_size=19):
-		self.board_size = board_size # number of lines vertically and horizontally
+	def __init__(self, line_num=19):
+		self.line_num = line_num # number of lines vertically and horizontally on board
 
 		pygame.init()
 		pygame.display.set_caption('Gomoku')
-		self.screen = pygame.display.set_mode([int(BOARD_SIZE * 3 / 2), BOARD_SIZE])
-		self.background = Background(board_size)
-		self.intersections = Intersections(self.background.space_between_lines, board_size, self.background.line_width, size=self.background.space_between_lines)
+		# create space for gui on right
+		self.screen = pygame.display.set_mode([int(BOARD_SIZE * Game.ratio), BOARD_SIZE])
+		self.background = Background(line_num)
+		
+		self.init_gui()
+
+		self.intersections = Intersections(self.background.space_between_lines, line_num, self.background.line_width, size=self.background.space_between_lines)
 		self.game_objects = [
-			self.background, self.intersections
+			self.background, self.intersections, self.gui
 		]
 
 		self.turn = 1 # 1 is black, 2 is white
+
+	def init_gui(self):
+		self.gui = Gui(rect=pygame.Rect(BOARD_SIZE, 0, BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(100, 100, 120))
+		top = Button(height=45, width=90, background_color=(200, 0, 0))
+		btm = Gui(height=45, width=90, background_color=(0, 0, 200, 50))
+		self.gui.insert(top)
+		self.gui.insert(btm)
 
 	def game_loop(self):
 		while True:
@@ -59,14 +73,14 @@ class Game:
 		print('next turn: ', self.turn)
 
 class Background(GameObject):
-	def __init__(self, board_size=19, background_color=(133, 193, 233), line_color=(21, 67, 96), line_width=2):
+	def __init__(self, line_num=19, background_color=(133, 193, 233), line_color=(21, 67, 96), line_width=2):
 		# init background
 		self.surface = pygame.Surface([BOARD_SIZE, BOARD_SIZE]).convert()
 		self.surface.fill(background_color)
 		# init lines
-		self.space_between_lines = BOARD_SIZE / (board_size + 1)
+		self.space_between_lines = BOARD_SIZE / (line_num + 1)
 		self.line_width = line_width
-		for i in range(board_size):
+		for i in range(line_num):
 			i += 1
 			dist = i * self.space_between_lines # distance from edge
 			pygame.draw.line(self.surface, line_color, (dist, 0), (dist, BOARD_SIZE), line_width)
@@ -76,14 +90,14 @@ class Background(GameObject):
 		screen.blit(self.surface, self.position)
 
 class Intersections(GameObject):
-	def __init__(self, space_between_lines, board_size, line_width, size=50, hover_color=(250, 250, 250, 50)):
+	def __init__(self, space_between_lines, line_num, line_width, size=50, hover_color=(250, 250, 250, 50)):
 		self.hover_color = hover_color
 
 		# set intersection positions
 		self.rects = []
-		for x in range(board_size):
+		for x in range(line_num):
 			x += 1
-			for y in range(board_size):
+			for y in range(line_num):
 				y += 1
 				pos = (x * space_between_lines - size / 2 + line_width / 2, y * space_between_lines - size / 2 + line_width / 2)
 				self.rects.append(pygame.Rect(pos, (size, size)))
