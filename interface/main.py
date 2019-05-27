@@ -33,11 +33,11 @@ class Game:
 		self.turn = 1 # 1 is black, 2 is white
 
 	def init_gui(self):
-		self.gui = Gui(rect=pygame.Rect(BOARD_SIZE, 0, BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(100, 100, 120))
-		top = Button(height=45, width=90, background_color=(200, 0, 0))
-		btm = Gui(height=45, width=90, background_color=(0, 0, 200, 50))
+		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(100, 100, 120))
+		top = Button((25, 25), (50, 50), background_color=(200, 0, 0))
+		# btm = Gui(height=45, width=20, background_color=(0, 0, 200, 50))
 		self.gui.insert(top)
-		self.gui.insert(btm)
+		# self.gui.insert(btm)
 
 	def game_loop(self):
 		while True:

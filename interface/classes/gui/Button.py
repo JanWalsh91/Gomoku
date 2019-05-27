@@ -7,8 +7,8 @@ class Button(Gui):
 		HOVER = auto()
 		DOWN = auto()
 
-	def __init__(self, position=(0, 0), width=50, height=20, rect=None, text='', background_color=(250, 250, 250), text_color=(0, 0, 0)):
-		super().__init__(position, height, width, rect, background_color=background_color, direction=Gui.Direction.HORIZONTAL)
+	def __init__(self, position=(0, 0), dimensions=(100, 100), rect=None, text='', background_color=(250, 250, 250), text_color=(0, 0, 0)):
+		super().__init__(position, dimensions, background_color=background_color)
 		self.color = background_color
 		self.state = Button.States.NORMAL
 		pass
