@@ -5,7 +5,7 @@ from classes.GameObject import GameObject
 from classes.gui.Gui import Gui
 from classes.gui.Button import Button
 
-BOARD_SIZE = 600 # board size in pixels (determines window size)
+BOARD_SIZE = 400 # board size in pixels (determines window size)
 
 def main():
 	game = Game()
@@ -34,7 +34,7 @@ class Game:
 
 	def init_gui(self):
 		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(100, 100, 120))
-		top = Button((25, 25), (50, 50), background_color=(200, 0, 0))
+		top = Button((25, 25), (50, 50), background_color=(0, 0, 0), on_click=lambda : print('click!'))
 		# btm = Gui(height=45, width=20, background_color=(0, 0, 200, 50))
 		self.gui.insert(top)
 		# self.gui.insert(btm)
@@ -57,6 +57,8 @@ class Game:
 					placed = self.place_stone(rect.center)
 					if placed:
 						self.next_turn()
+			
+			self.gui.handle_event(event, self.screen)
 
 	def render_game_objects(self):
 		for game_object in self.game_objects:

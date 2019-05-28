@@ -5,13 +5,19 @@ from classes.GameObject import GameObject
 class Gui(GameObject):
 	# position: [top, left]
 	# dimensions: [width, height]
-	def __init__(self, position=(0, 0), dimensions=(100, 100), background_color=(250, 250, 250, 100)):
+	def __init__(self, position=(0, 0), dimensions=(100, 100), background_color=(250, 250, 250, 100), border_color=(100, 100, 100), border_width=0):
+		# print('init', self)
+		self.__border_width = None
+		self.__border_color = None
+		
 		self.position = np.array(position)
 		self.dimensions = np.array(dimensions)
 		self.surface = pygame.Surface(self.dimensions)
 		self.children = []
 		self.parent = None
 		self.background_color = background_color
+		self.border_color = border_color
+		self.border_width = border_width
 
 	def render(self, screen):
 		screen.blit(self.surface, self.abs_position)
@@ -35,18 +41,32 @@ class Gui(GameObject):
 				child.background_color = child.background_color
 			child.scale_children()
 
+	def redraw(self):
+		print('redraw', self)
+		if not self.surface:
+			return
+		# background_color
+		self.surface.fill(self.background_color)
+		if len(self.background_color) == 4:
+			self.surface.set_alpha(background_color[3])
+		else:
+			self.surface.set_alpha(100)
+		# border
+		if self.border_width and self.border_width > 0 and self.border_color:
+			pygame.draw.rect(self.surface, self.border_color, self.surface.get_rect(), self.__border_width)
+	
+	def handle_event(self, event, screen):
+		if len(self.children) > 0:
+			for child in self.children:
+				child.handle_event(event, screen)
+
 	@property
 	def background_color(self):
 		return self.__background_color
 	@background_color.setter
 	def background_color(self, background_color):
 		self.__background_color = background_color
-		if self.surface:
-			self.surface.fill(self.__background_color)
-			if len(background_color) == 4:
-				self.surface.set_alpha(background_color[3])
-			else:
-				self.surface.set_alpha(100)
+		self.redraw()
 
 	@property
 	def parent(self):
@@ -86,3 +106,19 @@ class Gui(GameObject):
 			return abs_dimensions.astype(int)
 		else:
 			return abs_dimensions.astype(int)
+	
+	@property
+	def border_color(self):
+		return self.__border_color
+	@border_color.setter
+	def border_color(self, border_color):
+		self.__border_color = border_color
+		self.redraw()
+
+	@property
+	def border_width(self):
+		return self.__border_width
+	@border_width.setter
+	def border_width(self, border_width):
+		self.__border_width = border_width
+		self.redraw()
