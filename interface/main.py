@@ -6,6 +6,7 @@ from classes.gui.Gui import Gui
 from classes.gui.Button import Button
 from classes.Player import Player
 from classes.gui.TextBox import TextBox
+from colors import *
 
 BOARD_SIZE = 600 # board size in pixels (determines window size)
 
@@ -47,15 +48,15 @@ class Game:
 		]
 
 	def init_gui(self):
-		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(220, 220, 220), border_color=(150, 150, 150), border_width=5)
-		playerVAIwrapper = Gui((5, 2.5), (90, 20), background_color=(200, 200, 200), border_color=(150, 150, 150), border_width=5);
+		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
+		playerVAIwrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
 		
-		player1Btn = Button((5, 5), (30, 90), background_color=(0, 200, 0), border_color=(250, 250, 250), border_width=5, font_size=20, color=(250, 250, 250));
+		player1Btn = Button((5, 5), (30, 90), border_color=WHITE, border_width=5, font_size=20, color=WHITE);
 		player1Btn.on_click_callback = lambda : self.players[0].change_type();
-		player2Btn = Button((65, 5), (30, 90), background_color=(0, 200, 0), border_color=(0, 0, 0), border_width=5, font_size=20, color=(0, 0, 0));
+		player2Btn = Button((65, 5), (30, 90), border_color=BLACK, border_width=5, font_size=20, color=BLACK);
 		player2Btn.on_click_callback = lambda : self.players[1].change_type();
 
-		vsTextBox = TextBox((40, 40), (20, 20), text='vs', background_color=(220, 220, 220), color=(250, 0, 0))
+		vsTextBox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
 
 		playerVAIwrapper.insert(player1Btn)
 		playerVAIwrapper.insert(vsTextBox)
