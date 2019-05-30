@@ -2,14 +2,15 @@ import numpy as np
 import pygame
 from classes.GameObject import GameObject
 
+# all giu elements are classes inerited from Gui
 class Gui(GameObject):
-	# position: [top, left]
+	# position: [left, top]
 	# dimensions: [width, height]
-	def __init__(self, position=(0, 0), dimensions=(100, 100), background_color=(250, 250, 250, 100), border_color=(100, 100, 100), border_width=0):
-		# print('init', self)
+	def __init__(self, position=(0, 0), dimensions=(100, 100), background_color=(250, 250, 250), border_color=(100, 100, 100), border_width=0):
+		# print('init', self, 'bg', background_color)
 		self.__border_width = None
 		self.__border_color = None
-		
+
 		self.position = np.array(position)
 		self.dimensions = np.array(dimensions)
 		self.surface = pygame.Surface(self.dimensions)
@@ -42,15 +43,14 @@ class Gui(GameObject):
 			child.scale_children()
 
 	def redraw(self):
-		print('redraw', self)
 		if not self.surface:
 			return
 		# background_color
 		self.surface.fill(self.background_color)
-		if len(self.background_color) == 4:
-			self.surface.set_alpha(background_color[3])
-		else:
-			self.surface.set_alpha(100)
+		# if len(self.background_color) == 4:
+			# self.surface.set_alpha(self.background_color[3])
+		# else:
+			# self.surface.set_alpha(250)
 		# border
 		if self.border_width and self.border_width > 0 and self.border_color:
 			pygame.draw.rect(self.surface, self.border_color, self.surface.get_rect(), self.__border_width)
@@ -100,9 +100,8 @@ class Gui(GameObject):
 		abs_dimensions = self.dimensions.astype(float)
 		if self.parent:
 			node = self
-			while node.parent:
-				abs_dimensions *= (node.parent.abs_dimensions / 100)
-				node = node.parent
+			abs_dimensions *= (node.parent.abs_dimensions / 100)
+			node = node.parent
 			return abs_dimensions.astype(int)
 		else:
 			return abs_dimensions.astype(int)

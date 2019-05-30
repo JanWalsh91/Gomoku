@@ -4,14 +4,27 @@ from enum import Enum, auto
 from classes.GameObject import GameObject
 from classes.gui.Gui import Gui
 from classes.gui.Button import Button
+from classes.Player import Player
+from classes.gui.TextBox import TextBox
 
-BOARD_SIZE = 400 # board size in pixels (determines window size)
+BOARD_SIZE = 600 # board size in pixels (determines window size)
 
 def main():
 	game = Game()
 	game.game_loop()
 
+
+
 class Game:
+	"""
+	Creates a Game
+
+	Args:
+		line_num (int): Number of lines on the grid
+
+	Attributes:
+		players (Player[]): list of players
+	"""
 	ratio = 3 / 2
 
 	def __init__(self, line_num=19):
@@ -22,7 +35,10 @@ class Game:
 		# create space for gui on right
 		self.screen = pygame.display.set_mode([int(BOARD_SIZE * Game.ratio), BOARD_SIZE])
 		self.background = Background(line_num)
-		
+
+		self.turn = 1 # 1 is black, 2 is white
+		self.players = [Player(Player.TYPE.AI), Player(Player.TYPE.HUMAN)] # set one player to AI another to Human
+
 		self.init_gui()
 
 		self.intersections = Intersections(self.background.space_between_lines, line_num, self.background.line_width, size=self.background.space_between_lines)
@@ -30,14 +46,36 @@ class Game:
 			self.background, self.intersections, self.gui
 		]
 
-		self.turn = 1 # 1 is black, 2 is white
-
 	def init_gui(self):
-		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(100, 100, 120))
-		top = Button((25, 25), (50, 50), background_color=(0, 0, 0), on_click=lambda : print('click!'))
-		# btm = Gui(height=45, width=20, background_color=(0, 0, 200, 50))
-		self.gui.insert(top)
-		# self.gui.insert(btm)
+		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=(220, 220, 220), border_color=(150, 150, 150), border_width=5)
+		playerVAIwrapper = Gui((5, 2.5), (90, 20), background_color=(200, 200, 200), border_color=(150, 150, 150), border_width=5);
+		
+		player1Btn = Button((5, 5), (30, 90), background_color=(0, 200, 0), border_color=(250, 250, 250), border_width=5, font_size=20, color=(250, 250, 250));
+		player1Btn.on_click_callback = lambda : self.players[0].change_type();
+		player2Btn = Button((65, 5), (30, 90), background_color=(0, 200, 0), border_color=(0, 0, 0), border_width=5, font_size=20, color=(0, 0, 0));
+		player2Btn.on_click_callback = lambda : self.players[1].change_type();
+
+		vsTextBox = TextBox((40, 40), (20, 20), text='vs', background_color=(220, 220, 220), color=(250, 0, 0))
+
+		playerVAIwrapper.insert(player1Btn)
+		playerVAIwrapper.insert(vsTextBox)
+		playerVAIwrapper.insert(player2Btn)
+		self.gui.insert(playerVAIwrapper)
+
+		def update_button(button, player):
+			if player.is_AI():
+				button.textbox.text = 'AI'
+				button.textbox.background_color = (200, 50, 50)
+			elif player.is_human():
+				button.textbox.text = 'Player'
+				button.textbox.background_color = (50, 50, 200)
+
+		self.players[0].on_change_type = lambda: update_button(player1Btn, self.players[0])
+		self.players[1].on_change_type = lambda: update_button(player2Btn, self.players[1])
+
+		# reset type to update buttons
+		self.players[0].type = self.players[0].type
+		self.players[1].type = self.players[1].type
 
 	def game_loop(self):
 		while True:
