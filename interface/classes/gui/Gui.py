@@ -4,6 +4,16 @@ from classes.GameObject import GameObject
 
 # all giu elements are classes inerited from Gui
 class Gui(GameObject):
+	"""
+	Creates a Gui element
+	Arguments:
+		position ((left, top))
+		dimensions ((width, height))
+		background_color? (color)
+		border_color? (color)
+		border_width? (int)
+	"""
+
 	# position: [left, top]
 	# dimensions: [width, height]
 	def __init__(self, position=(0, 0), dimensions=(100, 100), background_color=(250, 250, 250), border_color=(100, 100, 100), border_width=0):

@@ -1,20 +1,28 @@
 from enum import Enum, auto
-
+from colors import *
 # Add callbacks with player.on_change_type = lambda ...
+
+default_stone_colors = [WHITE, BLACK]
 
 class Player:
 	"""
 	Creates a Player
 	Arguments:
+		name (string): player's name (color)
 		type (Player.TYPE): Human or AI
 	"""
 	class TYPE(Enum):
 		AI = auto()
 		HUMAN = auto()
 
-	def __init__(self, type):
+	def __init__(self, name, type, stone_color=None):
 		self.__on_change_type = []
 		self.type = type
+		self.name = name
+		if stone_color:
+			self.stone_color = stone_color
+		else:
+			self.stone_color = default_stone_colors.pop()
 
 	def is_AI(self):
 		return self.type == Player.TYPE.AI

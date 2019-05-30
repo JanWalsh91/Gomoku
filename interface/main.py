@@ -21,14 +21,22 @@ class Game:
 	Creates a Game
 
 	Args:
-		line_num (int): Number of lines on the grid
+		line_num? (int=19): Number of lines on the grid
 
 	Attributes:
 		players (Player[]): list of players
+	
+	Set Callbacks:
+		on_game_start
+		on_game_reset
+		on_click_grid
 	"""
 	ratio = 3 / 2
 
 	def __init__(self, line_num=19):
+		self.__on_current_player_change = []
+		self.is_playing = False
+
 		self.line_num = line_num # number of lines vertically and horizontally on board
 
 		pygame.init()
@@ -38,7 +46,11 @@ class Game:
 		self.background = Background(line_num)
 
 		self.turn = 1 # 1 is black, 2 is white
-		self.players = [Player(Player.TYPE.AI), Player(Player.TYPE.HUMAN)] # set one player to AI another to Human
+		self.players = [
+			Player('Salmon',Player.TYPE.AI, stone_color=SALMON),
+			Player('Goldenrod', Player.TYPE.HUMAN, stone_color=GOLDENROD)
+		]
+		self.current_player = self.players[0];
 
 		self.init_gui()
 
@@ -49,21 +61,22 @@ class Game:
 
 	def init_gui(self):
 		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
-		playerVAIwrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
 		
-		player1Btn = Button((5, 5), (30, 90), border_color=WHITE, border_width=5, font_size=20, color=WHITE);
-		player1Btn.on_click_callback = lambda : self.players[0].change_type();
-		player2Btn = Button((65, 5), (30, 90), border_color=BLACK, border_width=5, font_size=20, color=BLACK);
-		player2Btn.on_click_callback = lambda : self.players[1].change_type();
+		# === player VS AI ===
+		player_vs_AI_wrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		
+		player1_btn = Button((5, 5), (30, 90), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color);
+		player1_btn.on_click = lambda : self.players[0].change_type();
+		player2_btn = Button((65, 5), (30, 90), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color);
+		player2_btn.on_click = lambda : self.players[1].change_type();
 
-		vsTextBox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
+		vs_textbox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
 
-		playerVAIwrapper.insert(player1Btn)
-		playerVAIwrapper.insert(vsTextBox)
-		playerVAIwrapper.insert(player2Btn)
-		self.gui.insert(playerVAIwrapper)
+		player_vs_AI_wrapper.insert(player1_btn)
+		player_vs_AI_wrapper.insert(vs_textbox)
+		player_vs_AI_wrapper.insert(player2_btn)
 
-		def update_button(button, player):
+		def update_player_button(button, player):
 			if player.is_AI():
 				button.textbox.text = 'AI'
 				button.textbox.background_color = (200, 50, 50)
@@ -71,12 +84,50 @@ class Game:
 				button.textbox.text = 'Player'
 				button.textbox.background_color = (50, 50, 200)
 
-		self.players[0].on_change_type = lambda: update_button(player1Btn, self.players[0])
-		self.players[1].on_change_type = lambda: update_button(player2Btn, self.players[1])
+		self.players[0].on_change_type = lambda: update_player_button(player1_btn, self.players[0])
+		self.players[1].on_change_type = lambda: update_player_button(player2_btn, self.players[1])
 
 		# reset type to update buttons
 		self.players[0].type = self.players[0].type
 		self.players[1].type = self.players[1].type
+		self.gui.insert(player_vs_AI_wrapper)
+		# ===              ===
+
+		# === start / restart ===
+		start_restart_wrapper = Gui((5, 25), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		start_restart_btn = Button((10, 10), (80, 80), border_color=BLACK, border_width=5, font_size=30, color=BLACK, text='START')
+		
+		def update_start_button(button):
+			if self.is_playing:
+				button.textbox.text = 'START'
+				self.on_game_start()
+				self.is_playing = False
+			else:
+				button.textbox.text = 'RESET'
+				self.on_game_reset()
+				self.is_playing = True
+
+		start_restart_btn.on_click = lambda: update_start_button(start_restart_btn)
+		start_restart_wrapper.insert(start_restart_btn)
+		self.gui.insert(start_restart_wrapper)
+		# ===                 ===
+
+		# === current player ===
+		current_player_wrapper = Gui((5, 47.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		current_player_header = TextBox((10, 10), (80, 20), text='Current Player:', font_size=20, background_color=LIGHT_GREY)
+		current_player_text = TextBox((5, 30), (90, 60), background_color=LIGHT_GREY, font_size=45, text=self.current_player.name)
+		current_player_wrapper.insert(current_player_text)
+		current_player_wrapper.insert(current_player_header)
+
+		def update_current_player_text(text):
+			current_player_text.text = text
+
+		update_current_player_text(self.current_player.name)
+		self.on_current_player_change = lambda: update_current_player_text(self.current_player.name)
+		self.gui.insert(current_player_wrapper)	
+		# ===                ===
+
+
 
 	def game_loop(self):
 		while True:
@@ -106,12 +157,35 @@ class Game:
 	
 	def place_stone(self, position):
 		# TODO: call model/controller to handle rules preventing you from placing in certain places
-		self.game_objects.append(Stone((240, 240, 240) if self.turn == 2 else (20, 20, 20), position, self.background.space_between_lines/2.2))
+		self.game_objects.append(Stone(self.current_player.stone_color, position, self.background.space_between_lines/2.2))
 		return True
 	
 	def next_turn(self):
-		self.turn = 1 if self.turn == 2 else 2
-		print('next turn: ', self.turn)
+		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
+
+	
+	# TODO: implement callbacks for
+	def on_game_start(self): pass
+	def on_game_reset(self): pass
+	def on_click_grid(self): pass
+
+
+	@property
+	def current_player(self):
+		return self.__current_player
+	@current_player.setter
+	def current_player(self, player):
+		self.__current_player = player
+		for x in self.on_current_player_change:
+			x()
+
+	@property
+	def on_current_player_change(self):
+		return self.__on_current_player_change
+	@on_current_player_change.setter
+	def on_current_player_change(self, fn):
+		self.__on_current_player_change.append(fn)
+
 
 class Background(GameObject):
 	def __init__(self, line_num=19, background_color=(133, 193, 233), line_color=(21, 67, 96), line_width=2):
