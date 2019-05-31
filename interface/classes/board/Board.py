@@ -28,11 +28,17 @@ class Board(Gui):
 	def place_stone_at(self, index, color):
 		# get rect
 		rect = self.grid.get_rect_at(index)
-		stone = Stone(color, (int(rect.x + rect.w / 2), int(rect.y + rect.h / 2)), rect.w * 0.55)
+		if rect:
+			stone = Stone(color, (int(rect.x + rect.w / 2), int(rect.y + rect.h / 2)), rect.w * 0.55)
+			flat_index = index[0] * self.grid.line_num + index[1]
+			self.game_objects.insert(flat_index, stone)
+			# remove intersection
+			self.grid.remove_intersection_at(index)
+
+	def remove_stone_from(self, index):
 		flat_index = index[0] * self.grid.line_num + index[1]
-		self.game_objects.insert(flat_index, stone)
-		# remove intersection
-		self.grid.remove_intersection_at(index)
+		self.game_objects[flat_index] = None
+		self.grid.add_intersection_at(index)
 
 	def render(self, screen):
 		super().render(screen)

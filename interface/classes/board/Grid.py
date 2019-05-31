@@ -43,6 +43,15 @@ class Grid(Gui):
 					)
 					self.rects.append(pygame.Rect(pos, (hover_size, hover_size)))
 
+	def add_intersection_at(self, index):
+		hover_size = int(self.space_between_lines * 1.0)
+		abs_pos = self.abs_position
+		pos = (
+			abs_pos[1] + (index[1] + 1) * self.space_between_lines - hover_size / 2 + self.line_width / 2,
+			abs_pos[0] + (index[0] + 1) * self.space_between_lines - hover_size / 2 + self.line_width / 2
+		)
+		self.rects[index[0] * self.line_num + index[1]] = pygame.Rect(pos, (hover_size, hover_size))
+
 	def render(self, surface):
 		super().render(surface)
 		if len(self.rects) > 0:

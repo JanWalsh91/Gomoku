@@ -26,7 +26,9 @@ def main():
 			# check that index is ok ...
 			# ...
 			# ...
-			game.place_stone_at(index)														# place stone
+			game.place_stone_at(index)														# place stone (color based on curent player, or pass as param)
+			# game.place_stone_at([10, 10], RED)
+			# game.remove_stone_from([0, 0])												# remove stone
 			game.next_turn()																# start next player's turn
 		else:
 			print('click start!')
@@ -47,11 +49,12 @@ def main():
 	def on_new_turn(game):
 		print('new turn! It is ' + game.current_player.name + '\'s turn.')
 		if game.current_player.is_AI():
-			pass
+			print('AI thinking ...')
 			# DO AWESOME CODE
+			# ...
 			# index = AI.get_best_pos()
-			# game.place_stone_at(index) # Can call multiple times!
-			# 
+			# game.place_stone_at(index)
+			# game.remove_stone_from(index2)
 	game.on_new_turn = on_new_turn															# on new turn
 
 	# ==== start game loop! ==== #
@@ -222,6 +225,9 @@ class Game:
 
 	def place_stone_at(self, index, color=None):
 		self.board.place_stone_at(index, color if color else self.current_player.stone_color)
+
+	def remove_stone_from(self, index):
+		self.board.remove_stone_from(index)
 
 	def game_start(self):
 		self.is_playing = True
