@@ -61,9 +61,8 @@ class Grid(Gui):
 					self.click(self.index_of(rect))
 		
 	def click(self, index):
-		if len(self.on_click) > 0:
-			for x in self.on_click:
-				x(self, index)
+		for callback in self.on_click:
+			callback(self, index)
 
 	def index_of(self, rect):
 		i = self.rects.index(rect)
@@ -72,9 +71,12 @@ class Grid(Gui):
 			i % self.line_num
 		]
 
+	def get_rect_at(self, index):
+		return self.rects[index[0] * self.line_num + index[1]]
+
 	@property
 	def on_click(self):
 		return self.__on_click
 	@on_click.setter
-	def on_click(self, on_click):
-		self.__on_click.append(on_click)
+	def on_click(self, callback):
+		self.__on_click.append(callback)

@@ -30,7 +30,6 @@ class TextBox(Gui):
 		return self.__text
 	@text.setter
 	def text(self, text):
-		print('Setting text to', text)
 		self.__text = text
 		self.redraw()
 
@@ -39,7 +38,6 @@ class TextBox(Gui):
 		return self.__color
 	@color.setter
 	def color(self, color):
-		print('Setting color to', color)
 		self.__color = color
 		self.redraw()
 
@@ -48,6 +46,5 @@ class TextBox(Gui):
 		return self.__font_size
 	@font_size.setter
 	def font_size(self, font_size):
-		print('Setting font_size to', font_size)
 		self.__font_size = font_size
 		self.redraw()

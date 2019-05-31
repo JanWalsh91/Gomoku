@@ -40,7 +40,6 @@ class Player:
 			self.type = Player.TYPE.HUMAN if self.is_AI() else Player.TYPE.AI
 		else:
 			self.type = type
-		print('changed type to ', self.type)
 
 	@property
 	def type(self):
@@ -48,9 +47,8 @@ class Player:
 	@type.setter
 	def type(self, type):
 		self.__type = type
-		if len(self.on_change_type) > 0:
-			for x in self.on_change_type:
-				x()
+		for callback in self.on_change_type:
+			callback(self)
 
 	@property
 	def on_change_type(self):

@@ -1,5 +1,5 @@
 
-from GameObject import GameObject 
+from classes.GameObject import GameObject 
 import pygame
 
 class Stone(GameObject):

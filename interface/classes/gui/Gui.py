@@ -20,6 +20,7 @@ class Gui(GameObject):
 		# print('init', self, 'bg', background_color)
 		self.__border_width = None
 		self.__border_color = None
+		self.__background_color = None
 
 		self.position = np.array(position)
 		self.dimensions = np.array(dimensions)
@@ -127,4 +128,12 @@ class Gui(GameObject):
 	@border_width.setter
 	def border_width(self, border_width):
 		self.__border_width = border_width
+		self.redraw()
+
+	@property
+	def background_color(self):
+		return self.__background_color
+	@background_color.setter
+	def background_color(self, background_color):
+		self.__background_color = background_color
 		self.redraw()
