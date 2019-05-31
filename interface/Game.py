@@ -6,9 +6,10 @@ from classes.gui.Gui import Gui
 from classes.gui.Button import Button
 from classes.Player import Player
 from classes.gui.TextBox import TextBox
+from classes.board.Board import Board
 from colors import *
 
-BOARD_SIZE = 600 # board size in pixels (determines window size)
+BOARD_SIZE = 600 # BOARD (not window) size in pixels (=> determines window size)
 
 def main():
 	game = Game()
@@ -35,6 +36,7 @@ class Game:
 
 	def __init__(self, line_num=19):
 		self.__on_current_player_change = []
+		self.__on_intersection_click = []
 		self.is_playing = False
 
 		self.line_num = line_num # number of lines vertically and horizontally on board
@@ -43,9 +45,10 @@ class Game:
 		pygame.display.set_caption('Gomoku')
 		# create space for gui on right
 		self.screen = pygame.display.set_mode([int(BOARD_SIZE * Game.ratio), BOARD_SIZE])
-		self.background = Background(line_num)
+		# self.background = Background(line_num)
+		# self.intersections = Intersections(self.background.space_between_lines, line_num, self.background.line_width, size=self.background.space_between_lines)
+		self.board = Board(BOARD_SIZE, on_intersection_click=lambda board, index: board.test())
 
-		self.turn = 1 # 1 is black, 2 is white
 		self.players = [
 			Player('Salmon',Player.TYPE.AI, stone_color=SALMON),
 			Player('Goldenrod', Player.TYPE.HUMAN, stone_color=GOLDENROD)
@@ -54,9 +57,11 @@ class Game:
 
 		self.init_gui()
 
-		self.intersections = Intersections(self.background.space_between_lines, line_num, self.background.line_width, size=self.background.space_between_lines)
 		self.game_objects = [
-			self.background, self.intersections, self.gui
+			# self.background,
+			# self.intersections,
+			self.board,
+			self.gui
 		]
 
 	def init_gui(self):
@@ -66,9 +71,9 @@ class Game:
 		player_vs_AI_wrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
 		
 		player1_btn = Button((5, 5), (30, 90), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color);
-		player1_btn.on_click = lambda : self.players[0].change_type();
+		player1_btn.on_click = lambda : self.players[0].change_type() if not self.is_playing else None;
 		player2_btn = Button((65, 5), (30, 90), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color);
-		player2_btn.on_click = lambda : self.players[1].change_type();
+		player2_btn.on_click = lambda : self.players[1].change_type() if not self.is_playing else None;
 
 		vs_textbox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
 
@@ -127,7 +132,12 @@ class Game:
 		self.gui.insert(current_player_wrapper)	
 		# ===                ===
 
-
+		# === message box ===
+		message_box_wrapper = Gui((5, 70), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		self.message_textbox = TextBox((10, 10), (80, 80), text='Message', font_size=20, background_color=LIGHT_GREY)
+		message_box_wrapper.insert(self.message_textbox)
+		self.gui.insert(message_box_wrapper)	
+		# ===             ===
 
 	def game_loop(self):
 		while True:
@@ -140,15 +150,17 @@ class Game:
 				sys.exit()
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
 				sys.exit()
-			if event.type == pygame.MOUSEBUTTONUP:
-				rect = self.intersections.clicked_on((pygame.mouse.get_pos()))
-				if rect:
-					self.intersections.remove(rect)
-					placed = self.place_stone(rect.center)
-					if placed:
-						self.next_turn()
+			# if event.type == pygame.MOUSEBUTTONUP:
+			# 	print('clicked')
+				# rect = self.intersections.clicked_on((pygame.mouse.get_pos()))
+				# if rect:
+				# 	self.intersections.remove(rect)
+				# 	placed = self.place_stone(rect.center)
+				# 	if placed:
+				# 		self.next_turn()
 			
 			self.gui.handle_event(event, self.screen)
+			self.board.handle_event(event, self.screen)
 
 	def render_game_objects(self):
 		for game_object in self.game_objects:
@@ -186,60 +198,73 @@ class Game:
 	def on_current_player_change(self, fn):
 		self.__on_current_player_change.append(fn)
 
+	@property
+	def message(self):
+		return self.message_textbox.text
+	@message.setter
+	def message(self, text):
+		self.message_textbox.text = text
 
-class Background(GameObject):
-	def __init__(self, line_num=19, background_color=(133, 193, 233), line_color=(21, 67, 96), line_width=2):
-		# init background
-		self.surface = pygame.Surface([BOARD_SIZE, BOARD_SIZE]).convert()
-		self.surface.fill(background_color)
-		# init lines
-		self.space_between_lines = BOARD_SIZE / (line_num + 1)
-		self.line_width = line_width
-		for i in range(line_num):
-			i += 1
-			dist = i * self.space_between_lines # distance from edge
-			pygame.draw.line(self.surface, line_color, (dist, 0), (dist, BOARD_SIZE), line_width)
-			pygame.draw.line(self.surface, line_color, (0, dist), (BOARD_SIZE, dist), line_width)
-		self.position = (0, 0)
-	def render(self, screen):
-		screen.blit(self.surface, self.position)
+	@property
+	def on_intersection_click(self, index):
+		return self.__on_intersection_click;
+	@on_intersection_click.setter
+	def on_intersection_click(self, fn):
+		self.__on_intersection_click.append(fn)
 
-class Intersections(GameObject):
-	def __init__(self, space_between_lines, line_num, line_width, size=50, hover_color=(250, 250, 250, 50)):
-		self.hover_color = hover_color
+# class Background(GameObject):
+# 	def __init__(self, line_num=19, background_color=(133, 193, 233), line_color=(21, 67, 96), line_width=2):
+# 		# init background
+# 		self.surface = pygame.Surface([BOARD_SIZE, BOARD_SIZE]).convert()
+# 		self.surface.fill(background_color)
+# 		# init lines
+# 		self.space_between_lines = BOARD_SIZE / (line_num + 1)
+# 		self.line_width = line_width
+# 		for i in range(line_num):
+# 			i += 1
+# 			dist = i * self.space_between_lines # distance from edge
+# 			pygame.draw.line(self.surface, line_color, (dist, 0), (dist, BOARD_SIZE), line_width)
+# 			pygame.draw.line(self.surface, line_color, (0, dist), (BOARD_SIZE, dist), line_width)
+# 		self.position = (0, 0)
+# 	def render(self, screen):
+# 		screen.blit(self.surface, self.position)
 
-		# set intersection positions
-		self.rects = []
-		for x in range(line_num):
-			x += 1
-			for y in range(line_num):
-				y += 1
-				pos = (x * space_between_lines - size / 2 + line_width / 2, y * space_between_lines - size / 2 + line_width / 2)
-				self.rects.append(pygame.Rect(pos, (size, size)))
+# class Intersections(GameObject):
+# 	def __init__(self, space_between_lines, line_num, line_width, size=50, hover_color=(250, 250, 250, 50)):
+# 		self.hover_color = hover_color
 
-	# handle hover over rect
-	def render(self, screen):
-		for rect in self.rects:
-			if rect.collidepoint(pygame.mouse.get_pos()):
-				pygame.gfxdraw.box(screen, rect, self.hover_color)
+# 		# set intersection positions
+# 		self.rects = []
+# 		for x in range(line_num):
+# 			x += 1
+# 			for y in range(line_num):
+# 				y += 1
+# 				pos = (x * space_between_lines - size / 2 + line_width / 2, y * space_between_lines - size / 2 + line_width / 2)
+# 				self.rects.append(pygame.Rect(pos, (size, size)))
 
-	def clicked_on(self, pos):
-		for rect in self.rects:
-			if rect.collidepoint(pygame.mouse.get_pos()):
-				return rect
-		return None
+# 	# handle hover over rect
+# 	def render(self, screen):
+# 		for rect in self.rects:
+# 			if rect.collidepoint(pygame.mouse.get_pos()):
+# 				pygame.gfxdraw.box(screen, rect, self.hover_color)
 
-	def remove(self, rect):
-		self.rects.remove(rect)
+# 	def clicked_on(self, pos):
+# 		for rect in self.rects:
+# 			if rect.collidepoint(pygame.mouse.get_pos()):
+# 				return rect
+# 		return None
 
-class Stone(GameObject):
-	def __init__(self, color, position, size):
-		self.color = color
-		self.position = position
-		self.size = int(size)
+# 	def remove(self, rect):
+# 		self.rects.remove(rect)
 
-	def render(self, screen):
-		pygame.draw.circle(screen, self.color, self.position, self.size)
+# class Stone(GameObject):
+# 	def __init__(self, color, position, size):
+# 		self.color = color
+# 		self.position = position
+# 		self.size = int(size)
+
+# 	def render(self, screen):
+# 		pygame.draw.circle(screen, self.color, self.position, self.size)
 
 if __name__ == '__main__':
 	main()

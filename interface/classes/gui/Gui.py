@@ -41,6 +41,7 @@ class Gui(GameObject):
 		self.children.append(gui)
 		gui.parent = self;
 		self.scale_children()
+		gui.redraw()
 
 	def scale_children(self):
 		if len(self.children) == 0:
@@ -57,10 +58,6 @@ class Gui(GameObject):
 			return
 		# background_color
 		self.surface.fill(self.background_color)
-		# if len(self.background_color) == 4:
-			# self.surface.set_alpha(self.background_color[3])
-		# else:
-			# self.surface.set_alpha(250)
 		# border
 		if self.border_width and self.border_width > 0 and self.border_color:
 			pygame.draw.rect(self.surface, self.border_color, self.surface.get_rect(), self.__border_width)

@@ -9,16 +9,13 @@ class Button(Gui):
 		NORMAL = auto()
 		DOWN = auto()
 
-	def __init__(self, position=(0, 0), dimensions=(100, 100), text='ClickMe', background_color=(250, 250, 250), active_background_color=None, color=(0, 0, 0), border_color=(200, 200, 200), border_width=0, on_click=None, font_size=30):
+	def __init__(self, position=(0, 0), dimensions=(100, 100), text='ClickMe', background_color=(250, 250, 250), color=(0, 0, 0), border_color=(200, 200, 200), border_width=0, on_click=None, font_size=30):
 		super().__init__(position, dimensions, background_color=background_color, border_color=border_color, border_width=border_width)
 		self.__on_click = []
 		self.__color = None
-		self.__active_background_color = None
 		self.__state = None
-		self.inactive_background_color = self.background_color
 
 		self.color = color
-		self.active_background_color = tuple(active_background_color if active_background_color else self.calc_active_background_color(background_color)) 
 		self.state = Button.States.NORMAL
 		if on_click:
 			self.on_click = on_click
@@ -30,11 +27,8 @@ class Button(Gui):
 	def redraw(self):
 		super().redraw()
 
-	def calc_active_background_color(self, background_color):
-		mod = lambda x: x + (10 if x < 125 else -10)
-		return np.array([mod(x) for x in np.array(background_color)])
-
 	def handle_event(self, event, screen):
+		super().handle_event(event, screen)
 		pos = pygame.mouse.get_pos()
 		relpos = np.array(pos) - self.abs_position
 		rect = self.surface.get_rect().collidepoint(relpos)
