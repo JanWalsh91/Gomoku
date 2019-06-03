@@ -9,7 +9,7 @@ from classes.gui.TextBox import TextBox
 from classes.board.Board import Board
 from colors import *
 
-BOARD_SIZE = 600 # BOARD (not window) size in pixels (=> determines window size based on ratio)
+BOARD_SIZE = 400 # BOARD (not window) size in pixels (=> determines window size based on ratio)
 
 
 # ==== EXAMPLE USAGE ==== #
@@ -107,8 +107,8 @@ class Game:
 		self.board = Board(BOARD_SIZE, line_num=line_num, on_grid_click=lambda board, index: self.grid_click(index))
 
 		self.players = [
-			Player('Salmon',Player.TYPE.AI, stone_color=SALMON),
-			Player('Goldenrod', Player.TYPE.HUMAN, stone_color=GOLDENROD)
+			Player('Black', Player.TYPE.AI, stone_color=BLACK),
+			Player('White', Player.TYPE.HUMAN, stone_color=WHITE)
 		]
 		self.current_player = self.players[0];
 
