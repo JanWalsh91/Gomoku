@@ -2,24 +2,39 @@
 import argparse
 
 from controller.Minmax import Minmax
-from controller.Board import Board
+from controller.Gomoku import Gomoku
 from interface.Interface import Interface
 from common.Player import Player
+
+default_rules = [Gomoku.Rules.CAPTURE, Gomoku.Rules.GAME_ENDING_CAPTURE, Gomoku.Rules.NO_DOUBLE_THREE]
+
+rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(Gomoku.Rules)}
 
 # ==== EXAMPLE USAGE ==== #
 def main():
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-s', action="store", dest="board_size", type=int, help='Size of the board')
+
+	parser.add_argument('-r0', action='store_true', default=False, dest='r0', help='Remove default rules')
+	for key in rules_dictionary:
+		parser.add_argument('-' + key, action='store_true', default=False, dest=key, help='Rule ' + key)
+
 	args = parser.parse_args()
+	rules = [] if args.r0 else default_rules
+	for key in rules_dictionary:
+		if vars(args)[key]:
+			rules.append(rules_dictionary[key])
+	if Gomoku.Rules.GAME_ENDING_CAPTURE in rules and Gomoku.Rules.CAPTURE not in rules:
+		rules.append(Gomoku.Rules.CAPTURE)
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
 		interface = Interface([Player(Player.TYPE.AI), Player(Player.TYPE.HUMAN)], args.board_size)
-		board = Board(args.board_size)
+		board = Gomoku(rules, args.board_size)
 	else:
 		interface = Interface([Player(Player.TYPE.AI), Player(Player.TYPE.HUMAN)])
-		board = Board()
+		board = Gomoku(rules)
 
 	# ==== set up your callbacks ==== #
 	def on_click(interface, index):
@@ -60,7 +75,7 @@ def main():
 	interface.on_new_turn = on_new_turn															# on new turn
 
 	# TODO: update interfaces and colors
-	# interface.intersection_validity_array = [[2 for y in range(19)] for i in range(19)]
+	# interface.intersection_validity_array = [[1 for y in range(19)] for i in range(19)]
 
 
 	interface.on_reset = on_reset
