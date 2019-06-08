@@ -1,14 +1,18 @@
-import pygame
-from interface.classes.gui.Gui import Gui
+from interface.gui.Gui import Gui
 from interface.colors import *
+import pygame
+import sys
 
 class Grid(Gui):
-	def __init__(self, line_num, background_color=FOREST_GREEN, border_color=WHITE, border_width=5, line_color=WHITE, line_width=2, hover_color=(250, 250, 250, 50)):
+	def __init__(self, line_num, background_color=FOREST_GREEN, border_color=WHITE, border_width=5, line_color=WHITE, line_width=2, hover_color_valid=(VALID_HOVER), hover_color_invalid=(INVALID_HOVER)):
 		self.ready_to_draw = False
 		super().__init__((5, 5), (90, 90), background_color=background_color, border_color=border_color, border_width=border_width)
+		self.surface = pygame.Surface(self.dimensions)
 		self.__on_click = []
 		self.rects = []
-		self.hover_color = hover_color		
+		self.__intersection_validity_array = [[1 for y in range(line_num)] for i in range(line_num)] # 0: no hover, 1: valid, 2: invalid
+		self.hover_color_valid = hover_color_valid
+		self.hover_color_invalid = hover_color_invalid
 		self.line_width = line_width
 		self.line_num = line_num
 		self.line_color = line_color
@@ -57,7 +61,9 @@ class Grid(Gui):
 		if len(self.rects) > 0:
 			for rect in self.rects:
 				if rect and rect.collidepoint(pygame.mouse.get_pos()):
-					pygame.gfxdraw.box(surface, rect, self.hover_color)
+					color = self.get_color_by_validity(self.get_rect_validity(rect))
+					if color:
+						pygame.draw.circle(surface, color, rect.center, rect.w // 2, 1)
 	
 	def remove_intersection_at(self, index):
 		self.rects[index[0] * self.line_num + index[1]] = None
@@ -80,6 +86,20 @@ class Grid(Gui):
 			i % self.line_num
 		]
 
+	def get_rect_validity(self, rect):
+		row, col = self.index_of(rect)
+		return self.intersection_validity_array[row][col]
+
+	def get_color_by_validity(self, validity):
+		if validity == 0:
+			return None
+		elif validity == 1:
+			return self.hover_color_valid
+		elif validity == 2:
+			return self.hover_color_invalid
+		else:
+			return None
+
 	def get_rect_at(self, index):
 		return self.rects[index[0] * self.line_num + index[1]]
 
@@ -89,3 +109,15 @@ class Grid(Gui):
 	@on_click.setter
 	def on_click(self, callback):
 		self.__on_click.append(callback)
+
+	@property
+	def intersection_validity_array(self):
+		return self.__intersection_validity_array
+	@intersection_validity_array.setter
+	def intersection_validity_array(self, val):
+		if len(val) != self.line_num:
+			raise Exception('Invalid intersection_validity_array')
+		for row in val:
+			if len(row) != self.line_num:
+				raise Exception('Invalid intersection_validity_array')
+		self.__intersection_validity_array = val

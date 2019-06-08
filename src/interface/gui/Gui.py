@@ -1,6 +1,6 @@
 import numpy as np
 import pygame
-from interface.classes.GameObject import GameObject
+from interface.GameObject import GameObject
 
 # all giu elements are classes inerited from Gui
 class Gui(GameObject):
@@ -31,8 +31,11 @@ class Gui(GameObject):
 		self.border_color = border_color
 		self.border_width = border_width
 
-	def render(self, screen):
-		screen.blit(self.surface, self.abs_position)
+	def render(self, screen, flag=None):
+		if flag:
+			screen.blit(self.surface, self.abs_position, special_flags=flag)
+		else:
+			screen.blit(self.surface, self.abs_position)
 		for child in self.children:
 			child.render(screen)
 

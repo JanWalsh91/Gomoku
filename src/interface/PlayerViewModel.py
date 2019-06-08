@@ -1,23 +1,19 @@
-from enum import Enum, auto
+from common.Player import Player
 from interface.colors import *
-# Add callbacks with player.on_change_type = lambda ...
 
 default_stone_colors = [WHITE, BLACK]
 
-class Player:
+class PlayerViewModel(Player):
 	"""
-	Creates a Player
+	Creates a PlayerViewModel
 	Arguments:
 		name (string): player's name (color)
 		type (Player.TYPE): Human or AI
 	"""
-	class TYPE(Enum):
-		AI = auto()
-		HUMAN = auto()
 
 	def __init__(self, name, type, stone_color=None):
 		self.__on_change_type = []
-		self.type = type
+		super().__init__(type)
 		self.name = name
 		if stone_color:
 			self.stone_color = stone_color

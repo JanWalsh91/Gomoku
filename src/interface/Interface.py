@@ -1,77 +1,19 @@
 import sys, pygame
 import pygame.gfxdraw
 from enum import Enum, auto
-from interface.classes.GameObject import GameObject
-from interface.classes.gui.Gui import Gui
-from interface.classes.gui.Button import Button
-from interface.classes.Player import Player
-from interface.classes.gui.TextBox import TextBox
-from interface.classes.board.Board import Board
+from interface.GameObject import GameObject
+from interface.gui.Gui import Gui
+from interface.gui.Button import Button
+from interface.PlayerViewModel import PlayerViewModel
+from interface.gui.TextBox import TextBox
+from interface.board.Board import Board
 from interface.colors import *
 
 BOARD_SIZE = 600 # BOARD (not window) size in pixels (=> determines window size based on ratio)
 
-
-# ==== EXAMPLE USAGE ==== #
-def main():
-	# ==== create game (line_num optional) ==== #
-	game = Game()
-
-	# ==== set up your callbacks ==== #
-	def on_click(game, index):
-		if game.is_playing:
-			if game.current_player.is_AI():
-				print('It\'s the AI\'s turn!');
-				return
-			# check that index is ok ...
-			# ...
-			# ...
-			game.place_stone_at(index)														# place stone (color based on curent player, or pass as param)
-			# game.place_stone_at([10, 10], RED)
-			# game.remove_stone_from([0, 0])												# remove stone
-			game.next_turn()																# start next player's turn
-		else:
-			print('click start!')
-	game.on_grid_click = on_click															# on click
-
-	def on_start(game):
-		print('game has started!')
-		if game.current_player.is_AI():
-			print('AI thinking ...')
-			# DO AWESOME CODE
-			game.message = 'AI thinking ...'												# set message
-	game.on_start = on_start																# on start
-
-	def on_reset(game):																		# on reset
-		print('game has reset.')
-	game.on_reset = on_reset
-
-	def on_new_turn(game):
-		print('new turn! It is ' + game.current_player.name + '\'s turn.')
-		if game.current_player.is_AI():
-			print('AI thinking ...')
-			# DO AWESOME CODE
-			# ...
-			# index = AI.get_best_pos()
-			# game.place_stone_at(index)
-			# game.remove_stone_from(index2)
-	game.on_new_turn = on_new_turn															# on new turn
-
-	# ==== start game loop! ==== #
-	game.game_loop()																		# game loop
-
-
-
-
-
-
-
-
-
-
-class Game:
+class Interface:
 	"""
-	Creates a Game
+	Creates a Interface
 
 	Args:
 		line_num? (int=19): Number of lines on the grid
@@ -89,7 +31,7 @@ class Game:
 	"""
 	ratio = 3 / 2
 
-	def __init__(self, line_num=19):
+	def __init__(self, players, line_num=19):
 		self.__on_current_player_change = []
 		self.__on_grid_click = []
 		self.__on_start = []
@@ -102,17 +44,20 @@ class Game:
 		pygame.init()
 		pygame.display.set_caption('Gomoku')
 
-		self.screen = pygame.display.set_mode([int(BOARD_SIZE * Game.ratio), BOARD_SIZE])
+		self.screen = pygame.display.set_mode([int(BOARD_SIZE * Interface.ratio), BOARD_SIZE])
 			
 		self.board = Board(BOARD_SIZE, line_num=line_num, on_grid_click=lambda board, index: self.grid_click(index))
 
 		self.players = [
-			Player('Black', Player.TYPE.AI, stone_color=BLACK),
-			Player('White', Player.TYPE.HUMAN, stone_color=WHITE)
+			PlayerViewModel('Black', players[0].type),
+			PlayerViewModel('White', players[1].type)
 		]
-		self.current_player = self.players[0];
+
+		self.current_player = self.players[0]
 
 		self.init_gui()
+
+		self.board.grid.hover_color_valid = self.current_player.stone_color # set hover color of current player
 
 		self.game_objects = [
 			self.board,
@@ -121,15 +66,15 @@ class Game:
 
 
 	def init_gui(self):
-		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Game.ratio - BOARD_SIZE, BOARD_SIZE), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
+		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Interface.ratio - BOARD_SIZE, BOARD_SIZE), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		
 		# === player VS AI ===
-		player_vs_AI_wrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		player_vs_AI_wrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		
-		player1_btn = Button((5, 5), (30, 90), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color);
-		player1_btn.on_click = lambda button: self.players[0].change_type() if not self.is_playing else print('Can\'t change player type while in game!');
-		player2_btn = Button((65, 5), (30, 90), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color);
-		player2_btn.on_click = lambda button: self.players[1].change_type() if not self.is_playing else print('Can\'t change player type while in game!');
+		player1_btn = Button((5, 5), (30, 90), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color)
+		player1_btn.on_click = lambda button: self.players[0].change_type() if not self.is_playing else print('Can\'t change player type while in game!')
+		player2_btn = Button((65, 5), (30, 90), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color)
+		player2_btn.on_click = lambda button: self.players[1].change_type() if not self.is_playing else print('Can\'t change player type while in game!')
 
 		vs_textbox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
 
@@ -155,7 +100,7 @@ class Game:
 		# ===              ===
 
 		# === start / restart ===
-		start_restart_wrapper = Gui((5, 25), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		start_restart_wrapper = Gui((5, 25), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		start_restart_btn = Button((10, 10), (80, 80), border_color=BLACK, border_width=5, font_size=30, color=BLACK, background_color=FOREST_GREEN, text='START !')
 		
 		def update_start_button(button):
@@ -176,7 +121,7 @@ class Game:
 		# ===                 ===
 
 		# === current player ===
-		current_player_wrapper = Gui((5, 47.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		current_player_wrapper = Gui((5, 47.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		current_player_header = TextBox((10, 10), (80, 20), text='Current Player:', font_size=20, background_color=LIGHT_GREY)
 		current_player_text = TextBox((5, 30), (90, 60), background_color=LIGHT_GREY, font_size=45, text=self.current_player.name)
 		current_player_wrapper.insert(current_player_text)
@@ -192,13 +137,13 @@ class Game:
 		# ===                ===
 
 		# === message box ===
-		message_box_wrapper = Gui((5, 70), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5);
+		message_box_wrapper = Gui((5, 70), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		self.message_textbox = TextBox((10, 10), (80, 80), text='_', font_size=20, background_color=LIGHT_GREY)
 		message_box_wrapper.insert(self.message_textbox)
 		self.gui.insert(message_box_wrapper)	
 		# ===             ===
 
-	def game_loop(self):
+	def loop(self):
 		while True:
 			self.handle_events()
 			self.render_game_objects()
@@ -220,6 +165,7 @@ class Game:
 	
 	def next_turn(self):
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
+		self.board.grid.hover_color_valid = self.current_player.stone_color
 		for callback in self.on_new_turn:
 			callback(self)
 
@@ -271,31 +217,38 @@ class Game:
 
 	@property
 	def on_grid_click(self):
-		return self.__on_grid_click;
+		return self.__on_grid_click
 	@on_grid_click.setter
 	def on_grid_click(self, callback):
 		self.__on_grid_click.append(callback)
 
 	@property
 	def on_start(self):
-		return self.__on_start;
+		return self.__on_start
 	@on_start.setter
 	def on_start(self, callback):
 		self.__on_start.append(callback)
 
 	@property
 	def on_reset(self):
-		return self.__on_reset;
+		return self.__on_reset
 	@on_reset.setter
 	def on_reset(self, callback):
 		self.__on_reset.append(callback)
 
 	@property
 	def on_new_turn(self):
-		return self.__on_new_turn;
+		return self.__on_new_turn
 	@on_new_turn.setter
 	def on_new_turn(self, callback):
 		self.__on_new_turn.append(callback)
+
+	@property
+	def intersection_validity_array(self):
+		return self.board.grid.intersection_validity_array
+	@intersection_validity_array.setter
+	def intersection_validity_array(self, val):
+		self.board.grid.intersection_validity_array = val
 
 if __name__ == '__main__':
 	main()

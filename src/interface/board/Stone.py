@@ -1,5 +1,6 @@
+
+from interface.GameObject import GameObject 
 import pygame
-from interface.classes.GameObject import GameObject 
 
 class Stone(GameObject):
 	def __init__(self, color, position, size):

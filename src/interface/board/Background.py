@@ -1,5 +1,5 @@
+from interface.gui.Gui import Gui
 import pygame
-from interface.classes.gui.Gui import Gui
 from interface.colors import *
 
 class Background(Gui):
