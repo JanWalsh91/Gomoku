@@ -8,7 +8,7 @@ class Board(Gui):
 
 	def __init__(self, size, line_num=19, background_color=FOREST_GREEN, border_color=GREY, border_width=5, line_color=WHITE, line_width=1, on_grid_click=None):
 		super().__init__((0, 0), (size, size)) # is only wrapper for visual elements
-		self.game_objects = []
+		self.game_objects = [None] * line_num * line_num
 		self.__on_grid_click = []
 		self.background = Background(background_color=background_color, border_color=border_color, border_width=border_width)
 		self.insert(self.background)
@@ -31,14 +31,16 @@ class Board(Gui):
 		if rect:
 			stone = Stone(color, (int(rect.x + rect.w / 2), int(rect.y + rect.h / 2)), rect.w * 0.55)
 			flat_index = index[0] * self.grid.line_num + index[1]
-			self.game_objects.insert(flat_index, stone)
+			self.game_objects[flat_index] = stone
 			# remove intersection
 			self.grid.remove_intersection_at(index)
+			self.redraw()
 
 	def remove_stone_from(self, index):
 		flat_index = index[0] * self.grid.line_num + index[1]
 		self.game_objects[flat_index] = None
 		self.grid.add_intersection_at(index)
+		self.redraw()
 
 	def render(self, screen):
 		super().render(screen)

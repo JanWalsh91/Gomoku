@@ -3,12 +3,13 @@ import argparse
 
 from controller.Minmax import Minmax
 from controller.Gomoku import Gomoku
+from controller.rules.ARule import ARule
+from controller.rules.RuleFactory import RuleFactory
 from interface.Interface import Interface
-from common.Player import Player
 
-default_rules = [Gomoku.Rules.CAPTURE, Gomoku.Rules.GAME_ENDING_CAPTURE, Gomoku.Rules.NO_DOUBLE_THREE]
+default_rules = [RuleFactory.Name.CAPTURE, RuleFactory.Name.CAPTURE_GAME_ENDING, RuleFactory.Name.NO_DOUBLE_THREE]
 
-rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(Gomoku.Rules)}
+rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
 
 # ==== EXAMPLE USAGE ==== #
 def main():
@@ -25,16 +26,17 @@ def main():
 	for key in rules_dictionary:
 		if vars(args)[key]:
 			rules.append(rules_dictionary[key])
-	if Gomoku.Rules.GAME_ENDING_CAPTURE in rules and Gomoku.Rules.CAPTURE not in rules:
-		rules.append(Gomoku.Rules.CAPTURE)
+	if RuleFactory.Name.CAPTURE_GAME_ENDING in rules and RuleFactory.Name.CAPTURE not in rules:
+		rules.append(RuleFactory.Name.CAPTURE)
+
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
-		interface = Interface([Player(Player.TYPE.AI), Player(Player.TYPE.HUMAN)], args.board_size)
-		board = Gomoku(rules, args.board_size)
+		go = Gomoku(rules, args.board_size)
+		interface = Interface(go.players, args.board_size)
 	else:
-		interface = Interface([Player(Player.TYPE.AI), Player(Player.TYPE.HUMAN)])
-		board = Gomoku(rules)
+		go = Gomoku(rules)
+		interface = Interface(go.players)
 
 	# ==== set up your callbacks ==== #
 	def on_click(interface, index):
@@ -45,11 +47,13 @@ def main():
 			# check that index is ok ...
 			# ...
 			# ...
-			interface.place_stone_at(index)														# place stone (color based on curent player, or pass as param)
-			# interface.place_stone_at([10, 10], RED)
-			# interface.remove_stone_from([0, 0])												# remove stone
-			interface.next_turn()																# start next player's turn
-			# board.blabla
+			can_place = go.place(index, go.current_player, interface)
+			if can_place:	
+				interface.place_stone_at(index)														# place stone (color based on curent player, or pass as param)
+				# interface.place_stone_at([10, 10], RED)
+				# interface.remove_stone_from([0, 0])												# remove stone
+				interface.next_turn()																# start next player's turn
+				go.next_turn()
 		else:
 			print('click start!')
 
@@ -91,13 +95,13 @@ def main():
 
 
 
-	board.place([0, 0], 1)
-	board.place([0, 1], 1)
-	board.place([1, 1], 1)
-	board.place([2, 1], 2)
-	board.print()
-	print(board.get_moves())
-	print(board.heuristic(1))
+	# board.place([0, 0], 1)
+	# board.place([0, 1], 1)
+	# board.place([1, 1], 1)
+	# board.place([2, 1], 2)
+	# board.print()
+	# print(board.get_moves())
+	# print(board.heuristic(1))
 
 
 if __name__ == '__main__':
