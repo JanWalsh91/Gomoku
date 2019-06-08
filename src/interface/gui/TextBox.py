@@ -1,5 +1,5 @@
 import pygame
-from classes.gui.Gui import Gui
+from interface.gui.Gui import Gui
 
 class TextBox(Gui):
 	def __init__(self, position=(0, 0), dimensions=(100, 100), text='test', background_color=(250, 250, 250), active_background_color=None, color=(0, 0, 0), border_color=(200, 200, 200), border_width=0, font_size=30):

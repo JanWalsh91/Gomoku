@@ -26,3 +26,9 @@ SALMON = (236, 112, 99)
 
 AI = (200, 50, 50)
 HUMAN = (50, 50, 200)
+
+
+# W ALPHA
+
+VALID_HOVER = (0, 255, 0)
+INVALID_HOVER = (255, 0, 0)
