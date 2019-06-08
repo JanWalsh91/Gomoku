@@ -1,15 +1,15 @@
 import sys, pygame
 import pygame.gfxdraw
 from enum import Enum, auto
-from classes.GameObject import GameObject
-from classes.gui.Gui import Gui
-from classes.gui.Button import Button
-from classes.Player import Player
-from classes.gui.TextBox import TextBox
-from classes.board.Board import Board
-from colors import *
+from interface.classes.GameObject import GameObject
+from interface.classes.gui.Gui import Gui
+from interface.classes.gui.Button import Button
+from interface.classes.Player import Player
+from interface.classes.gui.TextBox import TextBox
+from interface.classes.board.Board import Board
+from interface.colors import *
 
-BOARD_SIZE = 400 # BOARD (not window) size in pixels (=> determines window size based on ratio)
+BOARD_SIZE = 600 # BOARD (not window) size in pixels (=> determines window size based on ratio)
 
 
 # ==== EXAMPLE USAGE ==== #

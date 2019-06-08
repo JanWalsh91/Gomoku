@@ -1,6 +1,6 @@
-from classes.gui.Gui import Gui
-from colors import *
 import pygame
+from interface.classes.gui.Gui import Gui
+from interface.colors import *
 
 class Grid(Gui):
 	def __init__(self, line_num, background_color=FOREST_GREEN, border_color=WHITE, border_width=5, line_color=WHITE, line_width=2, hover_color=(250, 250, 250, 50)):

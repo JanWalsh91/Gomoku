@@ -6,7 +6,7 @@ class Board:
 
 	def __init__(self, size=19):
 		if (size < 1):
-			raise Exception('Board size must be at least 5')
+			raise Exception('Board size must be at least 5') # ?
 		self.size = size
 		self.values = np.zeros(shape=(size,size), dtype=int)
 
@@ -21,7 +21,8 @@ class Board:
 		print('Placed')
 		return True
 
-	def get_moves(self): # TODO: by player
+	# If cell is empty (== 0) and if no conflict with additional rules
+	def get_moves(self, player): # TODO: by player
 		print('get_moves')
 		# get list of (all ?) possible placements
 		moves = []

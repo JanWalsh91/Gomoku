@@ -1,6 +1,6 @@
 import numpy as np
 import pygame
-from classes.GameObject import GameObject
+from interface.classes.GameObject import GameObject
 
 # all giu elements are classes inerited from Gui
 class Gui(GameObject):

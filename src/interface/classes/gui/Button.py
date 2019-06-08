@@ -1,7 +1,7 @@
 import numpy as np
-from classes.gui.Gui import Gui
+from interface.classes.gui.Gui import Gui
 import pygame
-from classes.gui.TextBox import TextBox
+from interface.classes.gui.TextBox import TextBox
 
 class Button(Gui):
 	def __init__(self, position=(0, 0), dimensions=(100, 100), text='ClickMe', background_color=(250, 250, 250), color=(0, 0, 0), border_color=(200, 200, 200), border_width=0, on_click=None, font_size=30):

@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from colors import *
+from interface.colors import *
 # Add callbacks with player.on_change_type = lambda ...
 
 default_stone_colors = [WHITE, BLACK]

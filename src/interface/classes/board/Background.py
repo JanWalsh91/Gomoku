@@ -1,6 +1,6 @@
-from classes.gui.Gui import Gui
 import pygame
-from colors import *
+from interface.classes.gui.Gui import Gui
+from interface.colors import *
 
 class Background(Gui):
 	def __init__(self, background_color=FOREST_GREEN, border_color=RED, border_width=5):

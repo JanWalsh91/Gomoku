@@ -1,8 +1,8 @@
-from classes.gui.Gui import Gui
-from classes.board.Background import Background
-from classes.board.Grid import Grid
-from classes.board.Stone import Stone
-from colors import *
+from interface.classes.gui.Gui import Gui
+from interface.classes.board.Background import Background
+from interface.classes.board.Grid import Grid
+from interface.classes.board.Stone import Stone
+from interface.colors import *
 
 class Board(Gui):
 
