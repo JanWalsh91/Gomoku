@@ -9,14 +9,12 @@ class NoDoubleThree(ARule):
 		other_player = 1 if gomoku.current_player.index == 2 else 2
 		nb_free_threes = 0
 
-		for direction in [[0, 1], [1, 0], [1, 1], [-1, 1]]:
+		for direction in np.array([[0, 1], [1, 0], [1, 1], [-1, 1]]):
 			if nb_free_threes >= 2:
 				break 
 			line = np.full(9, other_player)
 			line_index = 4
 			line[line_index] = current_player
-
-			direction = np.array(direction)
 
 			for i in range(1, 5):
 				pos1 = pos + direction * i

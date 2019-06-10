@@ -38,6 +38,7 @@ class Interface:
 		self.__on_reset = []
 		self.__on_new_turn = []
 		self.is_playing = False
+		self.is_reset = True
 
 		self.line_num = line_num # number of lines vertically and horizontally on board
 
@@ -123,16 +124,18 @@ class Interface:
 		start_restart_btn = Button((10, 10), (80, 80), border_color=BLACK, border_width=5, font_size=30, color=BLACK, background_color=FOREST_GREEN, text='START !')
 		
 		def update_start_button(button):
-			if self.is_playing:
+			if not self.is_reset:
 				button.textbox.text = 'START !'
 				button.background_color = FOREST_GREEN
 				self.game_reset()
 				self.is_playing = False
+				self.is_reset = True
 			else:
 				button.textbox.text = 'RESET'
 				button.background_color = LIGHT_GREY
 				self.game_start()
 				self.is_playing = True
+				self.is_reset = False
 
 		start_restart_btn.on_click = lambda button: update_start_button(button)
 		start_restart_wrapper.insert(start_restart_btn)
@@ -204,6 +207,8 @@ class Interface:
 		self.message = '_'
 		self.board.reset()
 		self.current_player = self.players[0]
+		for player in self.players:
+			player.captures = 0
 		for callback in self.on_reset:
 			callback(self)
 

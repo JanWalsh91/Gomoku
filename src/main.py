@@ -62,7 +62,7 @@ def main():
 			print('click start!')
 
 	def on_start(interface):
-		print('interface has started!')
+		print('game has started!')
 		if interface.current_player.is_AI():
 			print('AI thinking ...')
 			# DO AWESOME CODE

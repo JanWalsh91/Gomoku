@@ -1,5 +1,8 @@
+import numpy as np
+
 from controller.Player import Player
 from controller.rules.RuleFactory import RuleFactory
+from controller.helpers import five_aligned
 
 class Gomoku:
 
@@ -21,7 +24,7 @@ class Gomoku:
 			print('========= PLACED ' + str(self.current_player.index))
 			self.trigger_rules_effects(interface, pos)
 
-			if self.is_end_state():
+			if self.is_end_state(pos):
 				self.win(interface)
 				self.end_game = True
 			return True
@@ -58,10 +61,14 @@ class Gomoku:
 					moves.append([y, x])
 		return moves
 	
-	def is_end_state(self):
+	def is_end_state(self, pos):
 		for rule in self.rules:
 			if rule.is_winning_condition(self):
 				return True
+		
+		if five_aligned(self, pos):
+			return True
+
 		return False
 
 	def win(self, interface):
