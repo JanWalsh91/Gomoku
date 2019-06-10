@@ -11,8 +11,8 @@ class Gomoku:
 		self.rules = rules
 		self.current_player = self.players[0]
 		self.board = [[0 for y in range(size)] for i in range(size)]
-
 		self.rules = [RuleFactory.instantiate(key) for key in rules]
+		self.end_game = False
 
 	def place(self, interface, pos): #pos: [row, col]
 		print('place')
@@ -23,6 +23,7 @@ class Gomoku:
 
 			if self.is_end_state():
 				self.win(interface)
+				self.end_game = True
 			return True
 		return False
 		
@@ -58,12 +59,22 @@ class Gomoku:
 		return moves
 	
 	def is_end_state(self):
-		if self.current_player.captures == 5:
-			return True
+		for rule in self.rules:
+			if rule.is_winning_condition(self):
+				return True
 		return False
 
 	def win(self, interface):
 		interface.win()
+
+	def reset(self):
+		print('reset')
+		# self.players[0].captures = 0
+		# self.players[1].captures = 0
+		# print(self.board, len(self.board))
+		# self.board = [[0 for y in range(len(self.board))] for i in range(len(self.board))]
+		# self.current_player = self.players[0]
+		# self.end_game = False
 
 	def heuristic(self, player):
 		def eval_line(start, next):

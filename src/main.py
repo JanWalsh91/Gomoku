@@ -49,12 +49,13 @@ def main():
 			# ...
 			can_place = go.place(interface, pos)
 			if can_place:
-				interface.message = "!"
 				interface.place_stone_at(pos)														# place stone (color based on curent player, or pass as param)
-				# interface.place_stone_at([10, 10], RED)
-				# interface.remove_stone_from([0, 0])												# remove stone
-				interface.next_turn()																# start next player's turn
-				go.next_turn()
+				if not go.end_game:
+					interface.message = "!"
+					# interface.place_stone_at([10, 10], RED)
+					# interface.remove_stone_from([0, 0])												# remove stone
+					interface.next_turn()																# start next player's turn
+					go.next_turn()
 			else:
 				interface.message = "Can't place here"
 		else:
@@ -69,6 +70,7 @@ def main():
 
 	def on_reset(interface):																		# on reset
 		print('interface has reset.')
+		go.reset()
 
 	def on_new_turn(interface):
 		print('new turn! It is ' + interface.current_player.name + '\'s turn.')
