@@ -69,12 +69,11 @@ class Gomoku:
 
 	def reset(self):
 		print('reset')
-		# self.players[0].captures = 0
-		# self.players[1].captures = 0
-		# print(self.board, len(self.board))
-		# self.board = [[0 for y in range(len(self.board))] for i in range(len(self.board))]
-		# self.current_player = self.players[0]
-		# self.end_game = False
+		self.players[0].captures = 0
+		self.players[1].captures = 0
+		self.board = [[0 for y in range(len(self.board))] for i in range(len(self.board))]
+		self.current_player = self.players[0]
+		self.end_game = False
 
 	def heuristic(self, player):
 		def eval_line(start, next):

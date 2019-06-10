@@ -50,3 +50,4 @@ class Board(Gui):
 
 	def reset(self):
 		self.game_objects = [None] * self.grid.line_num * self.grid.line_num
+		self.grid.reset()

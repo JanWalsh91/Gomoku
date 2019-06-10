@@ -103,6 +103,10 @@ class Grid(Gui):
 	def get_rect_at(self, index):
 		return self.rects[index[0] * self.line_num + index[1]]
 
+	def reset(self):
+		self.intersection_validity_array = [[1 for y in range(self.line_num)] for i in range(self.line_num)]
+		self.redraw()
+
 	@property
 	def on_click(self):
 		return self.__on_click
