@@ -7,6 +7,7 @@ class APlayer():
 
 	def __init__(self, type):
 		self.type = type
+		self.captures = 0
 
 	def is_AI(self):
 		return self.type == APlayer.TYPE.AI

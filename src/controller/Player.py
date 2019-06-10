@@ -11,7 +11,6 @@ class Player(APlayer):
 
 	def __init__(self, type):
 		super().__init__(type)
-		self.captures = 0
 		self.index = Player.count
 		Player.count += 1
 	
