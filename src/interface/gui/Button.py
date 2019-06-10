@@ -24,7 +24,7 @@ class Button(Gui):
 		relpos = np.array(pos) - self.abs_position
 		rect = self.surface.get_rect().collidepoint(relpos)
 		if rect:
-			if event.type == pygame.MOUSEBUTTONUP:
+			if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
 				self.click()
 
 	def click(self):

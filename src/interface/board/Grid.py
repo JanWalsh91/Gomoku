@@ -70,7 +70,7 @@ class Grid(Gui):
 
 	def handle_event(self, event, screen):
 		super().handle_event(event, screen)
-		if event.type == pygame.MOUSEBUTTONUP:
+		if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
 			for rect in self.rects:
 				if rect and rect.collidepoint(pygame.mouse.get_pos()):
 					self.click(self.index_of(rect))
