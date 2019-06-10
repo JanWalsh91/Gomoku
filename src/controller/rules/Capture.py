@@ -24,7 +24,9 @@ class Capture(ARule):
 			interface.remove_stone_from(pos2)
 			interface.remove_stone_from(pos1)
 
-			other_player.captures += 1
+			gomoku.current_player.captures += 1
+			interface.current_player.captures += 1
+
 			print('Captured!')
 
 		return

@@ -69,11 +69,11 @@ class Interface:
 		self.gui = Gui((BOARD_SIZE, 0), (BOARD_SIZE * Interface.ratio - BOARD_SIZE, BOARD_SIZE), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		
 		# === player VS AI ===
-		player_vs_AI_wrapper = Gui((5, 2.5), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
+		player_vs_AI_wrapper = Gui((5, 2.5), (90, 15), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		
-		player1_btn = Button((5, 5), (30, 90), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color)
+		player1_btn = Button((5, 10), (30, 80), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color)
 		player1_btn.on_click = lambda button: self.players[0].change_type() if not self.is_playing else print('Can\'t change player type while in game!')
-		player2_btn = Button((65, 5), (30, 90), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color)
+		player2_btn = Button((65, 10), (30, 80), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color)
 		player2_btn.on_click = lambda button: self.players[1].change_type() if not self.is_playing else print('Can\'t change player type while in game!')
 
 		vs_textbox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
@@ -99,8 +99,27 @@ class Interface:
 		self.gui.insert(player_vs_AI_wrapper)
 		# ===              ===
 
+		# === captures ===
+		captures_wrapper = Gui((5, 19), (90, 10), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
+		captures_label = TextBox((10, 10), (80, 30), background_color=LIGHT_GREY, font_size=20, text='Captures:')
+		captures1_textbox = TextBox((5, 40), (30, 50), background_color=LIGHT_GREY, font_size=25, text='0')
+		captures2_textbox = TextBox((65, 40), (30, 50), background_color=LIGHT_GREY, font_size=25, text='0')
+
+		captures_wrapper.insert(captures_label)
+		captures_wrapper.insert(captures1_textbox)
+		captures_wrapper.insert(captures2_textbox)
+
+		# setup captures callback
+		def update_captures_textbox(textbox, player):
+			textbox.text = str(player.captures)
+
+		self.players[0].on_update_captures = lambda player: update_captures_textbox(captures1_textbox, player)
+		self.players[1].on_update_captures = lambda player: update_captures_textbox(captures2_textbox, player)
+		self.gui.insert(captures_wrapper)
+		# ===          ===
+
 		# === start / restart ===
-		start_restart_wrapper = Gui((5, 25), (90, 20), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
+		start_restart_wrapper = Gui((5, 30.5), (90, 15), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		start_restart_btn = Button((10, 10), (80, 80), border_color=BLACK, border_width=5, font_size=30, color=BLACK, background_color=FOREST_GREEN, text='START !')
 		
 		def update_start_button(button):
@@ -187,6 +206,10 @@ class Interface:
 		self.current_player = self.players[0]
 		for callback in self.on_reset:
 			callback(self)
+
+	def win(self):
+		self.is_playing = False
+		self.message = self.current_player.name + ' wins!'
 
 	@property
 	def current_player(self):

@@ -63,8 +63,7 @@ class Gomoku:
 		return False
 
 	def win(self, interface):
-		interface.message = interface.current_player.name + ' 1! :)'
-		interface.is_playing = False
+		interface.win()
 
 	def heuristic(self, player):
 		def eval_line(start, next):

@@ -13,6 +13,8 @@ class PlayerViewModel(APlayer):
 
 	def __init__(self, name, type, stone_color=None):
 		self.__on_change_type = []
+		self.__on_change_captures = []
+		self.__captures = 0
 		super().__init__(type)
 		self.name = name
 		if stone_color:
@@ -38,3 +40,19 @@ class PlayerViewModel(APlayer):
 	@on_change_type.setter
 	def on_change_type(self, fn):
 		self.__on_change_type.append(fn)
+
+	@property
+	def captures(self):
+		return self.__captures
+	@captures.setter
+	def captures(self, value):
+		self.__captures = value
+		for callback in self.__on_change_captures:
+			callback(self)
+
+	@property
+	def on_update_captures(self):
+		return self.__on_change_captures
+	@on_update_captures.setter
+	def on_update_captures(self, fn):
+		self.__on_change_captures.append(fn)
