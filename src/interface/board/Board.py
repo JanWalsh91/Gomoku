@@ -49,4 +49,4 @@ class Board(Gui):
 				game_object.render(screen)
 
 	def reset(self):
-		self.game_objects = []
+		self.game_objects = [None] * self.grid.line_num * self.grid.line_num
