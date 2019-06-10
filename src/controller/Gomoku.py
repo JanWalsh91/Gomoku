@@ -14,16 +14,19 @@ class Gomoku:
 
 		self.rules = [RuleFactory.instantiate(key) for key in rules]
 
-	def place(self, pos, player, interface): #player 1 or 2, pos: [row, col]
+	def place(self, interface, pos): #pos: [row, col]
 		print('place')
-		if self.can_place(pos, player):
-			self.board[pos[0]][pos[1]] = player.index
-			print('========= PLACED ' + str(player.index))
-			self.trigger_rules_effects(interface, player, pos)
+		if self.can_place(pos):
+			self.board[pos[0]][pos[1]] = self.current_player.index
+			print('========= PLACED ' + str(self.current_player.index))
+			self.trigger_rules_effects(interface, pos)
+
+			if self.is_end_state():
+				self.win(interface)
 			return True
 		return False
 		
-	def can_place(self, pos, player):
+	def can_place(self, pos):
 		if (0 > pos[0] or pos[0] > self.size or 0 > pos[1] or pos[1] > self.size):
 			print('bad place')
 			return False
@@ -31,13 +34,14 @@ class Gomoku:
 			print('place already has value', self.board[pos[0]][pos[1]])
 			return False
 		for rule in self.rules:
-			if not rule.can_place(self.board, player, pos):
+			if not rule.can_place(self, pos):
+				print('Rule ', rule.name, ' says NO')
 				return False
 		return True
 
-	def trigger_rules_effects(self, interface, player, pos):
+	def trigger_rules_effects(self, interface, pos):
 		for rule in self.rules:
-			rule.trigger_effect(self.board, player, pos, interface)
+			rule.trigger_effect(self, interface, pos)
 
 	def next_turn(self):
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
@@ -52,6 +56,15 @@ class Gomoku:
 				if (val == 0):
 					moves.append([y, x])
 		return moves
+	
+	def is_end_state(self):
+		if self.current_player.captures == 5:
+			return True
+		return False
+
+	def win(self, interface):
+		interface.message = interface.current_player.name + ' 1! :)'
+		interface.is_playing = False
 
 	def heuristic(self, player):
 		def eval_line(start, next):

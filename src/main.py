@@ -39,21 +39,24 @@ def main():
 		interface = Interface(go.players)
 
 	# ==== set up your callbacks ==== #
-	def on_click(interface, index):
+	def on_click(interface, pos):
 		if interface.is_playing:
 			if interface.current_player.is_AI():
 				print('It\'s the AI\'s turn!')
 				return
-			# check that index is ok ...
+			# check that pos is ok ...
 			# ...
 			# ...
-			can_place = go.place(index, go.current_player, interface)
-			if can_place:	
-				interface.place_stone_at(index)														# place stone (color based on curent player, or pass as param)
+			can_place = go.place(interface, pos)
+			if can_place:
+				interface.message = "!"
+				interface.place_stone_at(pos)														# place stone (color based on curent player, or pass as param)
 				# interface.place_stone_at([10, 10], RED)
 				# interface.remove_stone_from([0, 0])												# remove stone
 				interface.next_turn()																# start next player's turn
 				go.next_turn()
+			else:
+				interface.message = "Can't place here"
 		else:
 			print('click start!')
 
