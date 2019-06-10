@@ -24,7 +24,12 @@ class Capture(ARule):
 			interface.remove_stone_from(pos2)
 			interface.remove_stone_from(pos1)
 
-			other_player.captures += 1
-			print('Captured!')
+			gomoku.current_player.captures += 1
+			# print('Captured!')
 
 		return
+
+	def is_winning_condition(self, gomoku):
+		# if gomoku.current_player.captures >= 5:
+		# 	print('Winning by capture')
+		return gomoku.current_player.captures >= 5

@@ -8,3 +8,6 @@ class ARule:
 
 	def trigger_effect(self, gomuku, interface, pos):
 		return
+
+	def is_winning_condition(self, gomoku):
+		return False
