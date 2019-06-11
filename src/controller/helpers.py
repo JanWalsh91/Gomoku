@@ -19,3 +19,18 @@ def five_aligned(gomoku, pos):
 				if num_aligned >= 5:
 					coord_list.append(sub_coord_list)
 	return coord_list if len(coord_list) > 0 else False
+
+def can_place_pos(gomoku, pos):
+	for rule in gomoku.rules:
+		if not rule.can_place(gomoku, pos):
+			# print('Rule ', rule.name, ' says NO')
+			return False
+	return True
+
+def intersection_validity_pos(gomoku, pos):
+	if gomoku.board[pos[0]][pos[1]] >= 1:
+		return 0
+	if can_place_pos(gomoku, pos):
+		return 1
+	else:
+		return 2

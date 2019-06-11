@@ -54,8 +54,8 @@ def main():
 					interface.message = "!"
 					# interface.place_stone_at([10, 10], RED)
 					# interface.remove_stone_from([0, 0])												# remove stone
+					go.next_turn(interface)
 					interface.next_turn()																# start next player's turn
-					go.next_turn()
 			else:
 				interface.message = "Can't place here"
 		else:
@@ -67,6 +67,15 @@ def main():
 			print('AI thinking ...')
 			# DO AWESOME CODE
 			interface.message = 'AI thinking ...'												# set message
+			res = go.minimax.run(go, None, 2, True)
+			print('res: ', res)
+			go.place(interface, res[1])
+			interface.place_stone_at(res[1])
+			if not go.end_game:
+				interface.message = "!"
+				go.next_turn(interface)
+				interface.next_turn()
+			print('AI thought!')
 
 	def on_reset(interface):																		# on reset
 		print('interface has reset.')
@@ -76,6 +85,14 @@ def main():
 		print('new turn! It is ' + interface.current_player.name + '\'s turn.')
 		if interface.current_player.is_AI():
 			print('AI thinking ...')
+			res = go.minimax.run(go, None, 2, True)
+			print('res: ', res)
+			go.place(interface, res[1])
+			interface.place_stone_at(res[1])
+			if not go.end_game:
+				interface.message = "!"
+				go.next_turn(interface)
+				interface.next_turn()
 			# DO AWESOME CODE
 			# ...
 			# index = AI.get_best_pos()

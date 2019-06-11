@@ -19,10 +19,12 @@ class Capture(ARule):
 			if pos3[0] > (len(gomoku.board) - 1) or pos3[1] > (len(gomoku.board) - 1) or pos3[0] < 0 or pos3[1] < 0 or gomoku.board[pos3[0]][pos3[1]] != gomoku.current_player.index:
 				continue
 			# conditions fullfilled
-			gomoku.board[pos1[0]][pos1[1]] = 0
-			gomoku.board[pos2[0]][pos2[1]] = 0
-			interface.remove_stone_from(pos2)
-			interface.remove_stone_from(pos1)
+			gomoku.remove(interface, pos1)
+			gomoku.remove(interface, pos2)
+			# gomoku.board[pos1[0]][pos1[1]] = 0
+			# gomoku.board[pos2[0]][pos2[1]] = 0
+			# interface.remove_stone_from(pos2)
+			# interface.remove_stone_from(pos1)
 
 			gomoku.current_player.captures += 1
 			interface.current_player.captures += 1
