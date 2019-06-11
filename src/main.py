@@ -1,17 +1,18 @@
 
 import argparse
-
+# import pygame
 from controller.Minmax import Minmax
 from controller.Gomoku import Gomoku
 from controller.rules.ARule import ARule
 from controller.rules.RuleFactory import RuleFactory
 from interface.Interface import Interface
 
+import time
+
 default_rules = [RuleFactory.Name.CAPTURE, RuleFactory.Name.CAPTURE_GAME_ENDING, RuleFactory.Name.NO_DOUBLE_THREE]
 
 rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
 
-# ==== EXAMPLE USAGE ==== #
 def main():
 
 	parser = argparse.ArgumentParser()
@@ -44,16 +45,11 @@ def main():
 			if interface.current_player.is_AI():
 				print('It\'s the AI\'s turn!')
 				return
-			# check that pos is ok ...
-			# ...
-			# ...
 			can_place = go.place(interface, pos)
 			if can_place:
 				interface.place_stone_at(pos)														# place stone (color based on curent player, or pass as param)
 				if not go.end_game:
 					interface.message = "!"
-					# interface.place_stone_at([10, 10], RED)
-					# interface.remove_stone_from([0, 0])												# remove stone
 					go.next_turn(interface)
 					interface.next_turn()																# start next player's turn
 			else:
@@ -68,7 +64,7 @@ def main():
 			# DO AWESOME CODE
 			interface.message = 'AI thinking ...'												# set message
 			res = go.minimax.run(go, None, 2, True)
-			print('res: ', res)
+			# print('res: ', res)
 			go.place(interface, res[1])
 			interface.place_stone_at(res[1])
 			if not go.end_game:
@@ -82,49 +78,28 @@ def main():
 		go.reset()
 
 	def on_new_turn(interface):
-		print('new turn! It is ' + interface.current_player.name + '\'s turn.')
+		# print('new turn! It is ' + interface.current_player.name + '\'s turn.')
 		if interface.current_player.is_AI():
-			print('AI thinking ...')
+			print('AI thinking ...', interface.current_player.name)
 			res = go.minimax.run(go, None, 2, True)
-			print('res: ', res)
+			# print('res: ', res)
 			go.place(interface, res[1])
 			interface.place_stone_at(res[1])
 			if not go.end_game:
-				interface.message = "!"
+				interface.message = str(go.remaining_cells)
 				go.next_turn(interface)
+				# pygame.time.wait(500)
+				# TODO: calling next turn here blocks the pygame main loop
 				interface.next_turn()
-			# DO AWESOME CODE
-			# ...
-			# index = AI.get_best_pos()
-			# interface.place_stone_at(index)
-			# interface.remove_stone_from(index2)
+				print('AI thought ...', interface.current_player.name)
+	
 	interface.on_new_turn = on_new_turn															# on new turn
-
-	# TODO: update interfaces and colors
-	# interface.intersection_validity_array = [[1 for y in range(19)] for i in range(19)]
-
-
 	interface.on_reset = on_reset
 	interface.on_start = on_start
 	interface.on_grid_click = on_click
 
 	# ==== start interface loop! ==== #
 	interface.loop()																			# loop
-
-
-
-
-
-
-
-	# board.place([0, 0], 1)
-	# board.place([0, 1], 1)
-	# board.place([1, 1], 1)
-	# board.place([2, 1], 2)
-	# board.print()
-	# print(board.get_moves())
-	# print(board.heuristic(1))
-
 
 if __name__ == '__main__':
 	main()

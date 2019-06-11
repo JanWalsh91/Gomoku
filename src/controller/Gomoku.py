@@ -24,11 +24,11 @@ class Gomoku:
 		self.remaining_cells = size ** 2
 
 	def place(self, interface, pos): #pos: [row, col]
-		print('place')
+		# print('place')
 		if self.intersection_validity_array[pos[0]][pos[1]] == 1:
 			self.remaining_cells -= 1
 			self.board[pos[0]][pos[1]] = self.current_player.index
-			print('========= PLACED ' + str(self.current_player.index))
+			# print('========= PLACED ' + str(self.current_player.index))
 			self.trigger_rules_effects(interface, pos)
 
 			if self.is_end_state(pos):

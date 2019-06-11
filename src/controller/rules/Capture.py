@@ -29,7 +29,7 @@ class Capture(ARule):
 			gomoku.current_player.captures += 1
 			interface.current_player.captures += 1
 
-			print('Captured!')
+			# print('Captured!')
 
 		return
 
