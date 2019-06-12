@@ -1,6 +1,7 @@
 
 import argparse
 # import pygame
+
 from controller.Minmax import Minmax
 from controller.Gomoku import Gomoku
 from controller.rules.ARule import ARule
@@ -45,33 +46,14 @@ def main():
 			if interface.current_player.is_AI():
 				print('It\'s the AI\'s turn!')
 				return
-			can_place = go.place(interface, pos)
-			if can_place:
-				interface.place_stone_at(pos)														# place stone (color based on curent player, or pass as param)
-				if not go.end_game:
-					interface.message = "!"
-					go.next_turn(interface)
-					interface.next_turn()																# start next player's turn
-			else:
-				interface.message = "Can't place here"
+			go.human_turn(interface, pos)
 		else:
 			print('click start!')
 
 	def on_start(interface):
 		print('game has started!')
 		if interface.current_player.is_AI():
-			print('AI thinking ...')
-			# DO AWESOME CODE
-			interface.message = 'AI thinking ...'												# set message
-			res = go.minimax.run(go, None, 2, True)
-			# print('res: ', res)
-			go.place(interface, res[1])
-			interface.place_stone_at(res[1])
-			if not go.end_game:
-				interface.message = "!"
-				go.next_turn(interface)
-				interface.next_turn()
-			print('AI thought!')
+			go.ai_turn(interface)
 
 	def on_reset(interface):																		# on reset
 		print('interface has reset.')
@@ -80,19 +62,8 @@ def main():
 	def on_new_turn(interface):
 		# print('new turn! It is ' + interface.current_player.name + '\'s turn.')
 		if interface.current_player.is_AI():
-			print('AI thinking ...', interface.current_player.name)
-			res = go.minimax.run(go, None, 2, True)
-			# print('res: ', res)
-			go.place(interface, res[1])
-			interface.place_stone_at(res[1])
-			if not go.end_game:
-				interface.message = str(go.remaining_cells)
-				go.next_turn(interface)
-				# pygame.time.wait(500)
-				# TODO: calling next turn here blocks the pygame main loop
-				interface.next_turn()
-				print('AI thought ...', interface.current_player.name)
-	
+			go.ai_turn(interface)
+
 	interface.on_new_turn = on_new_turn															# on new turn
 	interface.on_reset = on_reset
 	interface.on_start = on_start

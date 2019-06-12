@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from random import randint
 
 
@@ -24,7 +25,7 @@ class Gomoku:
 		self.remaining_cells = size ** 2
 
 	def place(self, interface, pos): #pos: [row, col]
-		# print('place')
+		print('{} placed at pos {}'.format(self.current_player.index, pos))
 		if self.intersection_validity_array[pos[0]][pos[1]] == 1:
 			self.remaining_cells -= 1
 			self.board[pos[0]][pos[1]] = self.current_player.index
@@ -45,7 +46,37 @@ class Gomoku:
 		interface.remove_stone_from(pos)
 		self.remaining_cells += 1
 
+	def human_turn(self, interface, pos):
+		can_place = self.place(interface, pos)
+		if can_place:
+			interface.place_stone_at(pos)														# place stone (color based on curent player, or pass as param)
+			if not self.end_game:
+				interface.message = "!"
+				self.next_turn(interface)
+				interface.next_turn()																# start next player's turn
+		else:
+			interface.message = "Can't place here"
 
+	def ai_turn(self, interface):
+		start_time = time.time()
+		res = self.minimax.run(self, None, 2, True)
+		end_time = time.time()
+
+		print('turn took {0:.6f} to compute'.format(end_time - start_time))
+
+		self.place(interface, res[1])
+		interface.place_stone_at(res[1])
+
+		# TODO: calling next turn here blocks the pygame main loop
+		interface.render_game_objects() # meh ?
+		
+		if not self.end_game:
+			interface.message = str(self.remaining_cells)
+			self.next_turn(interface)
+			# pygame.time.wait(500)
+			time.sleep(1)
+			interface.next_turn()
+			print('AI thought ...', interface.current_player.name)
 
 	# TODO: already done in the next turn function
 	# def can_place(self, pos):
@@ -86,9 +117,11 @@ class Gomoku:
 	def is_end_state(self, pos):
 		for rule in self.rules:
 			if rule.is_winning_condition(self):
+				print('rule ', rule.name, 'says WIN at pos', pos)
 				return True
 		
 		if five_aligned(self, pos):
+			print('rule five aligned says WIN at pos', pos)
 			return True
 
 		return False
