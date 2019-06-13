@@ -29,12 +29,12 @@ class Gomoku:
 		if self.intersection_validity_array[pos[0]][pos[1]] == 1:
 			self.remaining_cells -= 1
 			self.board[pos[0]][pos[1]] = self.current_player.index
-			# print('========= PLACED ' + str(self.current_player.index))
+			print('========= PLACED ' + str(self.current_player.index))
 			self.trigger_rules_effects(interface, pos)
 
 			if self.is_end_state(pos):
-				self.win(interface)
 				self.end_game = True
+				self.win(interface)
 			if self.remaining_cells == 0:
 				self.end_game = True
 				interface.message = "Draw..."
@@ -62,7 +62,7 @@ class Gomoku:
 		res = self.minimax.run(self, None, 2, True)
 		end_time = time.time()
 
-		print('turn took {0:.6f} to compute'.format(end_time - start_time))
+		print('It took {0:.6f} to compute pos'.format(end_time - start_time), res[1], 'for player', interface.current_player.name)
 
 		self.place(interface, res[1])
 		interface.place_stone_at(res[1])
@@ -74,9 +74,9 @@ class Gomoku:
 			interface.message = str(self.remaining_cells)
 			self.next_turn(interface)
 			# pygame.time.wait(500)
-			time.sleep(1)
-			interface.next_turn()
+			# time.sleep(1)
 			print('AI thought ...', interface.current_player.name)
+			interface.next_turn()
 
 	# TODO: already done in the next turn function
 	# def can_place(self, pos):
@@ -117,11 +117,12 @@ class Gomoku:
 	def is_end_state(self, pos):
 		for rule in self.rules:
 			if rule.is_winning_condition(self):
-				print('rule ', rule.name, 'says WIN at pos', pos)
+				print('rule ', rule.name, 'says WIN at pos', pos, ' for player', self.current_player.index)
 				return True
-		
-		if five_aligned(self, pos):
-			print('rule five aligned says WIN at pos', pos)
+		coords = five_aligned(self, pos)
+		if coords:
+			print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index, coords)
+			# time.sleep(20)
 			return True
 
 		return False

@@ -44,7 +44,7 @@ def main():
 	def on_click(interface, pos):
 		if interface.is_playing:
 			if interface.current_player.is_AI():
-				print('It\'s the AI\'s turn!')
+				print('It\'s the AI\'s turn!', interface.current_player.name)
 				return
 			go.human_turn(interface, pos)
 		else:
@@ -60,7 +60,7 @@ def main():
 		go.reset()
 
 	def on_new_turn(interface):
-		# print('new turn! It is ' + interface.current_player.name + '\'s turn.')
+		print('new turn! It is ' + interface.current_player.name + '\'s turn.')
 		if interface.current_player.is_AI():
 			go.ai_turn(interface)
 
