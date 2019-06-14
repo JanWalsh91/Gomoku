@@ -1,6 +1,8 @@
 
 import argparse
-# import pygame
+import pygame
+from threading import Thread
+
 
 from controller.Minmax import Minmax
 from controller.Gomoku import Gomoku
@@ -45,6 +47,11 @@ def main():
 		if interface.is_playing:
 			if interface.current_player.is_AI():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
+				# if not go.end_game:
+				# 	interface.message = str(go.remaining_cells)
+				# 	go.next_turn(interface)
+				# 	print('AI thought ...', interface.current_player.name)
+				# 	interface.next_turn()
 				return
 			go.human_turn(interface, pos)
 		else:
@@ -55,22 +62,33 @@ def main():
 		if interface.current_player.is_AI():
 			go.ai_turn(interface)
 
-	def on_reset(interface):																		# on reset
+	def on_reset(interface):
 		print('interface has reset.')
 		go.reset()
 
-	def on_new_turn(interface):
-		print('new turn! It is ' + interface.current_player.name + '\'s turn.')
-		if interface.current_player.is_AI():
-			go.ai_turn(interface)
+	# def on_new_turn(interface):
+	# 	print('new turn! It is ' + interface.current_player.name + '\'s turn.')
+	# 	if interface.current_player.is_AI():
+	# 		# go.ai_turn(interface)
+	# 		thread = Thread(target = go.ai_turn, args=(interface,))
+	# 		thread.start()
+	# 		thread.join()
 
-	interface.on_new_turn = on_new_turn															# on new turn
+	# interface.on_new_turn = on_new_turn
+
+	def on_player_change_type(player_view_model):
+		go.players[interface.players.index(player_view_model)].type = player_view_model.type
+
+
 	interface.on_reset = on_reset
 	interface.on_start = on_start
 	interface.on_grid_click = on_click
+	interface.players[0].on_change_type = on_player_change_type
+	interface.players[1].on_change_type = on_player_change_type
+
 
 	# ==== start interface loop! ==== #
-	interface.loop()																			# loop
+	interface.loop()
 
 if __name__ == '__main__':
 	main()

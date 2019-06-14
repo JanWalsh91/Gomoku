@@ -1,6 +1,7 @@
 import numpy as np
 import time
 from random import randint
+import pygame
 
 
 from controller.Player import Player
@@ -49,11 +50,10 @@ class Gomoku:
 	def human_turn(self, interface, pos):
 		can_place = self.place(interface, pos)
 		if can_place:
-			interface.place_stone_at(pos)														# place stone (color based on curent player, or pass as param)
+			interface.place_stone_at(pos)
 			if not self.end_game:
 				interface.message = "!"
 				self.next_turn(interface)
-				interface.next_turn()																# start next player's turn
 		else:
 			interface.message = "Can't place here"
 
@@ -68,15 +68,15 @@ class Gomoku:
 		interface.place_stone_at(res[1])
 
 		# TODO: calling next turn here blocks the pygame main loop
+		print('interface.render_game_objects()')
 		interface.render_game_objects() # meh ?
 		
 		if not self.end_game:
 			interface.message = str(self.remaining_cells)
 			self.next_turn(interface)
 			# pygame.time.wait(500)
-			# time.sleep(1)
+			# time.sleep(0.5)
 			print('AI thought ...', interface.current_player.name)
-			interface.next_turn()
 
 	# TODO: already done in the next turn function
 	# def can_place(self, pos):
@@ -98,10 +98,13 @@ class Gomoku:
 			rule.trigger_effect(self, interface, pos)
 
 	def next_turn(self, interface):
+		interface.next_turn()
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 		self.intersection_validity_array = [[intersection_validity_pos(self, [i, y]) for y in range(len(self.board))] for i in range(len(self.board))]
 		interface.intersection_validity_array = self.intersection_validity_array
-		
+		print(interface.current_player.name, 'will play')
+		if self.current_player.is_AI():
+			self.ai_turn(interface)
 
 	# If cell is empty (== 0) and if no conflict with additional rules
 	def get_moves(self, player):
@@ -119,10 +122,8 @@ class Gomoku:
 			if rule.is_winning_condition(self):
 				print('rule ', rule.name, 'says WIN at pos', pos, ' for player', self.current_player.index)
 				return True
-		coords = five_aligned(self, pos)
-		if coords:
-			print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index, coords)
-			# time.sleep(20)
+		if five_aligned(self, pos):
+			print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index)
 			return True
 
 		return False

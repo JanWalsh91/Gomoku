@@ -36,7 +36,7 @@ class Interface:
 		self.__on_grid_click = []
 		self.__on_start = []
 		self.__on_reset = []
-		self.__on_new_turn = []
+		# self.__on_new_turn = []
 		self.is_playing = False
 		self.is_reset = True
 
@@ -90,7 +90,7 @@ class Interface:
 			elif player.is_human():
 				button.textbox.text = 'Human'
 				button.background_color = HUMAN
-
+				
 		self.players[0].on_change_type = lambda player: update_player_button(player1_btn, self.players[0])
 		self.players[1].on_change_type = lambda player: update_player_button(player2_btn, self.players[1])
 
@@ -167,8 +167,13 @@ class Interface:
 
 	def loop(self):
 		while True:
-			self.handle_events()
-			self.render_game_objects()
+			# print('loop')
+			self.render()
+
+	def render(self):
+		self.handle_events()
+		self.render_game_objects()
+
 
 	def handle_events(self):
 		for event in pygame.event.get():
@@ -188,8 +193,9 @@ class Interface:
 	def next_turn(self):
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 		self.board.grid.hover_color_valid = self.current_player.stone_color
-		for callback in self.on_new_turn:
-			callback(self)
+		self.render()
+		# for callback in self.on_new_turn:
+		# 	callback(self)
 
 	def place_stone_at(self, index, color=None):
 		self.board.place_stone_at(index, color if color else self.current_player.stone_color)
@@ -264,19 +270,19 @@ class Interface:
 	def on_reset(self, callback):
 		self.__on_reset.append(callback)
 
-	@property
-	def on_new_turn(self):
-		return self.__on_new_turn
-	@on_new_turn.setter
-	def on_new_turn(self, callback):
-		self.__on_new_turn.append(callback)
+	# @property
+	# def on_new_turn(self):
+	# 	return self.__on_new_turn
+	# @on_new_turn.setter
+	# def on_new_turn(self, callback):
+	# 	self.__on_new_turn.append(callback)
 
 	@property
-	def intersection_validity_array(self):
-		return self.board.grid.intersection_validity_array
-	@intersection_validity_array.setter
-	def intersection_validity_array(self, val):
-		self.board.grid.intersection_validity_array = val
+	def on_player_type_change(self):
+		return self.__on_player_type_change
+	@on_player_type_change.setter
+	def on_player_type_change(self, callback):
+		self.__on_player_type_change.append(callback)
 
 if __name__ == '__main__':
 	main()
