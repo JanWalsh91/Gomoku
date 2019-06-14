@@ -16,27 +16,38 @@ class Minmax:
 		self.depth = depth
 
 
-	def run(self, state, pos, depth, maximizing_player):
+	def run(self, state, pos, depth, alpha, beta, maximizing_player):
 		# print('run', depth)
 		if depth == 0 or (pos and self.is_end_state(state, pos)):
 			return [self.eval_node(state, pos), pos]
+		children = self.get_child_nodes()
 		if maximizing_player:
 			# print('MAXIMIZING')
 			max_eval = [-math.inf]
-			for child in self.get_child_nodes():
+			for child in children:
 				# place a stone at this child pos
-				eval = self.run(state, child, depth - 1, False)
+				new_state = state.copy()
+				new_state.place(None, child)
+				eval = self.run(new_state, child, depth - 1, alpha, beta, False)
 				max_eval = max_eval if max_eval[0] > eval[0] else eval
-				# cancel the move
+				alpha = max(alpha, eval[0])
+				# print('MAX alpha: {}, beta: {}'.format(alpha, beta))
+				if beta <= alpha:
+					break
 			return max_eval
 		else:
 			# print('MINIMIZING')
 			min_eval = [math.inf]
-			for child in self.get_child_nodes():
+			for child in children:
 				# place a stone at this child pos
-				eval = self.run(state, child, depth - 1, True)
+				new_state = state.copy()
+				new_state.place(None, child)
+				eval = self.run(new_state, child, depth - 1, alpha, beta, True)
 				min_eval = min_eval if min_eval[0] < eval[0] else eval
-				# cancel the move
+				beta = min(beta, eval[0])
+				# print('MIN alpha: {}, beta: {}'.format(alpha, beta))
+				if beta <= alpha:
+					break
 			return min_eval
 
 
@@ -46,7 +57,7 @@ class Minmax:
 
 	def eval_node(self, state, pos):
 		# print('eval_node pos', pos)
-		return state.heuristic(state.current_player.index)
+		return state.heuristic()
 
 
 

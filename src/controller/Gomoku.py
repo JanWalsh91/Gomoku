@@ -1,8 +1,12 @@
 import numpy as np
 import time
+import copy
+
 from random import randint
 import pygame
-
+import math
+from collections import Counter
+import sys
 
 from controller.Player import Player
 from controller.rules.RuleFactory import RuleFactory
@@ -11,26 +15,27 @@ from controller.Minmax import Minmax
 
 class Gomoku:
 
-	def __init__(self, rules, size=19):
+	def __init__(self, rules, size=19, is_copy=False):
 		if (size < 1):
 			raise Exception('Board size must be at least 5')
-		self.size = size
-		self.players = [Player(Player.TYPE.HUMAN), Player(Player.TYPE.AI)]
-		self.rules = rules
-		self.current_player = self.players[0]
-		self.board = [[0 for y in range(size)] for i in range(size)]
-		self.rules = [RuleFactory.instantiate(key) for key in rules]
-		self.end_game = False
-		self.minimax = Minmax(heuristic=self.heuristic, get_child_nodes=self.get_child_nodes, depth=2)
-		self.intersection_validity_array = [[1 for y in range(size)] for i in range(size)]
-		self.remaining_cells = size ** 2
+		if not is_copy:
+			self.size = size
+			self.players = [Player(Player.TYPE.AI), Player(Player.TYPE.AI)]
+			# self.rules = rules
+			self.current_player = self.players[0]
+			self.board = [[0 for y in range(size)] for i in range(size)]
+			self.rules = [RuleFactory.instantiate(key) for key in rules]
+			self.end_game = False
+			self.minimax = Minmax(heuristic=self.heuristic, get_child_nodes=self.get_child_nodes, depth=2)
+			self.intersection_validity_array = [[1 for y in range(size)] for i in range(size)]
+			self.remaining_cells = size ** 2
 
 	def place(self, interface, pos): #pos: [row, col]
-		print('{} placed at pos {}'.format(self.current_player.index, pos))
+		# print('{} placed at pos {}'.format(self.current_player.index, pos))
 		if self.intersection_validity_array[pos[0]][pos[1]] == 1:
 			self.remaining_cells -= 1
 			self.board[pos[0]][pos[1]] = self.current_player.index
-			print('========= PLACED ' + str(self.current_player.index))
+			# print('========= PLACED ' + str(self.current_player.index))
 			self.trigger_rules_effects(interface, pos)
 
 			if self.is_end_state(pos):
@@ -38,13 +43,15 @@ class Gomoku:
 				self.win(interface)
 			if self.remaining_cells == 0:
 				self.end_game = True
-				interface.message = "Draw..."
+				if interface:
+					interface.message = "Draw..."
 			return True
 		return False
 	
 	def remove(self, interface, pos):
 		self.board[pos[0]][pos[1]] = 0
-		interface.remove_stone_from(pos)
+		if interface:
+			interface.remove_stone_from(pos)
 		self.remaining_cells += 1
 
 	def human_turn(self, interface, pos):
@@ -59,7 +66,7 @@ class Gomoku:
 
 	def ai_turn(self, interface):
 		start_time = time.time()
-		res = self.minimax.run(self, None, 2, True)
+		res = self.minimax.run(self, None, 2, -math.inf, math.inf, True)
 		end_time = time.time()
 
 		print('It took {0:.6f} to compute pos'.format(end_time - start_time), res[1], 'for player', interface.current_player.name)
@@ -129,7 +136,8 @@ class Gomoku:
 		return False
 
 	def win(self, interface):
-		interface.win()
+		if interface:
+			interface.win()
 
 	def reset(self):
 		print('reset')
@@ -141,14 +149,49 @@ class Gomoku:
 		self.end_game = False
 		self.remaining_cells = len(self.board) ** 2
 
-	def heuristic(self, player):
-		return randint(0, 9)
-		def eval_line(start, next):
-			total_val = 0
-			streak_val = 0
+	def heuristic(self):
+		def eval_line(start, direction):
+			# print('eval_line', start, direction)
+
+			def eval_streak(value):
+				# print('eval_streak')
+				if prev:
+					if value == prev:
+						streak_val[value] += streak_val[value]		
+					else:
+						if not streak_front_blocked:
+							if value == 0:
+								total_val[other_player] += streak_val[other_player] * 2
+							else:
+								total_val[other_player] += streak_val[value]
+						elif value == 0:
+							total_val[other_player] += streak_val[other_player]
+						streak_val[other_player] = 1
+
+			total_val = [None, 0, 0]
+			streak_val = [None, 1, 1]
 			streak_front_blocked = True
+
+			pos = start
+			prev = None
+
+			while pos[0] < len(self.board) and pos[1] < len(self.board):
+				value = self.board[pos[0]][pos[1]]
+				if value == 0:
+					eval_streak(value)				
+					streak_front_blocked = False
+				else: 
+					other_player = 1 if value == 2 else 2
+					total_val[value] += 1 
+					eval_streak(value)
+				prev = value
+				pos[0] += direction[0]
+				pos[1] += direction[1]
+				
 			
-			return (1 if self.board[start[0]][start[1]] == player else 0) + eval_line(next(start), next) if next(start) else 0
+			value = 1 if value == 2 else 2
+			eval_streak(value)
+			return total_val[self.current_player.index] - total_val[1 if self.current_player.index == 2 else 2]
 		
 		# count value for player
 		# {|1111} < {1111}
@@ -157,16 +200,36 @@ class Gomoku:
 		value = 0
 
 		# horizontal
-		for y, row in enumerate(self.board):
-			value += eval_line([y, 0], lambda pos: [pos[0], pos[1] + 1] if pos[1] + 1 < self.size else False)
+		for i in range(len(self.board)):
+			value += eval_line([i, 0], [0, 1])			
 		# vertical
-		for x, col in enumerate(self.board.transpose()):
-			value += eval_line([0, x], lambda pos: [pos[0] + 1, pos[1]] if pos[0] + 1 < self.size else False)
+		for i in range(len(self.board)):
+			value += eval_line([0, i], [1, 0])
 		# dialognal
 		# 
+
+		# print('value:', value)
+		# sys.exit()
 		return value
 
+
+	def copy(self):
+		new_go = Gomoku(self.rules, self.size, is_copy=True)
+
+		new_go.size = self.size
+		new_go.players = [copy.copy(self.players[0]), copy.copy(self.players[1])]
+		new_go.current_player = new_go.players[0] if self.current_player.index == 1 else new_go.players[1]
+		new_go.board = copy.deepcopy(self.board)
+		new_go.rules = self.rules
+		new_go.end_game = self.end_game
+		new_go.minimax = self.minimax
+		new_go.intersection_validity_array = copy.deepcopy(self.intersection_validity_array)
+		new_go.remaining_cells = self.remaining_cells
+	
+		return new_go
+
 	def get_child_nodes(self):
+		# start = time.time()
 		children = []
 		for i in range(len(self.board)):
 			for j in range(len(self.board)):
@@ -174,6 +237,8 @@ class Gomoku:
 					children.append([i, j])
 		# print('children', children)
 		# print('remaining spots', self.remaining_cells)
+		# end = time.time()
+		# print('get_child_node time: ', end - start)
 		return children
 
 	def print(self):
