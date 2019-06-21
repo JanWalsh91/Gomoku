@@ -229,17 +229,29 @@ class Gomoku:
 		return new_go
 
 	def get_child_nodes(self):
+		dist = 2
 		# start = time.time()
-		children = []
+		children = set()
 		for i in range(len(self.board)):
 			for j in range(len(self.board)):
-				if self.intersection_validity_array[i][j] == 1:
-					children.append([i, j])
+				if self.board[i][j] != 0:
+					# add everything around if valid
+					for k in range(-dist, dist + 1):
+						for l in range(-dist, dist + 1):
+							# if on board
+							if (i + k >= 0 and i + k < len(self.board) and j + l >= 0 and j + l < len(self.board) and
+								# if can place
+								self.intersection_validity_array[i + k][j + l] == 1):
+									children.add((i + k, j + l))
+
+		if len(children) == 0:
+			children.add((int(len(self.board) / 2), int(len(self.board) / 2)))
+
 		# print('children', children)
 		# print('remaining spots', self.remaining_cells)
 		# end = time.time()
 		# print('get_child_node time: ', end - start)
-		return children
+		return [list(el) for el in list(children)]
 
 	def print(self):
 		s = [[str(e) for e in row] for row in self.board]
