@@ -1,6 +1,7 @@
 # 	A node is a game state
 
 import math
+import sys
 from inspect import signature
 
 class Minmax:
@@ -18,36 +19,50 @@ class Minmax:
 
 	def run(self, state, pos, depth, alpha, beta, maximizing_player):
 		# print('run', depth)
+
+		# cal delta, update state
+
+
 		if depth == 0 or (pos and self.is_end_state(state, pos)):
 			return [self.eval_node(state, pos), pos]
 		children = self.get_child_nodes()
 		if maximizing_player:
-			# print('MAXIMIZING')
+			print('MAXIMIZING for ', len(children), 'children')
 			max_eval = [-math.inf]
 			for child in children:
 				# place a stone at this child pos
-				new_state = state.copy()
-				new_state.place(None, child)
-				eval = self.run(new_state, child, depth - 1, alpha, beta, False)
+				# state.print_board()
+				state.update_next_turn(1)
+				state.place(None, child)
+				# state.print_board()
+				eval = self.run(state, child, depth - 1, alpha, beta, False)
+				state.undo()
 				max_eval = max_eval if max_eval[0] > eval[0] else eval
 				alpha = max(alpha, eval[0])
 				# print('MAX alpha: {}, beta: {}'.format(alpha, beta))
 				if beta <= alpha:
 					break
+			# sys.exit()
 			return max_eval
 		else:
-			# print('MINIMIZING')
+			print('MINIMIZING for ', len(children), 'children')
 			min_eval = [math.inf]
 			for child in children:
 				# place a stone at this child pos
-				new_state = state.copy()
-				new_state.place(None, child)
-				eval = self.run(new_state, child, depth - 1, alpha, beta, True)
+				# state.print_board()
+				state.update_next_turn(1)
+				state.place(None, child)
+				# state.print_board()
+				eval = self.run(state, child, depth - 1, alpha, beta, True)
+				state.undo()
+				# state.print_board()
+				# undo
 				min_eval = min_eval if min_eval[0] < eval[0] else eval
 				beta = min(beta, eval[0])
 				# print('MIN alpha: {}, beta: {}'.format(alpha, beta))
 				if beta <= alpha:
 					break
+			# sys.exit()
 			return min_eval
 
 

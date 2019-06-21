@@ -13,6 +13,10 @@ from controller.rules.RuleFactory import RuleFactory
 from controller.helpers import five_aligned, can_place_pos, intersection_validity_pos
 from controller.Minmax import Minmax
 
+dist_from_edge_value = 10
+near_last_move_value = 10
+near_last_move_dist = 2
+
 class Gomoku:
 
 	def __init__(self, rules, size=19, is_copy=False):
@@ -21,6 +25,10 @@ class Gomoku:
 		if not is_copy:
 			self.size = size
 			self.players = [Player(Player.TYPE.AI), Player(Player.TYPE.AI)]
+			self.values = [0, 0]
+			self.deltas = [0, 0]
+			self.last_moves = [None, None]
+			self.current_move = None
 			# self.rules = rules
 			self.current_player = self.players[0]
 			self.board = [[0 for y in range(size)] for i in range(size)]
@@ -29,35 +37,114 @@ class Gomoku:
 			self.minimax = Minmax(heuristic=self.heuristic, get_child_nodes=self.get_child_nodes, depth=2)
 			self.intersection_validity_array = [[1 for y in range(size)] for i in range(size)]
 			self.remaining_cells = size ** 2
+			self.value_grid = self.set_value_grid()
+			self.undo_stack = []
+			self.turn_index = 0
+			self.record_undos = False
+
+	def set_value_grid(self):
+		value_grid = [[dist_from_edge_value for y in range(self.size)] for i in range(self.size)]
+		for i in range(self.size):
+			for j in range(self.size):
+				value_grid[i][j] += min(i, j, self.size - 1 - i, self.size - 1 - j)
+		return value_grid
 
 	def place(self, interface, pos): #pos: [row, col]
 		# print('{} placed at pos {}'.format(self.current_player.index, pos))
 		if self.intersection_validity_array[pos[0]][pos[1]] == 1:
-			self.remaining_cells -= 1
-			self.board[pos[0]][pos[1]] = self.current_player.index
+			self.simple_place([pos[0], pos[1]])
+			self.add_undo(lambda: self.simple_remove(pos))
+
+			self.add_undo(lambda: self.set_last_moves(copy.deepcopy(self.last_moves)))
+			self.last_moves[self.current_player.index - 1] = self.current_move
+			self.add_undo(lambda: self.set_current_move(copy.deepcopy(self.current_move)))
+			self.current_move = pos
+
 			# print('========= PLACED ' + str(self.current_player.index))
 			self.trigger_rules_effects(interface, pos)
 
 			if self.is_end_state(pos):
-				self.end_game = True
+				self.set_end_game(True)
+				self.add_undo(lambda: self.set_end_game(False))
 				self.win(interface)
 			if self.remaining_cells == 0:
-				self.end_game = True
+				self.set_end_game(True)
+				self.add_undo(lambda: self.set_end_game(False))
 				if interface:
 					interface.message = "Draw..."
 			return True
 		return False
 	
-	def remove(self, interface, pos):
+	def undo(self):
+		print('undo_stack len', len(self.undo_stack), 'current+index', self.turn_index)
+		if not self.record_undos:
+			return 
+		callbacks = self.undo_stack.pop()
+		self.update_next_turn(-1)
+		if callbacks:
+			for callback in callbacks:
+				print('executing', callback)
+				callback()
+
+	def add_undo(self, callback):
+		if not self.record_undos:
+			return 
+		while len(self.undo_stack) - 1 < self.turn_index:
+			self.undo_stack.append([])
+		
+		self.undo_stack[self.turn_index].append(callback)
+		# if self.turn_index == 2:
+		# 	sys.exit()
+
+	def simple_place(self, pos):
+		print('[simple_place] pos', pos)
+		self.remaining_cells -= 1
+		self.board[pos[0]][pos[1]] = self.current_player.index
+
+	def simple_remove(self, pos):
+		print('[simple_remove] pos', pos)		
+		self.remaining_cells += 1
 		self.board[pos[0]][pos[1]] = 0
+
+	def set_last_moves(self, last_moves):
+		self.last_moves = last_moves
+	
+	def set_current_move(self, current_move):
+		self.current_move = current_move
+	
+	def update_validity_array(self, index, value):
+		self.intersection_validity_array[index[0]][index[1]] = value
+	
+	def update_next_turn(self, delta):
+		self.turn_index += delta
+	
+	def set_current_player(self, player):
+		self.current_player = player
+
+	def set_captures(self, player, captures):
+		player.captures = captures
+	
+	def set_deltas(self, value):
+		self.deltas = value
+	
+	def set_values(self, value):
+		self.values = value
+
+	def set_end_game(self, value):
+		self.end_game = value
+
+	def remove(self, interface, pos):
+		self.simple_remove(pos)
+		print('[remove]', pos)
+		self.add_undo(lambda: self.simple_place([pos[0], pos[1]]))
 		if interface:
 			interface.remove_stone_from(pos)
-		self.remaining_cells += 1
 
 	def human_turn(self, interface, pos):
 		can_place = self.place(interface, pos)
 		if can_place:
 			interface.place_stone_at(pos)
+			self.update_next_turn(1)
 			if not self.end_game:
 				interface.message = "!"
 				self.next_turn(interface)
@@ -66,12 +153,17 @@ class Gomoku:
 
 	def ai_turn(self, interface):
 		start_time = time.time()
+		self.record_undos = True
+		self.update_next_turn(-1)
 		res = self.minimax.run(self, None, 2, -math.inf, math.inf, True)
+		self.record_undos = False
+
 		end_time = time.time()
 
 		print('It took {0:.6f} to compute pos'.format(end_time - start_time), res[1], 'for player', interface.current_player.name)
 
 		self.place(interface, res[1])
+		self.update_next_turn(1)
 		interface.place_stone_at(res[1])
 
 		# TODO: calling next turn here blocks the pygame main loop
@@ -127,10 +219,10 @@ class Gomoku:
 	def is_end_state(self, pos):
 		for rule in self.rules:
 			if rule.is_winning_condition(self):
-				print('rule ', rule.name, 'says WIN at pos', pos, ' for player', self.current_player.index)
+				# print('rule ', rule.name, 'says WIN at pos', pos, ' for player', self.current_player.index)
 				return True
 		if five_aligned(self, pos):
-			print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index)
+			# print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index)
 			return True
 
 		return False
@@ -150,67 +242,73 @@ class Gomoku:
 		self.remaining_cells = len(self.board) ** 2
 
 	def heuristic(self):
-		def eval_line(start, direction):
-			# print('eval_line', start, direction)
+		current_player = self.current_player.index
+		other_player = 1 if self.current_player.index == 2 else 2
 
-			def eval_streak(value):
-				# print('eval_streak')
-				if prev:
-					if value == prev:
-						streak_val[value] += streak_val[value]		
-					else:
-						if not streak_front_blocked:
-							if value == 0:
-								total_val[other_player] += streak_val[other_player] * 2
-							else:
-								total_val[other_player] += streak_val[value]
-						elif value == 0:
-							total_val[other_player] += streak_val[other_player]
-						streak_val[other_player] = 1
+		score = [{}, {}]
 
-			total_val = [None, 0, 0]
-			streak_val = [None, 1, 1]
-			streak_front_blocked = True
+		# get current player's last move self.current_move
 
-			pos = start
-			prev = None
+		# eval delta for both players
 
-			while pos[0] < len(self.board) and pos[1] < len(self.board):
-				value = self.board[pos[0]][pos[1]]
-				if value == 0:
-					eval_streak(value)				
-					streak_front_blocked = False
-				else: 
-					other_player = 1 if value == 2 else 2
-					total_val[value] += 1 
-					eval_streak(value)
-				prev = value
-				pos[0] += direction[0]
-				pos[1] += direction[1]
-				
-			
-			value = 1 if value == 2 else 2
-			eval_streak(value)
-			return total_val[self.current_player.index] - total_val[1 if self.current_player.index == 2 else 2]
+		# value grid
+
+		# print('value grid', self.value_grid)
+
+		score[current_player - 1]['value_grid'] = self.value_grid[self.current_move[0]][self.current_move[1]]
+
+		# near last move
+
+		last_move = self.last_moves[current_player - 1]
+		score[current_player - 1]['near_last_move_value'] = near_last_move_value if last_move and abs(last_move[0] - self.current_move[0]) <= near_last_move_dist and abs(last_move[1] - self.current_move[1]) <= near_last_move_dist else 0
 		
-		# count value for player
-		# {|1111} < {1111}
-		# {|1111|} == 0
-		# {111} < {1111}
-		value = 0
+		# eval line
 
-		# horizontal
-		for i in range(len(self.board)):
-			value += eval_line([i, 0], [0, 1])			
-		# vertical
-		for i in range(len(self.board)):
-			value += eval_line([0, i], [1, 0])
-		# dialognal
-		# 
+		# streak
 
-		# print('value:', value)
+		# capture
+
+		# potential capture
+
+
+		# strategy ??
+
+
+
+
+
+
+		def eval_line(start, line):
+			streak_num = 1
+
+			for i in range(1, 5):
+				streaking = True
+				for direction in [1, -1]:
+					next_pos = start + line * i * direction
+					if next_pos[0] > (len(self.board) - 1) or next_pos[1] > (len(self.board) - 1) or next_pos[0] < 0 or next_pos[1] < 0:
+						break
+					if streaking and self.board[next_pos[0]][next_pos[1]] == current_player:
+						streak_num += 1
+					else:
+						streaking = False
+
+			score[current_player - 1]['streak'] += streak_num
+
+
+		score[current_player - 1]['streak'] = 0
+		score[current_player - 1]['capture'] = 3 * (0 if not self.current_player.captures else math.factorial(self.current_player.captures))
+		score[current_player - 1]['potential_capture'] = 0
+		score[current_player - 1]['combination'] = 0
+
+		for line in np.array([[0, 1], [1, 0], [1, 1], [-1, 1]]):
+			eval_line(np.array(self.current_move), line)
+		
+
+		# print('score:', score[current_player - 1])
+		# print('score:', sum(score[current_player - 1].values()))
 		# sys.exit()
-		return value
+		# return value
+		return sum(score[current_player - 1].values())
 
 
 	def copy(self):
@@ -225,6 +323,11 @@ class Gomoku:
 		new_go.minimax = self.minimax
 		new_go.intersection_validity_array = copy.deepcopy(self.intersection_validity_array)
 		new_go.remaining_cells = self.remaining_cells
+		new_go.values = copy.deepcopy(self.values)
+		new_go.deltas = copy.deepcopy(self.deltas)
+		new_go.value_grid = copy.deepcopy(self.value_grid)
+		new_go.current_move = copy.deepcopy(self.current_move)
+		new_go.last_moves = copy.deepcopy(self.last_moves)
 	
 		return new_go
 
@@ -253,9 +356,10 @@ class Gomoku:
 		# print('get_child_node time: ', end - start)
 		return [list(el) for el in list(children)]
 
-	def print(self):
+	def print_board(self):
 		s = [[str(e) for e in row] for row in self.board]
 		lens = [max(map(len, col)) for col in zip(*s)]
 		fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
 		table = [fmt.format(*row) for row in s]
 		print ('\n'.join(table))
+		print ('\n')

@@ -1,5 +1,6 @@
 from controller.rules.ARule import ARule
 import numpy as np
+import copy
 
 class Capture(ARule):
 
@@ -21,11 +22,12 @@ class Capture(ARule):
 			# conditions fullfilled
 			gomoku.remove(interface, pos1)
 			gomoku.remove(interface, pos2)
-			# gomoku.board[pos1[0]][pos1[1]] = 0
-			# gomoku.board[pos2[0]][pos2[1]] = 0
-			# interface.remove_stone_from(pos2)
-			# interface.remove_stone_from(pos1)
+			print('adding simply place undo', pos1)
+			gomoku.add_undo(lambda: gomoku.simple_place([pos1[0], pos1[1]]))
+			print('adding simply place undo', pos2)
+			gomoku.add_undo(lambda: gomoku.simple_place([pos2[0], pos2[1]]))
 
+			gomoku.add_undo(lambda: gomoku.set_captures(gomoku.current_player, gomoku.current_player.captures))
 			gomoku.current_player.captures += 1
 			if interface:
 				interface.current_player.captures += 1
