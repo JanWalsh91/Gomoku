@@ -15,7 +15,7 @@ from controller.Minmax import Minmax
 
 dist_from_edge_value = 10
 near_last_move_value = 10
-near_last_move_dist = 2
+near_last_move_dist = 1
 
 class Gomoku:
 
@@ -41,6 +41,7 @@ class Gomoku:
 			self.undo_stack = []
 			self.turn_index = 0
 			self.record_undos = False
+			self.game_started = False
 
 	def set_value_grid(self):
 		value_grid = [[dist_from_edge_value for y in range(self.size)] for i in range(self.size)]
@@ -50,80 +51,105 @@ class Gomoku:
 		return value_grid
 
 	def place(self, interface, pos): #pos: [row, col]
-		# print('{} placed at pos {}'.format(self.current_player.index, pos))
+		print('{} placed at pos {}'.format(self.current_player.index, pos))
 		if self.intersection_validity_array[pos[0]][pos[1]] == 1:
 			self.simple_place([pos[0], pos[1]])
-			self.add_undo(lambda: self.simple_remove(pos))
+			self.add_undo('simple_remove', pos)
 
-			self.add_undo(lambda: self.set_last_moves(copy.deepcopy(self.last_moves)))
-			self.last_moves[self.current_player.index - 1] = self.current_move
-			self.add_undo(lambda: self.set_current_move(copy.deepcopy(self.current_move)))
-			self.current_move = pos
+
+			print('PLACE')
+			print('pos', pos)
+			print('    last_moves', self.last_moves)
+			self.add_undo('set_last_moves', self.last_moves)
+			self.last_moves[self.current_player.index - 1] = copy.deepcopy(self.current_move)
+			print(' => last_moves', self.last_moves)
+			
+			last_current_move = copy.deepcopy(self.current_move)
+			self.add_undo('set_current_move', last_current_move)
+			self.current_move = pos.copy()
 
 			# print('========= PLACED ' + str(self.current_player.index))
 			self.trigger_rules_effects(interface, pos)
 
 			if self.is_end_state(pos):
+				print('is end state but interface = ', interface)
 				self.set_end_game(True)
-				self.add_undo(lambda: self.set_end_game(False))
+				self.add_undo('set_end_game', False)
 				self.win(interface)
 			if self.remaining_cells == 0:
 				self.set_end_game(True)
-				self.add_undo(lambda: self.set_end_game(False))
+				self.add_undo('set_end_game', False)
 				if interface:
 					interface.message = "Draw..."
 			return True
 		return False
 	
 	def undo(self):
-		print('undo_stack len', len(self.undo_stack), 'current+index', self.turn_index)
+		print('UNDO')
 		if not self.record_undos:
 			return 
 		callbacks = self.undo_stack.pop()
 		self.update_next_turn(-1)
 		if callbacks:
 			for callback in callbacks:
-				print('executing', callback)
+				# print('executing', callback)
 				callback()
+		print('UNDO END')
 
-	def add_undo(self, callback):
+	def add_undo(self, *value):
+		# print('add_undo', value)
 		if not self.record_undos:
 			return 
 		while len(self.undo_stack) - 1 < self.turn_index:
 			self.undo_stack.append([])
 		
-		self.undo_stack[self.turn_index].append(callback)
+		# for value in values.items():
+
+		name = value[0]
+		# value.pop(0)
+		copied_value = copy.deepcopy(value[1:])
+		# print('copied; ', copied_value)
+		fn = getattr(self, name)
+		if fn:
+			self.undo_stack[self.turn_index].append(lambda: fn(*copied_value))
 		# if self.turn_index == 2:
 		# 	sys.exit()
 
 	def simple_place(self, pos):
-		print('[simple_place] pos', pos)
+		# print('[simple_place] pos', pos)
 		self.remaining_cells -= 1
 		self.board[pos[0]][pos[1]] = self.current_player.index
 
 	def simple_remove(self, pos):
-		print('[simple_remove] pos', pos)		
+		# print('[simple_remove] pos', pos)		
 		self.remaining_cells += 1
 		self.board[pos[0]][pos[1]] = 0
 
 	def set_last_moves(self, last_moves):
+		print('set_last_moves', self.last_moves, last_moves)
 		self.last_moves = last_moves
 	
 	def set_current_move(self, current_move):
+		print('set_current_move', current_move)
 		self.current_move = current_move
 	
 	def update_validity_array(self, index, value):
 		self.intersection_validity_array[index[0]][index[1]] = value
 	
+	def set_intersection_validity_array(self, value):
+		self.intersection_validity_array = value
+
 	def update_next_turn(self, delta):
 		self.turn_index += delta
 	
 	def set_current_player(self, player):
 		self.current_player = player
 
-	def set_captures(self, player, captures):
-		player.captures = captures
-	
+	def set_captures(self, values):
+		print(values)
+		print('set_captures for', values['index'], ' captures: ', values['captures'])
+		self.players[values['index'] - 1].captures = values['captures']
+
 	def set_deltas(self, value):
 		self.deltas = value
 	
@@ -136,7 +162,7 @@ class Gomoku:
 	def remove(self, interface, pos):
 		self.simple_remove(pos)
 		print('[remove]', pos)
-		self.add_undo(lambda: self.simple_place([pos[0], pos[1]]))
+		self.add_undo('simple_place', pos)
 		if interface:
 			interface.remove_stone_from(pos)
 
@@ -155,7 +181,8 @@ class Gomoku:
 		start_time = time.time()
 		self.record_undos = True
 		self.update_next_turn(-1)
-		res = self.minimax.run(self, None, 2, -math.inf, math.inf, True)
+		res = self.minimax.run(self, None, 1, -math.inf, math.inf, True)
+		pygame.time.wait(100)
 		self.record_undos = False
 
 		end_time = time.time()
@@ -177,33 +204,17 @@ class Gomoku:
 			# time.sleep(0.5)
 			print('AI thought ...', interface.current_player.name)
 
-	# TODO: already done in the next turn function
-	# def can_place(self, pos):
-		# if (0 > pos[0] or pos[0] > self.size or 0 > pos[1] or pos[1] > self.size):
-		# 	print('bad place')
-		# 	return False
-		# if (self.board[pos[0]][pos[1]] != 0):
-		# 	print('place already has value', self.board[pos[0]][pos[1]])
-		# 	return False
-		# for rule in self.rules:
-		# 	if not rule.can_place(self, pos):
-		# 		print('Rule ', rule.name, ' says NO')
-		# 		return False
-		# return True
-		# return interface.intersection_validity_array[pos[0]][pos[1]] == 1
-
 	def trigger_rules_effects(self, interface, pos):
 		for rule in self.rules:
 			rule.trigger_effect(self, interface, pos)
 
 	def next_turn(self, interface):
-		interface.next_turn()
+		if interface:
+			interface.next_turn()
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 		self.intersection_validity_array = [[intersection_validity_pos(self, [i, y]) for y in range(len(self.board))] for i in range(len(self.board))]
-		interface.intersection_validity_array = self.intersection_validity_array
-		print(interface.current_player.name, 'will play')
-		if self.current_player.is_AI():
-			self.ai_turn(interface)
+		if interface:
+			interface.intersection_validity_array = self.intersection_validity_array
 
 	# If cell is empty (== 0) and if no conflict with additional rules
 	def get_moves(self, player):
@@ -219,10 +230,11 @@ class Gomoku:
 	def is_end_state(self, pos):
 		for rule in self.rules:
 			if rule.is_winning_condition(self):
-				# print('rule ', rule.name, 'says WIN at pos', pos, ' for player', self.current_player.index)
+				print('rule ', rule.name, 'says WIN at pos', pos, ' for player', self.current_player.index)
+				# print('captures: ', self.current_player.captures)
 				return True
 		if five_aligned(self, pos):
-			# print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index)
+			print('rule five aligned says WIN at pos', pos, ' for player', self.current_player.index)
 			return True
 
 		return False
@@ -255,13 +267,18 @@ class Gomoku:
 
 		# print('value grid', self.value_grid)
 
-		score[current_player - 1]['value_grid'] = self.value_grid[self.current_move[0]][self.current_move[1]]
+		# score[current_player - 1]['value_grid'] = self.value_grid[self.current_move[0]][self.current_move[1]]
 
 		# near last move
 
-		last_move = self.last_moves[current_player - 1]
+		last_move = copy.deepcopy(self.last_moves[current_player - 1])
 		score[current_player - 1]['near_last_move_value'] = near_last_move_value if last_move and abs(last_move[0] - self.current_move[0]) <= near_last_move_dist and abs(last_move[1] - self.current_move[1]) <= near_last_move_dist else 0
-		
+		print('HEURISTIC')
+		print('last_move' , last_move)
+		print('self.current_move' , self.current_move)
+		print('near_last_move_dist', near_last_move_dist)
+		print('score[current_player - 1][near_last_move_value]', score[current_player - 1]['near_last_move_value'])
+		print('HEURISTIC END')
 		# eval line
 
 		# streak
@@ -295,13 +312,14 @@ class Gomoku:
 			score[current_player - 1]['streak'] += streak_num
 
 
-		score[current_player - 1]['streak'] = 0
-		score[current_player - 1]['capture'] = 3 * (0 if not self.current_player.captures else math.factorial(self.current_player.captures))
-		score[current_player - 1]['potential_capture'] = 0
-		score[current_player - 1]['combination'] = 0
+		# score[current_player - 1]['streak'] = 0
+		# score[current_player - 1]['capture'] = 3 * (0 if not self.current_player.captures else math.factorial(self.current_player.captures))
+		# score[current_player - 1]['potential_capture'] = 0
+		# score[current_player - 1]['combination'] = 0
 
-		for line in np.array([[0, 1], [1, 0], [1, 1], [-1, 1]]):
-			eval_line(np.array(self.current_move), line)
+		# for line in np.array([[0, 1], [1, 0], [1, 1], [-1, 1]]):
+		# for line in np.array([[0, 1]]):
+		# 	eval_line(np.array(self.current_move), line)
 		
 
 		# print('score:', score[current_player - 1])
@@ -311,25 +329,25 @@ class Gomoku:
 		return sum(score[current_player - 1].values())
 
 
-	def copy(self):
-		new_go = Gomoku(self.rules, self.size, is_copy=True)
+	# def copy(self):
+	# 	new_go = Gomoku(self.rules, self.size, is_copy=True)
 
-		new_go.size = self.size
-		new_go.players = [copy.copy(self.players[0]), copy.copy(self.players[1])]
-		new_go.current_player = new_go.players[0] if self.current_player.index == 1 else new_go.players[1]
-		new_go.board = copy.deepcopy(self.board)
-		new_go.rules = self.rules
-		new_go.end_game = self.end_game
-		new_go.minimax = self.minimax
-		new_go.intersection_validity_array = copy.deepcopy(self.intersection_validity_array)
-		new_go.remaining_cells = self.remaining_cells
-		new_go.values = copy.deepcopy(self.values)
-		new_go.deltas = copy.deepcopy(self.deltas)
-		new_go.value_grid = copy.deepcopy(self.value_grid)
-		new_go.current_move = copy.deepcopy(self.current_move)
-		new_go.last_moves = copy.deepcopy(self.last_moves)
+	# 	new_go.size = self.size
+	# 	new_go.players = [copy.copy(self.players[0]), copy.copy(self.players[1])]
+	# 	new_go.current_player = new_go.players[0] if self.current_player.index == 1 else new_go.players[1]
+	# 	new_go.board = copy.deepcopy(self.board)
+	# 	new_go.rules = self.rules
+	# 	new_go.end_game = self.end_game
+	# 	new_go.minimax = self.minimax
+	# 	new_go.intersection_validity_array = copy.deepcopy(self.intersection_validity_array)
+	# 	new_go.remaining_cells = self.remaining_cells
+	# 	new_go.values = copy.deepcopy(self.values)
+	# 	new_go.deltas = copy.deepcopy(self.deltas)
+	# 	new_go.value_grid = copy.deepcopy(self.value_grid)
+	# 	new_go.current_move = copy.deepcopy(self.current_move)
+	# 	new_go.last_moves = copy.deepcopy(self.last_moves)
 	
-		return new_go
+	# 	return new_go
 
 	def get_child_nodes(self):
 		dist = 2
@@ -344,7 +362,7 @@ class Gomoku:
 							# if on board
 							if (i + k >= 0 and i + k < len(self.board) and j + l >= 0 and j + l < len(self.board) and
 								# if can place
-								self.intersection_validity_array[i + k][j + l] == 1):
+								self.intersection_validity_array[i + k][j + l] == 1):# and len(children) < 10:
 									children.add((i + k, j + l))
 
 		if len(children) == 0:
@@ -354,10 +372,20 @@ class Gomoku:
 		# print('remaining spots', self.remaining_cells)
 		# end = time.time()
 		# print('get_child_node time: ', end - start)
+		print([list(el) for el in list(children)])
+		print('\n')
 		return [list(el) for el in list(children)]
 
 	def print_board(self):
 		s = [[str(e) for e in row] for row in self.board]
+		lens = [max(map(len, col)) for col in zip(*s)]
+		fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+		table = [fmt.format(*row) for row in s]
+		print ('\n'.join(table))
+		print ('\n')
+
+	def print_my_board(self, board):
+		s = [[str(e) for e in row] for row in board]
 		lens = [max(map(len, col)) for col in zip(*s)]
 		fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
 		table = [fmt.format(*row) for row in s]

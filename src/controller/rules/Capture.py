@@ -22,12 +22,12 @@ class Capture(ARule):
 			# conditions fullfilled
 			gomoku.remove(interface, pos1)
 			gomoku.remove(interface, pos2)
-			print('adding simply place undo', pos1)
-			gomoku.add_undo(lambda: gomoku.simple_place([pos1[0], pos1[1]]))
-			print('adding simply place undo', pos2)
-			gomoku.add_undo(lambda: gomoku.simple_place([pos2[0], pos2[1]]))
+			# print('adding simply place undo', pos1)
+			gomoku.add_undo('simple_place', pos1)
+			# print('adding simply place undo', pos2)
+			gomoku.add_undo('simple_place', pos2)
 
-			gomoku.add_undo(lambda: gomoku.set_captures(gomoku.current_player, gomoku.current_player.captures))
+			gomoku.add_undo('set_captures', {'index': gomoku.current_player.index, 'captures': gomoku.current_player.captures})
 			gomoku.current_player.captures += 1
 			if interface:
 				interface.current_player.captures += 1

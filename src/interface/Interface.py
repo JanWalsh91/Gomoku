@@ -165,11 +165,6 @@ class Interface:
 		self.gui.insert(message_box_wrapper)	
 		# ===             ===
 
-	def loop(self):
-		while True:
-			# print('loop')
-			self.render()
-
 	def render(self):
 		self.handle_events()
 		self.render_game_objects()

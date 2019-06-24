@@ -1,6 +1,7 @@
 
 import argparse
 import pygame
+import sys
 from threading import Thread
 
 
@@ -47,11 +48,6 @@ def main():
 		if interface.is_playing:
 			if interface.current_player.is_AI():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
-				# if not go.end_game:
-				# 	interface.message = str(go.remaining_cells)
-				# 	go.next_turn(interface)
-				# 	print('AI thought ...', interface.current_player.name)
-				# 	interface.next_turn()
 				return
 			go.human_turn(interface, pos)
 		else:
@@ -59,22 +55,11 @@ def main():
 
 	def on_start(interface):
 		print('game has started!')
-		if interface.current_player.is_AI():
-			go.ai_turn(interface)
+		go.game_started = True
 
 	def on_reset(interface):
 		print('interface has reset.')
 		go.reset()
-
-	# def on_new_turn(interface):
-	# 	print('new turn! It is ' + interface.current_player.name + '\'s turn.')
-	# 	if interface.current_player.is_AI():
-	# 		# go.ai_turn(interface)
-	# 		thread = Thread(target = go.ai_turn, args=(interface,))
-	# 		thread.start()
-	# 		thread.join()
-
-	# interface.on_new_turn = on_new_turn
 
 	def on_player_change_type(player_view_model):
 		go.players[interface.players.index(player_view_model)].type = player_view_model.type
@@ -87,8 +72,16 @@ def main():
 	interface.players[1].on_change_type = on_player_change_type
 
 
-	# ==== start interface loop! ==== #
-	interface.loop()
+	# ==== start loop! ==== #
+	turn = 0
+	while True:
+		if go.game_started and not go.end_game and go.current_player.is_AI():
+			turn += 1
+			print('======================', interface.current_player.name, go.current_player.index - 1, 'will play', '======================')
+			go.ai_turn(interface)
+		interface.render()
+		# if turn >= 20:
+		# 	sys.exit()
 
 if __name__ == '__main__':
 	main()
