@@ -126,11 +126,11 @@ class Gomoku:
 		self.board[pos[0]][pos[1]] = 0
 
 	def set_last_moves(self, last_moves):
-		print('set_last_moves', self.last_moves, last_moves)
+		# print('set_last_moves', self.last_moves, last_moves)
 		self.last_moves = last_moves
 	
 	def set_current_move(self, current_move):
-		print('set_current_move', current_move)
+		# print('set_current_move', current_move)
 		self.current_move = current_move
 	
 	def update_validity_array(self, index, value):
@@ -146,8 +146,8 @@ class Gomoku:
 		self.current_player = player
 
 	def set_captures(self, values):
-		print(values)
-		print('set_captures for', values['index'], ' captures: ', values['captures'])
+		# print(values)
+		# print('set_captures for', values['index'], ' captures: ', values['captures'])
 		self.players[values['index'] - 1].captures = values['captures']
 
 	def set_deltas(self, value):
@@ -161,7 +161,7 @@ class Gomoku:
 
 	def remove(self, interface, pos):
 		self.simple_remove(pos)
-		print('[remove]', pos)
+		# print('[remove]', pos)
 		self.add_undo('simple_place', pos)
 		if interface:
 			interface.remove_stone_from(pos)
@@ -181,7 +181,7 @@ class Gomoku:
 		start_time = time.time()
 		self.record_undos = True
 		self.update_next_turn(-1)
-		res = self.minimax.run(self, None, 2, -math.inf, math.inf, True)
+		res = self.minimax.run(self, None, 11, -math.inf, math.inf, True)
 		pygame.time.wait(100)
 		self.record_undos = False
 
@@ -254,7 +254,7 @@ class Gomoku:
 		self.remaining_cells = len(self.board) ** 2
 
 	def heuristic(self):
-		print('Heuristic. current_move:', self.current_move, 'current_player', self.current_player.index)
+		# print('Heuristic. current_move:', self.current_move, 'current_player', self.current_player.index)
 		current_player = self.current_player.index
 		other_player = 1 if self.current_player.index == 2 else 2
 
@@ -333,7 +333,7 @@ class Gomoku:
 
 			left.reverse()
 			score[current_player - 1]['streak'] += streak_num
-			print('line: ', line, '    ', left, right, 'streak num: ', streak_num, 'streak', score[current_player - 1]['streak'], )
+			# print('line: ', line, '    ', left, right, 'streak num: ', streak_num, 'streak', score[current_player - 1]['streak'], )
 
 
 		score[current_player - 1]['streak'] = 0
@@ -347,8 +347,8 @@ class Gomoku:
 		
 
 
-		print('score for player', self.current_player.index, ':', score[current_player - 1])
-		print('score:', sum(score[current_player - 1].values()))
+		# print('score for player', self.current_player.index, ':', score[current_player - 1])
+		# print('score:', sum(score[current_player - 1].values()))
 		# sys.exit()
 		# return value
 		return sum(score[current_player - 1].values())
@@ -376,8 +376,8 @@ class Gomoku:
 		# print('remaining spots', self.remaining_cells)
 		# end = time.time()
 		# print('get_child_node time: ', end - start)
-		print([list(el) for el in list(children)])
-		print('\n')
+		# print([list(el) for el in list(children)])
+		# print('\n')
 		return [list(el) for el in list(children)]
 
 	def print_board(self):

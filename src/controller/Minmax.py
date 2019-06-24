@@ -17,14 +17,18 @@ class Minmax:
 		self.depth = depth
 
 
+		self.prunned = 0
+		self.not_prunned = 0
+
+
 	def run(self, gomoku, pos, depth, alpha, beta, maximizing_player):
-		print('run. player:', gomoku.current_player.index)
+		# print('depth:', depth)
 		
 		if depth == 0 or (pos and self.is_end_gomoku(gomoku, pos)):
 			return [self.eval_node(gomoku, pos), pos]
 		children = self.get_child_nodes()
 		if maximizing_player:
-			print('MAXIMIZING for player', gomoku.current_player.index)
+			# print('MAXIMIZING for player', gomoku.current_player.index)
 			max_eval = [-math.inf]
 			for i, child in enumerate(children):
 				# print('MAXIMIZING for child ', i)
@@ -44,10 +48,14 @@ class Minmax:
 				max_eval = max_eval if max_eval[0] >= eval[0] else eval
 				alpha = max(alpha, eval[0])
 				if beta <= alpha:
+					self.prunned += 1
 					break
+				self.not_prunned += 1
+
+				print('prunned: ', (self.prunned / self.not_prunned))
 			return max_eval
 		else:
-			print('MINIMIZING for player', gomoku.current_player.index)
+			# print('MINIMIZING for player', gomoku.current_player.index)
 			min_eval = [math.inf]
 			for child in children:
 				gomoku.update_next_turn(1)
