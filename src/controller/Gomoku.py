@@ -285,6 +285,9 @@ class Gomoku:
 		# streak
 
 		# capture
+		# :(
+		# if self.current_player.captures == 5:
+		# 	score[current_player - 1]['captures']
 
 		# potential capture
 
@@ -299,8 +302,8 @@ class Gomoku:
 		def eval_line(start, line):
 			streak_num = 1
 
-			left = []
-			right = []
+			# left = []
+			# right = []
 
 			for direction in [1, -1]:
 				streaking = True
@@ -311,11 +314,11 @@ class Gomoku:
 						break
 					# if pos current player
 					if streaking and self.board[next_pos[0]][next_pos[1]] == current_player:
-						streak_num += 1
+						streak_num *= (streak_num + 1) ** 2
 					else:
 						streaking = False
-					if direction == 1: right.append(self.board[next_pos[0]][next_pos[1]])
-					if direction == -1: left.append(self.board[next_pos[0]][next_pos[1]])
+					# if direction == 1: right.append(self.board[next_pos[0]][next_pos[1]])
+					# if direction == -1: left.append(self.board[next_pos[0]][next_pos[1]])
 
 
 			# for i in range(1, 5):
@@ -331,8 +334,14 @@ class Gomoku:
 			# 		if direction == 1: right.append(self.board[next_pos[0]][next_pos[1]])
 			# 		if direction == -1: left.append(self.board[next_pos[0]][next_pos[1]])
 
-			left.reverse()
+			# left.reverse()
+
+
 			score[current_player - 1]['streak'] += streak_num
+
+			# if streak_num == 5:
+			# 	score[current_player - 1]['streak'] += 1000000
+				
 			# print('line: ', line, '    ', left, right, 'streak num: ', streak_num, 'streak', score[current_player - 1]['streak'], )
 
 

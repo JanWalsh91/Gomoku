@@ -21,10 +21,59 @@ class Minmax:
 		self.not_prunned = 0
 
 
+
+ 	#pseudo code
+	# def run(self, gomoku, depth):
+	# 	gomoku.current_move
+		
+	# 	if depth == 0:
+	# 		return gomoku.delta_heuristic(gomoku.current_pos)
+
+	# 	dict = gomoku.get_pos() # {pos: [], delta_value:}
+	# 	for pos in positions:
+	# 		delta_values = gomoku.delta_heuristic(pos.pos) # values {player1_delta: , player2_delta: }
+	# 		dict[pos].value - delta_values[current_player].score - delta_values[other_player].score
+
+	# 	dict.sort()
+
+	# 	for pos in positions:
+	# 		set undo fn
+	# 		gomoko.place()
+
+	# 		value = run(gomoku, depth)
+
+	# 		undo()
+
+	# 		if prune:
+	# 			break
+
+	# def gomoku.delta_heuristic():
+	# 	[] = eval()
+	# 	return  []
+
+	# def gomoku.place():
+
+
+	# def gomoku.get_children():
+	# 	for pos in positions:
+	# 		self.place(pos)
+	# 		self.update_board_value(pos)
+
+	# def gomoku.update_board_value(pos):
+	# 	res = self.calc_delta(pos)
+	# 	self.score.player1 += res[0]
+	# 	self.score.player2 += res[0]
+	#end
+
+
 	def run(self, gomoku, pos, depth, alpha, beta, maximizing_player):
 		# print('depth:', depth)
 		
+		# place
+		# eval delta => update gomoku score values
+
 		if depth == 0 or (pos and self.is_end_gomoku(gomoku, pos)):
+			# return 
 			return [self.eval_node(gomoku, pos), pos]
 		children = self.get_child_nodes()
 		if maximizing_player:
@@ -52,7 +101,7 @@ class Minmax:
 					break
 				self.not_prunned += 1
 
-				print('prunned: ', (self.prunned / self.not_prunned))
+				# print('prunned: ', (self.prunned / self.not_prunned))
 			return max_eval
 		else:
 			# print('MINIMIZING for player', gomoku.current_player.index)
