@@ -13,7 +13,8 @@ from interface.Interface import Interface
 
 import time
 
-default_rules = [RuleFactory.Name.CAPTURE, RuleFactory.Name.CAPTURE_GAME_ENDING, RuleFactory.Name.NO_DOUBLE_THREE]
+# default_rules = [RuleFactory.Name.CAPTURE, RuleFactory.Name.CAPTURE_GAME_ENDING, RuleFactory.Name.NO_DOUBLE_THREE]
+default_rules = []
 
 rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
 
@@ -77,11 +78,11 @@ def main():
 	while True:
 		if go.game_started and not go.end_game and go.current_player.is_AI():
 			turn += 1
-			print('======================', interface.current_player.name, go.current_player.index - 1, 'will play', '======================')
+			print('======================', interface.current_player.name, go.current_player.index, 'will play', '======================')
 			go.ai_turn(interface)
 		interface.render()
-		# if turn >= 20:
-		# 	sys.exit()
+		if turn >= 10:
+			go.end_game = True
 
 if __name__ == '__main__':
 	main()
