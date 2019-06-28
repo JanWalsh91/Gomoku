@@ -7,7 +7,7 @@ class Player(APlayer):
 		type (Player.TYPE): Human or AI
 	"""
 
-	count = 1
+	count = 0
 
 	def __init__(self, type):
 		super().__init__(type)

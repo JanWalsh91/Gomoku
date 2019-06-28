@@ -3,6 +3,7 @@ import argparse
 import pygame
 import sys
 from threading import Thread
+import math
 
 
 from controller.Minmax import Minmax
@@ -50,13 +51,18 @@ def main():
 			if interface.current_player.is_AI():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
 				return
-			go.human_turn(interface, pos)
+			# go.human_turn(interface, pos)
+			go.place(pos, go.current_player)
+			interface.place_stone_at(pos)
+			interface.render()
+			go.switch_player()
+			interface.next_turn()
 		else:
 			print('click start!')
 
 	def on_start(interface):
 		print('game has started!')
-		go.game_started = True
+		go.is_playing = True
 
 	def on_reset(interface):
 		print('interface has reset.')
@@ -71,18 +77,22 @@ def main():
 	interface.on_grid_click = on_click
 	interface.players[0].on_change_type = on_player_change_type
 	interface.players[1].on_change_type = on_player_change_type
+	
+	minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, timeout=0.5, ply_depth=2, max_depth=1)
 
-
-	# ==== start loop! ==== #
-	turn = 0
 	while True:
-		if go.game_started and not go.end_game and go.current_player.is_AI():
-			turn += 1
-			print('======================', interface.current_player.name, go.current_player.index, 'will play', '======================')
-			go.ai_turn(interface)
 		interface.render()
-		if turn >= 10:
-			go.end_game = True
+		if go.is_playing and go.current_player.is_AI():
+			pos = minmax.run()
+			print('AI choose', pos)
+			if pos:
+				go.place(pos, go.current_player)
+				interface.place_stone_at(pos)
+
+				go.switch_player()
+				interface.next_turn()
+			else:
+				go.is_playing = False
 
 if __name__ == '__main__':
 	main()
