@@ -3,6 +3,7 @@ import numpy as np
 import math
 import sys
 from inspect import signature
+import time
 
 class Minmax:
 
@@ -19,6 +20,8 @@ class Minmax:
 		self.transposition_table = {}
 		self.compteur = 0
 		self.contre_compteur = 0
+		self.start_time = None
+		self.out_of_time = False
 
 	def run(self, go):
 		print('Run AI')
@@ -28,9 +31,15 @@ class Minmax:
 		self.best_value = -math.inf
 		self.compteur = 0
 		self.contre_compteur = 0
+		self.out_of_time = False
+		if self.timeout:
+			self.start_time = time.clock()
 
 		# return VALUE of best node
 		def minmaxAlphaBeta(depth, alpha, beta, player):
+			if self.timeout and time.clock() - self.start_time > self.timeout:
+				self.out_of_time = True
+
 			if not self.map.get(depth):
 				print(go.current_player.index,  ' is at depth ', depth)
 				self.map[depth] = True
@@ -55,6 +64,9 @@ class Minmax:
 
 			value = -math.inf
 			for move in moves:
+				if self.out_of_time:
+					print('I BREAK BECAUSE NO TIME')
+					break
 				self.do_move(move)
 				ret = -minmaxAlphaBeta(depth - 1, -beta, -alpha, -player)
 				if depth == self.max_depth:

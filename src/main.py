@@ -78,7 +78,7 @@ def main():
 	interface.players[0].on_change_type = on_player_change_type
 	interface.players[1].on_change_type = on_player_change_type
 	
-	minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=go.hash_state, timeout=0.5, ply_depth=2, max_depth=8)
+	minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=go.hash_state, timeout=0.5, ply_depth=2, max_depth=3)
 	# minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=None, timeout=0.5, ply_depth=2, max_depth=3)
 
 	while True:
