@@ -33,7 +33,7 @@ class Minmax:
 			for move in moves:
 				# returns undo moves
 				self.do_move(move)
-				if depth == self.max_depth:
+				# if depth == self.max_depth:
 					# print('move:', move)
 					# go.print_my_board(go.board)
 					# print('')
