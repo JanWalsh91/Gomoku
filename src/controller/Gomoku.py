@@ -35,15 +35,15 @@ class Gomoku:
 
 	def switch_player(self):
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
-		print(self.get_moves())
-		self.print_my_board(self.board)
+		# print(self.get_moves())
+		# self.print_my_board(self.board)
 
 	# === minmax functions === 
 
 	def heuristic(self):
 
 		def eval_line(start, line):
-			print('eval line', start, line)
+			# print('eval line', start, line)
 
 			score = 0
 			current_streak_score = 0
@@ -64,8 +64,8 @@ class Gomoku:
 			current_streak_score = 0
 			streaking = False	
 
-			if score != 0:
-				print('line: ', start, score)
+			# if score != 0:
+			# 	print('line: ', start, score)
 
 			return score
 
@@ -101,8 +101,8 @@ class Gomoku:
 		return [list(el) for el in list(children)]
 
 	def do_move(self, pos):
-		self.place(pos, self.current_player)
 		self.switch_player()
+		self.place(pos, self.current_player)
 		return 0
 
 	def undo_move(self, pos):

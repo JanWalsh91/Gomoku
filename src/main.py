@@ -83,8 +83,11 @@ def main():
 	while True:
 		interface.render()
 		if go.is_playing and go.current_player.is_AI():
-			pos = minmax.run()
-			print('AI choose', pos)
+			go.switch_player()
+			pos = minmax.run(go)
+			go.switch_player()
+
+			print('AI, I choose you', pos)
 			if pos:
 				go.place(pos, go.current_player)
 				interface.place_stone_at(pos)
