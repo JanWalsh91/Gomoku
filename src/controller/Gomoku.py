@@ -27,11 +27,14 @@ class Gomoku:
 		self.board = np.full(shape=(size, size), fill_value=EMPTY, dtype=int) # 0, 1 => players. -1 empty.
 		self.players = [Player(Player.TYPE.HUMAN), Player(Player.TYPE.AI)]
 		self.current_player = self.players[0]
+		self.heuristic_player = None
 		self.is_playing = False
+		self.last_moves = [None, None]
 
 	def place(self, pos, player):
 		# update board
 		self.board[pos[0]][pos[1]] = player.index
+		self.last_moves[player.index] = pos
 
 	def switch_player(self):
 		self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
@@ -40,48 +43,70 @@ class Gomoku:
 
 	# === minmax functions === 
 
+	def hash_state(self):
+		return hash(str(self.board))
+
 	def heuristic(self):
 
-		def eval_line(start, line):
-			# print('eval line', start, line)
+		def heuristic_by_player(player):
+
+			def eval_line(start, line):
+				score = 0
+				current_streak_score = 0
+				streaking = False
+				
+				for i in range(self.size):
+					pos = start + line * i
+					if self.board[pos[0]][pos[1]] == player:
+						current_streak_score = (current_streak_score * 3 + 3)
+						streaking = True
+					else:
+						score += current_streak_score
+						current_streak_score = 0
+						streaking = False
+
+
+				score += current_streak_score
+				current_streak_score = 0
+				streaking = False	
+
+				# if score != 0:
+				# print('line: ', start, line, score)
+				return score
 
 			score = 0
-			current_streak_score = 0
-			streaking = False
-			
-			for i in range(self.size):
-				pos = start + line * i
-				if self.board[pos[0]][pos[1]] == self.current_player.index:
-					current_streak_score = (current_streak_score + 1) ** 2
-					streaking = True
-				else:
-					score += current_streak_score
-					current_streak_score = 0
-					streaking = False
-
-
-			score += current_streak_score
-			current_streak_score = 0
-			streaking = False	
-
-			# if score != 0:
-			# 	print('line: ', start, score)
-
-			return score
-
-		score = 0
-		for i in range(self.size):
 			for start in [np.array([x, 0]) for x in range(self.size)]:
 				score += eval_line(start, np.array([0, 1]))
 			for start in [np.array([0, y]) for y in range(self.size)]:
 				score += eval_line(start, np.array([1, 0]))						
+			
+			# print('final score: ', score, ' for player ', self.heuristic_player.index)
+			# self.print_my_board(self.board)
+			
+			return score
 		
-		return score
+		return heuristic_by_player(self.heuristic_player.index) - int(heuristic_by_player(0 if self.heuristic_player.index == 1 else 1) * 1.1)
 
 	# returns [[1, 0], ...]
 	def get_moves(self):
-		dist = 2
+		dist_around_last_moves = 1
+		
 		children = set()
+
+		current_player = self.current_player.index
+
+		for move in [self.last_moves[current_player], self.last_moves[0 if current_player == 1 else 1]]:
+			if move:
+				for i in range(-dist_around_last_moves, dist_around_last_moves + 1):
+					i += move[0]
+					for j in range(-dist_around_last_moves, dist_around_last_moves + 1):
+						j += move[1]
+						if i >= 0 and i < len(self.board) and j >= 0 and j < len(self.board) and self.board[i][j] == EMPTY:
+							children.add((i, j))
+							not_empty = True
+
+
+		dist = 2
 		not_empty = False
 		for i in range(len(self.board)):
 			for j in range(len(self.board)):
@@ -101,8 +126,8 @@ class Gomoku:
 		return [list(el) for el in list(children)]
 
 	def do_move(self, pos):
-		self.switch_player()
 		self.place(pos, self.current_player)
+		self.switch_player()
 		return 0
 
 	def undo_move(self, pos):
