@@ -6,6 +6,7 @@ from threading import Thread
 import math
 
 
+import GomokuModule
 from controller.Minmax import Minmax
 from controller.Gomoku import Gomoku
 from controller.rules.ARule import ARule
@@ -20,6 +21,7 @@ default_rules = []
 rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
 
 def main():
+
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-s', action="store", dest="board_size", type=int, help='Size of the board')
@@ -39,9 +41,11 @@ def main():
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
+		GomokuModule.init(args.board_size)
 		go = Gomoku(rules, args.board_size)
 		interface = Interface(go.players, args.board_size)
 	else:
+		GomokuModule.init(19)
 		go = Gomoku(rules)
 		interface = Interface(go.players)
 
@@ -52,7 +56,11 @@ def main():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
 				return
 			# go.human_turn(interface, pos)
-			go.place(pos, go.current_player)
+			# go.place(pos, go.current_player)
+			
+			GomokuModule.place(pos[0], pos[1], go.current_player.index)
+			GomokuModule.switch_player()
+
 			interface.place_stone_at(pos)
 			interface.render()
 			go.switch_player()
@@ -78,21 +86,24 @@ def main():
 	interface.players[0].on_change_type = on_player_change_type
 	interface.players[1].on_change_type = on_player_change_type
 	
-	minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=go.hash_state, timeout=0.5, ply_depth=2, max_depth=3)
+	# minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=go.hash_state, timeout=0.5, ply_depth=2, max_depth=3)
 	# minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=None, timeout=0.5, ply_depth=2, max_depth=3)
 
 	while True:
 		interface.render()
+	
 		if go.is_playing and go.current_player.is_AI():
-			go.heuristic_player = go.current_player
-			pos = minmax.run(go)
-			go.heuristic_player = None
-
+			# go.heuristic_player = go.current_player
+			# pos = minmax.run(go)
+			# go.heuristic_player = None
+			pos = GomokuModule.run()
 			print('AI, I choose you', pos)
 			if pos:
 				go.place(pos, go.current_player)
+				GomokuModule.place(pos[0], pos[1], go.current_player.index)
 				interface.place_stone_at(pos)
 
+				GomokuModule.switch_player()
 				go.switch_player()
 				interface.next_turn()
 			else:

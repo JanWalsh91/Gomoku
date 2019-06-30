@@ -9,6 +9,8 @@ from collections import Counter
 import sys
 import random
 
+import GomokuModule
+
 from controller.Player import Player
 from controller.rules.RuleFactory import RuleFactory
 from controller.helpers import five_aligned, can_place_pos, intersection_validity_pos
@@ -30,6 +32,14 @@ class Gomoku:
 		self.heuristic_player = None
 		self.is_playing = False
 		self.last_moves = [None, None]
+
+		# GomokuModule.heuristic('My awesome cunt')
+		# GomokuModule.init(size, 42)
+
+		# GomokuModule.place(2, 2, 42)
+		# GomokuModule.switch_player()
+
+		# print('valeur de retour', GomokuModule.minmax())
 
 	def place(self, pos, player):
 		# update board
