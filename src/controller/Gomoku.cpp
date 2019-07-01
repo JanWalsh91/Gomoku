@@ -16,12 +16,17 @@ Gomoku::Gomoku(int size): size(size), isPlaying(true) {
 	this->currentPlayer = &this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+}
 
-	this->hashState();
+void Gomoku::reset() {
+	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
+	this->currentPlayer = &this->players[0];
+	this->heuristicPlayer = nullptr;
+	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 }
 
 void Gomoku::place(int& y, int& x, int& playerIndex) {
-	std::cout << "Placing " << y << ", " << x << ", " << playerIndex << std::endl;
+	// std::cout << "Placing " << y << ", " << x << ", " << playerIndex << std::endl;
 	// std::cout << this->board.size() << std::endl;
 	this->board[y][x] = playerIndex;
 	this->lastMoves[playerIndex] = std::make_pair(y, x);
@@ -117,30 +122,69 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
+int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen) {
+
+	if (currentStreakPotential < 5) {
+		return 0;
+	}
+
+	int score = pow(currentStreakNum == 5 ? 50 : currentStreakNum, 3);
+
+	return halfOpen ? score * 2 : score;
+}
+
 int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player) {
 
 	int score = 0;
-	int currentStreakScore = 0;
+	int currentStreakNum = 0;
+	int currentStreakPotential = 0;
 	bool streaking = false;
+	bool streakingPotential = false;
+	bool halfOpen = true;
+
+	int otherPlayer = player == 0 ? 1 : 0;
 
 	std::pair<int, int> pos;
 	for (int i = 0; i < this->size; i++) {
 		pos = std::make_pair<int, int>(start.first + line.first * i, start.second + line.second * i);
-		if (this->board[pos.first][pos.second] == player) {
-			currentStreakScore++;
-			// std::cout << "increasing currentStreakScore to " << currentStreakScore << " to player " << player << " at " << "(" << pos.first << "," << pos.second << ")" << std::endl; 			
-			streaking = true;
+		if (!streaking) {
+			if (this->board[pos.first][pos.second] == -1) {
+				halfOpen = false;
+			} else if (this->board[pos.first][pos.second] == otherPlayer) {
+				halfOpen = true;
+			}
+		}
+
+		if (this->board[pos.first][pos.second] != otherPlayer) {
+			streakingPotential = true;
+			currentStreakPotential++;
+			if (this->board[pos.first][pos.second] == player) {
+				if (streaking) {
+					currentStreakNum++;
+				} else {
+					streaking = true;
+					currentStreakNum = 1;
+				}
+			} else {
+				streaking = false;
+			}
 		} else {
-			score += currentStreakScore * currentStreakScore;
-			// std::cout << "adding " << currentStreakScore << " to player linescore " << player << " at " << "(" << pos.first << "," << pos.second << ")" << " => " << score << std::endl; 
-			currentStreakScore = 0;
+			if (streaking) {
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true);
+			} else {
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen);
+			}
+			streakingPotential = false;
 			streaking = false;
+			currentStreakPotential = 0;
+			currentStreakNum = 0;
 		}
 	}
 
 	if (streaking) {
-		score += currentStreakScore * currentStreakScore;
-		// std::cout << "adding " << currentStreakScore << " to player linescore " << player << " at " << "(END)" << " => " << score << std::endl; 
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true);
+	} else {
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen);
 	}
 
 	return score;
@@ -167,14 +211,14 @@ int Gomoku::heuristicByPlayer(int player) {
 
 int Gomoku::heuristic() {
 
-	std::cout << "HEU" << std::endl;
-	this->printBoard();
+	// std::cout << "HEU" << std::endl;
+	// this->printBoard();
 	int score0 = this->heuristicByPlayer(0); 
 	int score1 = this->heuristicByPlayer(1);
-	std::cout << std::endl << "Hooman Score: " << score0 << ", AiScore: " << score1 << std::endl;
-	std::cout << std::endl;
-	return score1 - (int)(score0 * 2);
-	return this->heuristicByPlayer(this->heuristicPlayer->index) - this->heuristicByPlayer(this->heuristicPlayer->index == 1 ? 0 : 1);
+	// std::cout << std::endl << "Hooman Score: " << score0 << ", AiScore: " << score1 << std::endl;
+	// std::cout << std::endl;
+	return score1 - (int)(score0);
+	// return this->heuristicByPlayer(this->heuristicPlayer->index) - this->heuristicByPlayer(this->heuristicPlayer->index == 1 ? 0 : 1);
 }
 
 
@@ -222,6 +266,11 @@ PyObject* Gomoku::init(PyObject* self, PyObject* args) {
 	return PyLong_FromLong(0);
 }
 
+PyObject* Gomoku::reset(PyObject* self, PyObject* args) {
+	Gomoku::gomoku->reset();
+	return PyLong_FromLong(0);
+}
+
 PyObject* Gomoku::run(PyObject* self, PyObject* args) {
 	// std::cout << "Gomoku Run" << std::endl;
 
@@ -258,6 +307,7 @@ PyObject* Gomoku::switchPlayer(PyObject* self, PyObject* args) {
 
 static PyMethodDef methods[] = {
 	{"init", Gomoku::init, METH_VARARGS, "Returns the heuristic value."},
+	{"reset", Gomoku::reset, METH_VARARGS, "Returns the reset value."},
 	{"place", Gomoku::place, METH_VARARGS, "Returns the place value."},
 	{"switch_player", Gomoku::switchPlayer, METH_VARARGS, "Returns the switchPlayer value."},
 	{"run", Gomoku::run, METH_VARARGS, "Returns the minmax value."},

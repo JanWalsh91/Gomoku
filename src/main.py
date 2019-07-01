@@ -75,7 +75,8 @@ def main():
 
 	def on_reset(interface):
 		print('interface has reset.')
-		go.reset()
+		# go.reset()
+		GomokuModule.reset()
 
 	def on_player_change_type(player_view_model):
 		go.players[interface.players.index(player_view_model)].type = player_view_model.type

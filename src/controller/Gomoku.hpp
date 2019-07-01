@@ -17,6 +17,7 @@ public:
 	std::vector<Player> players;
 
 	static PyObject* init(PyObject* self, PyObject* args);
+	static PyObject* reset(PyObject* self, PyObject* args);
 	
 	static PyObject* place(PyObject* self, PyObject* args);
 	static PyObject* switchPlayer(PyObject* self, PyObject* args);
@@ -25,6 +26,7 @@ public:
 
 	void place(int& y, int& x, int& playerIndex);
 	void switchPlayer();
+	void reset();
 
 	void printBoard();
 	void printBoard(std::vector<std::vector<int>> board);
@@ -38,6 +40,9 @@ public:
 	void undoMove(std::pair<int, int>& pos);
 
 // private:
+
+
+	int evalStreakScore(int, int, bool);
 
 	int size;
 	std::vector<std::vector<int>> board;
