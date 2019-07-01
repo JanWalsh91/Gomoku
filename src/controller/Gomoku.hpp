@@ -27,6 +27,7 @@ public:
 	void switchPlayer();
 
 	void printBoard();
+	void printBoard(std::vector<std::vector<int>> board);
 	std::string hashState();
 
 	int heuristic();
