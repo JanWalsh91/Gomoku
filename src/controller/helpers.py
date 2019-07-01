@@ -1,6 +1,6 @@
 import numpy as np
 
-# TODO issue in that function with ai
+
 def five_aligned(gomoku, pos):
 	board = gomoku.board
 	coord_list = []

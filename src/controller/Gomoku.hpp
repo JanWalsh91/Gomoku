@@ -6,10 +6,18 @@
 
 #include "Player.hpp"
 #include "Minmax.hpp"
+#include "AAction.hpp"
+#include "ActionUpdateBoard.hpp"
+#include "ActionSetEndState.hpp"
 
 class Gomoku {
 
 public:
+
+	enum State {
+		DRAW = -2,
+		PLAYING = -1
+	};
 
 	Gomoku(int size);
 
@@ -23,8 +31,10 @@ public:
 	static PyObject* switchPlayer(PyObject* self, PyObject* args);
 
 	static PyObject* run(PyObject* self, PyObject* args);
+	static PyObject* getEndState(PyObject* self, PyObject* args);
 
-	void place(int& y, int& x, int& playerIndex);
+	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
+	void place(int& y, int& x);
 	void switchPlayer();
 	void reset();
 
@@ -32,12 +42,14 @@ public:
 	void printBoard(std::vector<std::vector<int>> board);
 	std::string hashState();
 
+	bool checkWinCondition(std::pair<int, int> pos, int& playerIndex);
+
 	int heuristic();
 	int heuristicByPlayer(int player);
 	int evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player);
 	std::vector<std::pair<int, int>> getMoves();
-	void doMove(std::pair<int, int>& pos);
-	void undoMove(std::pair<int, int>& pos);
+	std::vector<AAction*> doMove(std::pair<int, int>& pos);
+	void undoMove(std::vector<AAction*>& actions);
 
 // private:
 
@@ -51,4 +63,6 @@ public:
 	bool isPlaying;
 	std::vector<std::pair<int, int>> lastMoves;
 	Minmax* minmax;
+
+	int endState;
 };

@@ -7,7 +7,7 @@
 #include "Gomoku.hpp"
 
 // TODO: is PLaying, reset function
-Gomoku::Gomoku(int size): size(size), isPlaying(true) {
+Gomoku::Gomoku(int size): size(size), isPlaying(true), endState(State::PLAYING) {
 	this->players.push_back(Player(0, Player::HUMAN));
 	this->players.push_back(Player(1, Player::AI));
 
@@ -23,15 +23,83 @@ void Gomoku::reset() {
 	this->currentPlayer = &this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+	this->endState = State::PLAYING;
 }
 
-void Gomoku::place(int& y, int& x, int& playerIndex) {
-	// std::cout << "Placing " << y << ", " << x << ", " << playerIndex << std::endl;
-	// std::cout << this->board.size() << std::endl;
+bool Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
+	std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> lines = {
+		std::make_pair(std::make_pair( 0, 1 ), std::make_pair( 0, -1 )),
+		std::make_pair(std::make_pair( 1, 0 ), std::make_pair(-1,  0 )),
+		std::make_pair(std::make_pair( 1, 1 ), std::make_pair(-1, -1 )),
+		std::make_pair(std::make_pair(-1, 1 ), std::make_pair( 1, -1 ))
+	};
+	
+	for (std::pair<std::pair<int, int>, std::pair<int, int>>& line: lines) {
+		int numAligned = 1;
+
+			for (int i = 0; i < 4; i++) {
+				std::pair<int, int> nextPos = std::make_pair(pos.first + line.first.first * i, pos.second + line.first.second * i);
+				if (nextPos.first >= this->size || nextPos.first < 0 ||
+					nextPos.second >= this->size || nextPos.second < 0 ||
+					this->board[nextPos.first][nextPos.second] != playerIndex) {
+						break ;
+				} else {
+					numAligned++;
+					if (numAligned >= 5) {
+						return true;
+					}
+				}
+			}
+
+			for (int i = 0; i < 4; i++) {
+				std::pair<int, int> nextPos = std::make_pair(pos.first + line.second.first * i, pos.second + line.second.second * i);
+				if (nextPos.first >= this->size || nextPos.first < 0 ||
+					nextPos.second >= this->size || nextPos.second < 0 ||
+					this->board[nextPos.first][nextPos.second] != playerIndex) {
+						break ;
+				} else {
+					numAligned++;
+					if (numAligned >= 5) {
+						std::cout << "FIVE ALIGNED" << std::endl;
+						return true;
+					}
+				}
+			}
+			
+	}
+	return false;
+}
+
+std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
+	std::vector<AAction*> actions;
+
+
+	std::pair<int, int> pos = std::make_pair(y, x);
+
 	this->board[y][x] = playerIndex;
-	this->lastMoves[playerIndex] = std::make_pair(y, x);
-	// std::cout << "Placed " << y << ", " << x << ", " << playerIndex << std::endl;
-	// this->printBoard();
+	this->lastMoves[playerIndex] = pos;
+
+	actions.push_back(new ActionUpdateBoard(pos, -1));
+	
+	if (this->checkWinCondition(pos, playerIndex)) {
+		actions.push_back(new ActionSetEndState(this->endState));
+		this->endState = playerIndex;
+	}
+
+	// TODO: Captures, rules, etc...
+	return actions;
+}
+
+void Gomoku::place(int& y, int& x) {
+
+	std::pair<int, int> pos = std::make_pair(y, x);
+
+	this->board[y][x] = this->currentPlayer->index;
+	this->lastMoves[this->currentPlayer->index] = pos;
+	
+	if (this->checkWinCondition(pos, this->currentPlayer->index)) {
+		this->endState = this->currentPlayer->index;
+	}
 }
 
 void Gomoku::switchPlayer() {
@@ -222,14 +290,37 @@ int Gomoku::heuristic() {
 }
 
 
-void Gomoku::doMove(std::pair<int, int>& pos) {
-	this->place(pos.first, pos.second, this->currentPlayer->index);
+std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
+
+	std::vector<AAction*> actions = this->place(pos.first, pos.second, this->currentPlayer->index);
 	this->switchPlayer();
+
+	return actions;
 }
 
-void Gomoku::undoMove(std::pair<int, int>& pos) {
-	this->board[pos.first][pos.second] = -1;
+void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	this->switchPlayer();
+	
+	std::cout << "IN UNDO MOVE" << std::endl;
+
+	ActionUpdateBoard* aub;
+	ActionSetEndState* aes;
+	
+	for (AAction* action: actions) {
+		switch(action->type) {
+			case AAction::Type::UPDATE_BOARD:
+				aub = dynamic_cast<ActionUpdateBoard*>(action);
+				this->board[aub->pos.first][aub->pos.second] = aub->value;
+				break;
+			case AAction::Type::SET_END_STATE:
+				aes = dynamic_cast<ActionSetEndState*>(action);
+				this->endState = aes->state;
+				std::cout << "UNDO STATE set to: " << this->endState << std::endl;
+				break;
+		}
+
+		delete action;
+	}
 }
 
 void Gomoku::printBoard() {
@@ -288,13 +379,13 @@ PyObject* Gomoku::run(PyObject* self, PyObject* args) {
 }
 
 PyObject* Gomoku::place(PyObject* self, PyObject* args) {
-	int y, x, playerIndex;
+	int y, x;
 	
-	if (!PyArg_ParseTuple(args, "iii", &y, &x, &playerIndex)) {
+	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
 		return NULL;
 	}
 
-	Gomoku::gomoku->place(y, x, playerIndex);
+	Gomoku::gomoku->place(y, x);
 	return PyLong_FromLong(0);
 }
 
@@ -303,6 +394,9 @@ PyObject* Gomoku::switchPlayer(PyObject* self, PyObject* args) {
 	return PyLong_FromLong(0);
 }
 
+PyObject* Gomoku::getEndState(PyObject* self, PyObject* args) {
+	return PyLong_FromLong(Gomoku::gomoku->endState);
+}
 
 
 static PyMethodDef methods[] = {
@@ -311,6 +405,7 @@ static PyMethodDef methods[] = {
 	{"place", Gomoku::place, METH_VARARGS, "Returns the place value."},
 	{"switch_player", Gomoku::switchPlayer, METH_VARARGS, "Returns the switchPlayer value."},
 	{"run", Gomoku::run, METH_VARARGS, "Returns the minmax value."},
+	{"get_end_state", Gomoku::getEndState, METH_VARARGS, "Returns the minmax value."},
 	{NULL, NULL, 0, NULL}
 };
 

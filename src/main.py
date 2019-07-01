@@ -59,7 +59,7 @@ def main():
 			# go.human_turn(interface, pos)
 			# go.place(pos, go.current_player)
 			
-			GomokuModule.place(pos[0], pos[1], go.current_player.index)
+			GomokuModule.place(pos[0], pos[1])
 			GomokuModule.switch_player()
 
 			interface.place_stone_at(pos)
@@ -102,7 +102,7 @@ def main():
 			print('AI, I choose you', pos)
 			if pos:
 				# go.place(pos, go.current_player)
-				GomokuModule.place(pos[0], pos[1], go.current_player.index)
+				GomokuModule.place(pos[0], pos[1])
 				interface.place_stone_at(pos)
 
 				GomokuModule.switch_player()
