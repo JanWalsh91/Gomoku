@@ -25,6 +25,7 @@ def main():
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-s', action="store", dest="board_size", type=int, help='Size of the board')
+	parser.add_argument('-d', action="store", dest="depth", type=int, help='Min max depth')
 
 	parser.add_argument('-r0', action='store_true', default=False, dest='r0', help='Remove default rules')
 	for key in rules_dictionary:
@@ -41,11 +42,11 @@ def main():
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
-		GomokuModule.init(args.board_size)
+		GomokuModule.init(args.board_size, args.depth if args.depth else 5)
 		go = Gomoku(rules, args.board_size)
 		interface = Interface(go.players, args.board_size)
 	else:
-		GomokuModule.init(19)
+		GomokuModule.init(19, args.depth if args.depth else 5)
 		go = Gomoku(rules)
 		interface = Interface(go.players)
 
@@ -99,7 +100,7 @@ def main():
 			pos = GomokuModule.run()
 			print('AI, I choose you', pos)
 			if pos:
-				go.place(pos, go.current_player)
+				# go.place(pos, go.current_player)
 				GomokuModule.place(pos[0], pos[1], go.current_player.index)
 				interface.place_stone_at(pos)
 

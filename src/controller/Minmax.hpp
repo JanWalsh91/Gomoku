@@ -9,11 +9,13 @@ class Minmax {
 
 public:
 
-	Minmax(Gomoku& gomoku);
+	Minmax(Gomoku& gomoku, int maxDepth);
 	std::pair<int, int> run();
 	std::pair<int, int> bestMove;
 	int bestValue;
 	std::map<std::string, int> TT;
+
+	int maxDepth;
 
 private:
 

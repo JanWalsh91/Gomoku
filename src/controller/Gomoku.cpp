@@ -19,10 +19,12 @@ Gomoku::Gomoku(int size): size(size), isPlaying(true) {
 }
 
 void Gomoku::place(int& y, int& x, int& playerIndex) {
-	std::cout << "Placing " << y << ", " << x << ", " << playerIndex << std::endl;
+	// std::cout << "Placing " << y << ", " << x << ", " << playerIndex << std::endl;
 	std::cout << this->board.size() << std::endl;
 	this->board[y][x] = playerIndex;
+	this->lastMoves[playerIndex] = std::make_pair(y, x);
 	std::cout << "Placed " << y << ", " << x << ", " << playerIndex << std::endl;
+	this->printBoard();
 }
 
 void Gomoku::switchPlayer() {
@@ -55,47 +57,53 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 	bool empty = true; 
 
-	// for (auto move = (currentPlayer == 0 ? this->lastMoves.begin() : this->lastMoves.end()) ;
-	// 	move != (currentPlayer == 0 ? this->lastMoves.end() : this->lastMoves.begin()) ;
-	// 	(currentPlayer == 0 ? ++move : --move)) {
+	// std::cout << "Last move: [" << move.first << "; " << move.second << "]" << std::endl;
+	// move = this->lastMoves[1];
 
-	// 	if (move->first != -1) {
-	// 		for (int i = -distAroundLastMoves; i < distAroundLastMoves; i++) {
-	// 			i += move->first;
-	// 			for (int j = -distAroundLastMoves; j < distAroundLastMoves; j++) {
-	// 				j += move->second;
-	// 				if (i >= 0 && i < this->size && j >= 0 && j < this->size && this->board[i][j] == -1) {
-	// 					auto child = std::make_pair(i, j);
-	// 					if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
-	// 						moves.push_back(child);
-	// 						empty = false;
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 
-	int dist = 2;
-	for (int i = 0; i < this->size; i++) {
-		for (int j = 0; j < this->size; j++) {
-			if (this->board[i][j] != -1) {
-				for (int k = 0; k < dist; k++) {
-					for (int l = 0; l < dist; l++) {
-						if (i + k >= 0 && i + k < this->size && j + l >= 0 && j + l < this->size && this->board[i + k][j + l] == -1) {
-							auto child = std::make_pair(i + k, j + l);
-							if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
-								moves.push_back(child);
-								empty = false;
-							}
+	for (int i = (currentPlayer == 0 ? 0 : 1); i != (currentPlayer == 0 ? 2 : -1); i += (currentPlayer == 0 ? 1 : -1)) {
+		auto move = this->lastMoves[i];
+		
+		std::cout << "Last move: [" << move.first << "; " << move.second << "]" << std::endl;
+		if (move.first != -1) {
+			for (int i = -distAroundLastMoves; i <= distAroundLastMoves; i++) {
+				int i2 = i + move.first;
+				for (int j = -distAroundLastMoves; j <= distAroundLastMoves; j++) {
+					int j2 = j + move.second;
+					if (i2 >= 0 && i2 < this->size && j2 >= 0 && j2 < this->size && this->board[i2][j2] == -1) {
+						auto child = std::make_pair(i2, j2);
+						std::cout << "testing " << i2 << " " << j2 << std::endl;
+						if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
+							moves.push_back(child);
+							empty = false;
 						}
 					}
 				}
-			} else {
-				empty = false;
 			}
 		}
 	}
+
+	// int dist = 2;
+	// for (int i = 0; i < this->size; i++) {
+	// 	for (int j = 0; j < this->size; j++) {
+	// 		if (this->board[i][j] != -1) {
+	// 			for (int k = -dist; k <= dist; k++) {
+	// 				for (int l = -dist; l <= dist; l++) {
+	// 					if (i + k >= 0 && i + k < this->size && j + l >= 0 && j + l < this->size && this->board[i + k][j + l] == -1) {
+	// 						auto child = std::make_pair(i + k, j + l);
+	// 						std::cout << "Will search " << child.first << std::endl;
+	// 						if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
+	// 							moves.push_back(child);
+	// 							empty = false;
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		} else {
+	// 			empty = false;
+	// 		}
+	// 	}
+	// }
 
 	if (empty) {
 		moves.push_back(std::make_pair<int, int>((int)(this->size / 2), (int)(this->size / 2)));
@@ -158,7 +166,8 @@ void Gomoku::doMove(std::pair<int, int>& pos) {
 }
 
 void Gomoku::undoMove(std::pair<int, int>& pos) {
-
+	this->board[pos.first][pos.second] = -1;
+	this->switchPlayer();
 }
 
 void Gomoku::printBoard() {
@@ -170,17 +179,27 @@ void Gomoku::printBoard() {
 	}
 }
 
+void Gomoku::printBoard(std::vector<std::vector<int>> board) {
+	for (int j = 0; j < this->size; j++) {
+		for (int i = 0; i < this->size; i++) {
+			std::cout << board[j][i] << " ";
+		}
+		std::cout << std::endl;
+	}
+}
+
 Gomoku* Gomoku::gomoku = nullptr;
 
 PyObject* Gomoku::init(PyObject* self, PyObject* args) {
 	int size;
+	int maxDepth;
 
-	if (!PyArg_ParseTuple(args, "i", &size)) {
+	if (!PyArg_ParseTuple(args, "ii", &size, &maxDepth)) {
 		return NULL;
 	}
 
 	Gomoku::gomoku = new Gomoku(size);
-	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku);
+	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, maxDepth);
 
 	return PyLong_FromLong(0);
 }

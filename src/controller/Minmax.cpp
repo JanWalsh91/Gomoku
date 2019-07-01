@@ -4,9 +4,7 @@
 
 #include "Minmax.hpp"
 
-#define DEPTH 1
-
-Minmax::Minmax(Gomoku& gomoku): gomoku(gomoku) {
+Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku) {
 	this->TT = std::map<std::string, int>();
 	this->bestMove = std::make_pair(-1, -1);
 	this->bestValue = std::numeric_limits<int>::min();
@@ -15,19 +13,22 @@ Minmax::Minmax(Gomoku& gomoku): gomoku(gomoku) {
 std::pair<int, int> Minmax::run() {
 	std::cout << "Minmax run" << std::endl;
 	this->gomoku.heuristicPlayer = this->gomoku.currentPlayer;
+	this->bestMove = std::make_pair(-1, -1);
+	this->bestValue = std::numeric_limits<int>::min();
 	this->TT = std::map<std::string, int>();
 	
-	this->minmaxAlphaBeta(DEPTH, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), 1);
+	this->minmaxAlphaBeta(this->maxDepth, std::numeric_limits<int>::min() + 1, std::numeric_limits<int>::max(), 1);
 	this->gomoku.heuristicPlayer = nullptr;
+
 
 	return this->bestMove;
 }
 
 int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
-	std::cout << "minmaxAlphaBeta" << std::endl;
+	std::cout << "minmaxAlphaBeta " << alpha << "    " << beta << std::endl;
 
 	if (depth == 0) {
-		auto key = gomoku.hashState();
+		auto key = this->gomoku.hashState();
 		auto keyVal = this->TT.find(key);
 		int val;
 		if (keyVal == this->TT.end()) {
@@ -40,23 +41,27 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 	} 
 
 	auto moves = this->gomoku.getMoves();
-	int value = std::numeric_limits<int>::max();
+	int value = std::numeric_limits<int>::min() + 1;
 
 	for (auto it = moves.begin(); it != moves.end(); it++) {
 		// TODO: out of time
 		this->gomoku.doMove(*it);
 		int ret = -this->minmaxAlphaBeta(depth - 1, -beta, -alpha, -player);
-		if (depth == DEPTH) { // TODO:!!!!!!!!!!!!!!!!! max depth
+		if (depth == this->maxDepth) {
 			if (player * ret > this->bestValue) {
-				this->bestValue = player * ret;
 				this->bestMove = *it;
+				this->bestValue = player * ret;
 			}
 		}
 
 		value = std::max(value, ret);
-		gomoku.undoMove(*it);
+		this->gomoku.undoMove(*it);
 		alpha = std::max(alpha, value);
+		std::cout << "value: " << value << std::endl;
+		std::cout << "alpha: " << alpha << std::endl;
+		std::cout << "beta: " << beta << std::endl;
 		if (alpha >= beta) {
+			std::cout << "BREAKING NEWS" << std::endl;
 			break;
 		}
 	}
