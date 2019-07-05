@@ -28,10 +28,10 @@ std::pair<int, int> Minmax::run() {
 
 	// std::cout << std::endl << "BOARD" << std::endl;
 	// this->gomoku.printBoard();
-	
-	// std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->index << std::endl;;
-	// this->gomoku.printBoard(heuristicValues);
-	// std::cout << std::endl;;
+
+	std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->index << std::endl;
+	this->gomoku.printBoard(heuristicValues);
+	std::cout << std::endl;;
 
 	return this->bestMove;
 }

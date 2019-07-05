@@ -53,7 +53,7 @@ public:
 
 	int heuristic(int depth);
 	int heuristicByPlayer(int player);
-	int evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player);
+	int evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player, int length);
 	std::vector<std::pair<int, int>> getMoves();
 	std::vector<AAction*> doMove(std::pair<int, int>& pos);
 	void undoMove(std::vector<AAction*>& actions);
@@ -72,4 +72,5 @@ public:
 	Minmax* minmax;
 	int remainingStones;
 	int endState;
+	int winStreakLength;
 };
