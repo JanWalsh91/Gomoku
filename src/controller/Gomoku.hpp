@@ -19,7 +19,7 @@ public:
 		PLAYING = -1
 	};
 
-	Gomoku(int size);
+	Gomoku(int size, Player::Type player0Type, Player::Type player1Type);
 
 	static Gomoku* gomoku;
 	std::vector<Player> players;
@@ -32,6 +32,13 @@ public:
 
 	static PyObject* run(PyObject* self, PyObject* args);
 	static PyObject* getEndState(PyObject* self, PyObject* args);
+
+	static PyObject* isPlaying(PyObject* self, PyObject* args);
+	static PyObject* setPlaying(PyObject* self, PyObject* args);
+
+	static PyObject* isCurrentPlayerAI(PyObject* self, PyObject* args);
+	static PyObject* setPlayerType(PyObject* self, PyObject* args);
+
 
 	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
 	void place(int& y, int& x);
@@ -60,7 +67,7 @@ public:
 	std::vector<std::vector<int>> board;
 	Player* currentPlayer;
 	Player* heuristicPlayer;
-	bool isPlaying;
+	bool playing;
 	std::vector<std::pair<int, int>> lastMoves;
 	Minmax* minmax;
 

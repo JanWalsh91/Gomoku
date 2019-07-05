@@ -7,9 +7,9 @@
 #include "Gomoku.hpp"
 
 // TODO: is PLaying, reset function
-Gomoku::Gomoku(int size): size(size), isPlaying(true), endState(State::PLAYING) {
-	this->players.push_back(Player(0, Player::HUMAN));
-	this->players.push_back(Player(1, Player::AI));
+Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), endState(State::PLAYING) {
+	this->players.push_back(Player(0, player0Type));
+	this->players.push_back(Player(1, player1Type));
 
 	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
 
@@ -24,6 +24,7 @@ void Gomoku::reset() {
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 	this->endState = State::PLAYING;
+	this->playing = false;
 }
 
 bool Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
@@ -176,8 +177,6 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 						}
 					}
 				}
-			} else {
-				empty = false;
 			}
 		}
 	}
@@ -188,7 +187,7 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 	// std::cout << "===== GET CHILD " << std::endl;
 	// for (unsigned long i = 0; i < moves.size(); i++) {
-		// std::cout << moves[i].first << ", " << moves[i].second << std::endl;
+	// 	std::cout << moves[i].first << ", " << moves[i].second << std::endl;
 	// }
 	// std::cout << "===== GET CHILD " << std::endl;
 
@@ -347,12 +346,14 @@ Gomoku* Gomoku::gomoku = nullptr;
 PyObject* Gomoku::init(PyObject* self, PyObject* args) {
 	int size;
 	int maxDepth;
+	int player0Type;
+	int player1Type;
 
-	if (!PyArg_ParseTuple(args, "ii", &size, &maxDepth)) {
+	if (!PyArg_ParseTuple(args, "iiii", &size, &maxDepth, &player0Type, &player1Type)) {
 		return NULL;
 	}
 
-	Gomoku::gomoku = new Gomoku(size);
+	Gomoku::gomoku = new Gomoku(size, (Player::Type)player0Type, (Player::Type)player1Type);
 	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, maxDepth);
 
 	return PyLong_FromLong(0);
@@ -400,6 +401,41 @@ PyObject* Gomoku::getEndState(PyObject* self, PyObject* args) {
 	return PyLong_FromLong(Gomoku::gomoku->endState);
 }
 
+PyObject* Gomoku::isPlaying(PyObject* self, PyObject* args) {
+	return PyBool_FromLong(Gomoku::gomoku->playing);
+}
+
+
+PyObject* Gomoku::setPlaying(PyObject* self, PyObject* args) {
+	// bool playing;
+	
+	if (!PyArg_ParseTuple(args, "b", &Gomoku::gomoku->playing)) {
+		return NULL;
+	}
+
+	// Gomoku::gomoku->playing = playing;
+	return PyLong_FromLong(0);
+}
+
+PyObject* Gomoku::isCurrentPlayerAI(PyObject* self, PyObject* args) {
+	return PyBool_FromLong(Gomoku::gomoku->currentPlayer->type == Player::AI);
+}
+
+
+PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
+	int playerIndex;
+	int playerType;
+	
+
+	if (!PyArg_ParseTuple(args, "ii", &playerIndex, &playerType)) {
+		return NULL;
+	}
+	std::cout << "setPlayerType to: " << playerType << std::endl;
+
+	Gomoku::gomoku->players[playerIndex].type = (Player::Type)playerType;
+	return PyLong_FromLong(0);
+}
+
 
 static PyMethodDef methods[] = {
 	{"init", Gomoku::init, METH_VARARGS, "Returns the heuristic value."},
@@ -408,6 +444,10 @@ static PyMethodDef methods[] = {
 	{"switch_player", Gomoku::switchPlayer, METH_VARARGS, "Returns the switchPlayer value."},
 	{"run", Gomoku::run, METH_VARARGS, "Returns the minmax value."},
 	{"get_end_state", Gomoku::getEndState, METH_VARARGS, "Returns the minmax value."},
+	{"is_playing", Gomoku::isPlaying, METH_VARARGS, "Returns the playing value."},
+	{"set_playing", Gomoku::setPlaying, METH_VARARGS, "Returns the playing value."},
+	{"is_current_player_AI", Gomoku::isCurrentPlayerAI, METH_VARARGS, "Returns the ai state machine."},
+	{"set_player_type", Gomoku::setPlayerType, METH_VARARGS, "Returns the ai pouet machine."},
 	{NULL, NULL, 0, NULL}
 };
 

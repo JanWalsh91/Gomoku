@@ -50,8 +50,8 @@ class Interface:
 		self.board = Board(BOARD_SIZE, line_num=line_num, on_grid_click=lambda board, index: self.grid_click(index))
 
 		self.players = [
-			PlayerViewModel('Black', players[0].type),
-			PlayerViewModel('White', players[1].type)
+			PlayerViewModel('Black', players[0]),
+			PlayerViewModel('White', players[1])
 		]
 
 		self.current_player = self.players[0]

@@ -8,10 +8,10 @@ import math
 
 import GomokuModule
 from controller.Minmax import Minmax
-from controller.Gomoku import Gomoku
 from controller.rules.ARule import ARule
 from controller.rules.RuleFactory import RuleFactory
 from interface.Interface import Interface
+from interface.PlayerViewModel import PlayerViewModel
 
 import time
 
@@ -39,47 +39,42 @@ def main():
 	if RuleFactory.Name.CAPTURE_GAME_ENDING in rules and RuleFactory.Name.CAPTURE not in rules:
 		rules.append(RuleFactory.Name.CAPTURE)
 
+	players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.AI]
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
-		GomokuModule.init(args.board_size, args.depth if args.depth else 5)
-		go = Gomoku(rules, args.board_size)
-		interface = Interface(go.players, args.board_size)
+		GomokuModule.init(args.board_size, args.depth if args.depth else 5, int(players[0]), int(players[1]))
+		interface = Interface(players, args.board_size)
 	else:
-		GomokuModule.init(19, args.depth if args.depth else 5)
-		go = Gomoku(rules)
-		interface = Interface(go.players)
+		GomokuModule.init(19, args.depth if args.depth else 5, int(players[0]), int(players[1]))
+		interface = Interface(players)
 
 	# ==== set up your callbacks ==== #
 	def on_click(interface, pos):
-		if interface.is_playing:
-			if interface.current_player.is_AI():
+		if GomokuModule.is_playing():
+			if GomokuModule.is_current_player_AI():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
 				return
-			# go.human_turn(interface, pos)
-			# go.place(pos, go.current_player)
 			
 			GomokuModule.place(pos[0], pos[1])
 			GomokuModule.switch_player()
 
 			interface.place_stone_at(pos)
 			interface.render()
-			go.switch_player()
 			interface.next_turn()
 		else:
 			print('click start!')
 
 	def on_start(interface):
 		print('game has started!')
-		go.is_playing = True
+		GomokuModule.set_playing(True)
 
 	def on_reset(interface):
 		print('interface has reset.')
-		# go.reset()
 		GomokuModule.reset()
 
 	def on_player_change_type(player_view_model):
-		go.players[interface.players.index(player_view_model)].type = player_view_model.type
+		GomokuModule.set_player_type(player_view_model.index, player_view_model.type)
 
 
 	interface.on_reset = on_reset
@@ -88,34 +83,27 @@ def main():
 	interface.players[0].on_change_type = on_player_change_type
 	interface.players[1].on_change_type = on_player_change_type
 	
-	# minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=go.hash_state, timeout=0.5, ply_depth=2, max_depth=3)
-	# minmax = Minmax(heuristic=go.heuristic, get_moves=go.get_moves, do_move=go.do_move, undo_move=go.undo_move, hash_state=None, timeout=0.5, ply_depth=2, max_depth=3)
-
 	while True:
 		interface.render()
 	
-		if go.is_playing and go.current_player.is_AI():
-			# go.heuristic_player = go.current_player
-			# pos = minmax.run(go)
-			# go.heuristic_player = None
+		if GomokuModule.is_playing() and GomokuModule.is_current_player_AI():
 			pos = GomokuModule.run()
 			print('AI, I choose you', pos)
 			if pos:
-				# go.place(pos, go.current_player)
 				GomokuModule.place(pos[0], pos[1])
 
 				value = GomokuModule.get_end_state()
 				if value >= 0:
-					go.is_playing = False
+					GomokuModule.set_playing(False)
 					interface.message = ("Black" if value == 0 else "White") + " win!"  
 
 				interface.place_stone_at(pos)
 
 				GomokuModule.switch_player()
-				go.switch_player()
 				interface.next_turn()
 			else:
-				go.is_playing = False
+				GomokuModule.set_playing(False)
+
 
 if __name__ == '__main__':
 	main()
