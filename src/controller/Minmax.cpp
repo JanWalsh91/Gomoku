@@ -21,8 +21,8 @@ std::pair<int, int> Minmax::run() {
 	this->TT = std::map<std::string, int>();
 	
 	heuristicValues = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
-	std::cout << "==================================================" << std::endl;
-	std::cout << "==================================================" << std::endl;
+	// std::cout << "==================================================" << std::endl;
+	// std::cout << "==================================================" << std::endl;
 	this->minmaxAlphaBeta(this->maxDepth, std::numeric_limits<int>::min() + 1, std::numeric_limits<int>::max(), 1);
 	this->gomoku.heuristicPlayer = nullptr;
 
@@ -38,19 +38,21 @@ std::pair<int, int> Minmax::run() {
 int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 	// std::cout << "minmaxAlphaBeta " << alpha << "    " << beta << std::endl;
 
+	if (depth == this->maxDepth) {
+		std::cout << "End State: " << this->gomoku.endState << std::endl;
+	}
+
 	if (depth == 0 || this->gomoku.endState >= 0) {
 		auto key = this->gomoku.hashState();
 		auto keyVal = this->TT.find(key);
 		int val;
 		if (keyVal == this->TT.end()) {
-			std::cout << "Calling heuristic" << std::endl;
 			val = this->gomoku.heuristic();
 			// val = this->gomoku.endState >= 0 ? 1000000 : this->gomoku.heuristic();
 			this->TT[key] = val;
 		} else {
 			val = keyVal->second;
 		}
-		std::cout << "return in first if" << std::endl;
 		return player * val;
 	} 
 
@@ -60,16 +62,16 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 	for (auto it = moves.begin(); it != moves.end(); it++) {
 		// TODO: out of time
 		std::vector<AAction*> actions = this->gomoku.doMove(*it);
-		std::cout << "Before calling minmax" << std::endl;
+		// std::cout << "Before calling minmax" << std::endl;
 		int ret = -this->minmaxAlphaBeta(depth - 1, -beta, -alpha, -player);
-		std::cout << "after calling minmax" << std::endl;
+		// std::cout << "after calling minmax" << std::endl;
 		if (depth == this->maxDepth || this->gomoku.endState >= 0) {
 			if (this->gomoku.endState >= 0) {
-				std::cout << "RET: " << ret << std::endl;
+				// std::cout << "RET: " << ret << std::endl;
 			}
 			heuristicValues[it->first][it->second] = player * ret;
 			if (player * ret > this->bestValue || this->gomoku.endState >= 0) {
-				std::cout << "SET BEST VALUE " << std::endl;
+				// std::cout << "SET BEST VALUE " << std::endl;
 				this->bestMove = *it;
 				this->bestValue = player * ret;
 			}

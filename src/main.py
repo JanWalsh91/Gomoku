@@ -103,6 +103,12 @@ def main():
 			if pos:
 				# go.place(pos, go.current_player)
 				GomokuModule.place(pos[0], pos[1])
+
+				value = GomokuModule.get_end_state()
+				if value >= 0:
+					go.is_playing = False
+					interface.message = ("Black" if value == 0 else "White") + " win!"  
+
 				interface.place_stone_at(pos)
 
 				GomokuModule.switch_player()
