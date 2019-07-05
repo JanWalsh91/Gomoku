@@ -49,9 +49,9 @@ public:
 	void printBoard(std::vector<std::vector<int>> board);
 	std::string hashState();
 
-	bool checkWinCondition(std::pair<int, int> pos, int& playerIndex);
+	int checkWinCondition(std::pair<int, int> pos, int& playerIndex);
 
-	int heuristic();
+	int heuristic(int depth);
 	int heuristicByPlayer(int player);
 	int evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player);
 	std::vector<std::pair<int, int>> getMoves();
@@ -70,6 +70,6 @@ public:
 	bool playing;
 	std::vector<std::pair<int, int>> lastMoves;
 	Minmax* minmax;
-
+	int remainingStones;
 	int endState;
 };

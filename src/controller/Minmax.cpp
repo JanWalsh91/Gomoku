@@ -14,7 +14,7 @@ Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku)
 std::vector<std::vector<int>> heuristicValues;
 
 std::pair<int, int> Minmax::run() {
-	// std::cout << "Minmax run" << std::endl;
+	std::cout << "Minmax run" << std::endl;
 	this->gomoku.heuristicPlayer = this->gomoku.currentPlayer;
 	this->bestMove = std::make_pair(-1, -1);
 	this->bestValue = std::numeric_limits<int>::min() + 1;
@@ -28,7 +28,8 @@ std::pair<int, int> Minmax::run() {
 
 	// std::cout << std::endl << "BOARD" << std::endl;
 	// this->gomoku.printBoard();
-	// std::cout << "heuristicValues" << std::endl;;
+	
+	// std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->index << std::endl;;
 	// this->gomoku.printBoard(heuristicValues);
 	// std::cout << std::endl;;
 
@@ -38,16 +39,12 @@ std::pair<int, int> Minmax::run() {
 int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 	// std::cout << "minmaxAlphaBeta " << alpha << "    " << beta << std::endl;
 
-	if (depth == this->maxDepth) {
-		std::cout << "End State: " << this->gomoku.endState << std::endl;
-	}
-
-	if (depth == 0 || this->gomoku.endState >= 0) {
+	if (depth == 0 || this->gomoku.endState != Gomoku::PLAYING) {
 		auto key = this->gomoku.hashState();
 		auto keyVal = this->TT.find(key);
 		int val;
 		if (keyVal == this->TT.end()) {
-			val = this->gomoku.heuristic();
+			val = this->gomoku.heuristic(depth);
 			// val = this->gomoku.endState >= 0 ? 1000000 : this->gomoku.heuristic();
 			this->TT[key] = val;
 		} else {
@@ -57,6 +54,13 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 	} 
 
 	auto moves = this->gomoku.getMoves();
+	// if (depth == this->maxDepth) {
+	// 	std::cout << "===========" << std::endl;
+	// 	for (auto& move: moves) {
+	// 		std::cout << "[" << move.first << ", " << move.second << "]" << std::endl;
+	// 	}
+	// 	std::cout << "===========" << std::endl;
+	// }
 	int value = std::numeric_limits<int>::min() + 1;
 
 	for (auto it = moves.begin(); it != moves.end(); it++) {
@@ -65,12 +69,11 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 		// std::cout << "Before calling minmax" << std::endl;
 		int ret = -this->minmaxAlphaBeta(depth - 1, -beta, -alpha, -player);
 		// std::cout << "after calling minmax" << std::endl;
-		if (depth == this->maxDepth || this->gomoku.endState >= 0) {
-			if (this->gomoku.endState >= 0) {
-				// std::cout << "RET: " << ret << std::endl;
+		if (depth == this->maxDepth) {
+			if (depth == this->maxDepth) {
+				heuristicValues[it->first][it->second] = player * ret;
 			}
-			heuristicValues[it->first][it->second] = player * ret;
-			if (player * ret > this->bestValue || this->gomoku.endState >= 0) {
+			if (player * ret > this->bestValue) {
 				// std::cout << "SET BEST VALUE " << std::endl;
 				this->bestMove = *it;
 				this->bestValue = player * ret;

@@ -7,9 +7,8 @@ import math
 
 
 import GomokuModule
-from controller.Minmax import Minmax
-from controller.rules.ARule import ARule
-from controller.rules.RuleFactory import RuleFactory
+# from controller.rules.ARule import ARule
+# from controller.rules.RuleFactory import RuleFactory
 from interface.Interface import Interface
 from interface.PlayerViewModel import PlayerViewModel
 
@@ -18,7 +17,8 @@ import time
 # default_rules = [RuleFactory.Name.CAPTURE, RuleFactory.Name.CAPTURE_GAME_ENDING, RuleFactory.Name.NO_DOUBLE_THREE]
 default_rules = []
 
-rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
+# rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
+rules_dictionary = {}
 
 def main():
 
@@ -36,10 +36,11 @@ def main():
 	for key in rules_dictionary:
 		if vars(args)[key]:
 			rules.append(rules_dictionary[key])
-	if RuleFactory.Name.CAPTURE_GAME_ENDING in rules and RuleFactory.Name.CAPTURE not in rules:
-		rules.append(RuleFactory.Name.CAPTURE)
+	# if RuleFactory.Name.CAPTURE_GAME_ENDING in rules and RuleFactory.Name.CAPTURE not in rules:
+	# 	rules.append(RuleFactory.Name.CAPTURE)
 
-	players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.AI]
+	players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.HUMAN]
+	# players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.AI]
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
@@ -56,7 +57,18 @@ def main():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
 				return
 			
+
 			GomokuModule.place(pos[0], pos[1])
+
+			value = GomokuModule.get_end_state()
+			print('value: ' + str(value))
+			if value != -1:
+				GomokuModule.set_playing(False)
+				if value >= 0:
+					interface.message = ("Black" if value == 0 else "White") + " win!"  
+				else:
+					interface.message = "DRAW"
+			
 			GomokuModule.switch_player()
 
 			interface.place_stone_at(pos)
@@ -93,9 +105,13 @@ def main():
 				GomokuModule.place(pos[0], pos[1])
 
 				value = GomokuModule.get_end_state()
-				if value >= 0:
+				print('value: ' + str(value))
+				if value != -1:
 					GomokuModule.set_playing(False)
-					interface.message = ("Black" if value == 0 else "White") + " win!"  
+					if value >= 0:
+						interface.message = ("Black" if value == 0 else "White") + " win!"  
+					else:
+						interface.message = "DRAW"
 
 				interface.place_stone_at(pos)
 

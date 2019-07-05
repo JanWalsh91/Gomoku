@@ -7,7 +7,7 @@
 #include "Gomoku.hpp"
 
 // TODO: is PLaying, reset function
-Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), endState(State::PLAYING) {
+Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING) {
 	this->players.push_back(Player(0, player0Type));
 	this->players.push_back(Player(1, player1Type));
 
@@ -24,18 +24,24 @@ void Gomoku::reset() {
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 	this->endState = State::PLAYING;
+	this->remainingStones = this->size * this->size;
 	this->playing = false;
 }
 
-bool Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
+int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 	// std::cout << "checkWinCondition" << std::endl;
 	// this->printBoard();
+
+	// std::cout << "remainingStones " << remainingStones << std::endl;
+	if (this->remainingStones <= 0) {
+		return State::DRAW;
+	}
 
 	std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> lines = {
 		std::make_pair(std::make_pair( 0, 1 ), std::make_pair( 0, -1 )),
 		std::make_pair(std::make_pair( 1, 0 ), std::make_pair(-1,  0 )),
-		std::make_pair(std::make_pair( 1, 1 ), std::make_pair(-1, -1 )),
-		std::make_pair(std::make_pair(-1, 1 ), std::make_pair( 1, -1 ))
+		// std::make_pair(std::make_pair( 1, 1 ), std::make_pair(-1, -1 )),
+		// std::make_pair(std::make_pair(-1, 1 ), std::make_pair( 1, -1 ))
 	};
 	
 	for (std::pair<std::pair<int, int>, std::pair<int, int>>& line: lines) {
@@ -51,7 +57,7 @@ bool Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 					numAligned++;
 					if (numAligned >= 5) {
 						// std::cout << "FIVE ALIGNED (top)"  << std::endl;
-						return true;
+						return playerIndex;
 					}
 				}
 			}
@@ -67,13 +73,13 @@ bool Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 					numAligned++;
 					if (numAligned >= 5) {
 						// std::cout << "FIVE ALIGNED"  << std::endl;
-						return true;
+						return playerIndex;
 					}
 				}
 			}
 			
 	}
-	return false;
+	return State::PLAYING;
 }
 
 std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
@@ -86,12 +92,15 @@ std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 	this->lastMoves[playerIndex] = pos;
 
 	actions.push_back(new ActionUpdateBoard(pos, -1));
-	
-	if (this->checkWinCondition(pos, playerIndex)) {
-		actions.push_back(new ActionSetEndState(this->endState));
-		this->endState = playerIndex;
-	}
 
+	this->remainingStones--;
+
+	int state = this->checkWinCondition(pos, playerIndex);
+	
+	if (state != State::PLAYING) {
+		actions.push_back(new ActionSetEndState(this->endState));
+		this->endState = state;
+	}
 	// TODO: Captures, rules, etc...
 	return actions;
 }
@@ -103,8 +112,11 @@ void Gomoku::place(int& y, int& x) {
 	this->board[y][x] = this->currentPlayer->index;
 	this->lastMoves[this->currentPlayer->index] = pos;
 	
-	if (this->checkWinCondition(pos, this->currentPlayer->index)) {
-		this->endState = this->currentPlayer->index;
+	this->remainingStones--;
+	
+	int state = this->checkWinCondition(pos, this->currentPlayer->index);
+	if (state != State::PLAYING) {
+		this->endState = state;
 	}
 }
 
@@ -138,6 +150,8 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 	bool empty = true; 
 
+
+	// this->printBoard();
 	// std::cout << "Last move: [" << move.first << "; " << move.second << "]" << std::endl;
 	// move = this->lastMoves[1];
 
@@ -182,6 +196,8 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	}
 
 	if (empty) {
+		std::cout <<" EMPTY" << std::endl;
+		// this->printBoard();
 		moves.push_back(std::make_pair<int, int>((int)(this->size / 2), (int)(this->size / 2)));
 	}
 
@@ -196,13 +212,29 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen) {
 
+	int score = 0;
+
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
 
-	int score = pow(currentStreakNum == 5 ? 50 : currentStreakNum, 3);
+	if (currentStreakNum == 3 && !halfOpen) {
+		// score = pow(100, currentStreakNum);
+		score = 50;
+	} else if ((currentStreakNum == 4 && !halfOpen) || currentStreakNum == 5) {
+		score = 100;
+	} else if (currentStreakNum == 4 && halfOpen) {
+		score = 40;
+	} else {
+		// score = pow(currentStreakNum, 3) * (halfOpen ? 1 : 2);
+		score = currentStreakNum + (halfOpen ? 0 : 5);
+	}
 
-	return halfOpen ? score * 2 : score;
+
+	// std::cout << "evalStreakScore currentStreakNum: " << currentStreakNum << ", currentStreakPotential: " << currentStreakPotential << ", halfOpen: " << halfOpen << std::endl;
+	// std::cout << "score: " << score << std::endl;
+
+	return score;
 }
 
 int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player) {
@@ -268,6 +300,8 @@ int Gomoku::heuristicByPlayer(int player) {
 	std::pair<int, int> hLine = std::make_pair<int, int>(0, 1);
 	std::pair<int, int> vLine = std::make_pair<int, int>(1, 0);
 
+	// std::cout << "heuristicByPlayer for player " << player << std::endl;
+
 	for (int i = 0; i < this->size; i++) {
 		int x = this->evalLine(std::make_pair(i, 0), hLine, player);
 		// std::cout << "adding " << x << " to player score " << player << " at line (" << i << ", 0)" << " => " << score << std::endl; 
@@ -281,16 +315,24 @@ int Gomoku::heuristicByPlayer(int player) {
 	return score;
 }
 
-int Gomoku::heuristic() {
+float hPlayerMultiplier = 0.2;
+
+int Gomoku::heuristic(int depth) {
 
 	// std::cout << "HEU" << std::endl;
 	// this->printBoard();
-	int score0 = this->heuristicByPlayer(0); 
+	int score0 = this->heuristicByPlayer(0);
 	int score1 = this->heuristicByPlayer(1);
-	// std::cout << std::endl << "Hooman Score: " << score0 << ", AiScore: " << score1 << std::endl;
+	// std::cout << std::endl << "score0: " << score0 << ", score1: " << score1 << std::endl;
 	// std::cout << std::endl;
-	return score1 - (int)(score0);
-	// return this->heuristicByPlayer(this->heuristicPlayer->index) - this->heuristicByPlayer(this->heuristicPlayer->index == 1 ? 0 : 1);
+	// return score1 - (int)(score0);
+
+	// std::cout << "INDEX: " << this->heuristicPlayer->index << std::endl;
+
+	// return this->heuristicByPlayer(this->heuristicPlayer->index);
+	return (this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0) / (this->minmax->maxDepth - depth);
+
+	// return this->heuristicByPlayer(this->heuristicPlayer->index) - this->heuristicByPlayer(this->heuristicPlayer->index == 1 ? 0 : 1) * 2.1f;
 }
 
 
@@ -312,6 +354,7 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 			case AAction::Type::UPDATE_BOARD:
 				aub = dynamic_cast<ActionUpdateBoard*>(action);
 				this->board[aub->pos.first][aub->pos.second] = aub->value;
+				this->remainingStones += aub->value >= 0 ? -1 : 1;
 				break;
 			case AAction::Type::SET_END_STATE:
 				aes = dynamic_cast<ActionSetEndState*>(action);
@@ -326,7 +369,7 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 void Gomoku::printBoard() {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
-			std::cout << std::setw(3) << this->board[j][i] << " ";
+			std::cout << std::setw(6) << this->board[j][i] << " ";
 		}
 		std::cout << std::endl;
 	}
@@ -335,7 +378,7 @@ void Gomoku::printBoard() {
 void Gomoku::printBoard(std::vector<std::vector<int>> board) {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
-			std::cout << std::setw(3) << board[j][i] << " ";
+			std::cout << std::setw(6) << board[j][i] << " ";
 		}
 		std::cout << std::endl;
 	}
@@ -386,7 +429,7 @@ PyObject* Gomoku::place(PyObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
 		return NULL;
 	}
-	std::cout << "=> Python choose to place at " << x << ", " << y << std::endl;
+	std::cout << "=> Python choose to place at " << y << ", " << x << std::endl;
 
 	Gomoku::gomoku->place(y, x);
 	return PyLong_FromLong(0);
