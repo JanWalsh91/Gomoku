@@ -227,7 +227,8 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 		score = 40;
 	} else if (currentStreakNum > 0) {
 		// score = pow(currentStreakNum, 3) * (halfOpen ? 1 : 2);
-		score = currentStreakNum * 2 + (halfOpen ? 0 : 5);
+		// score = currentStreakNum * 2 + (halfOpen ? 0 : 5);
+		score = halfOpen ? currentStreakNum : currentStreakNum * 2;
 	}
 
 
@@ -306,37 +307,50 @@ int Gomoku::heuristicByPlayer(int player) {
 
 	// std::cout << "heuristicByPlayer for player " << player << std::endl;
 
-	// for (int i = 0; i < this->size; i++) {
-	// 	int x = this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
-	// 	// std::cout << "adding " << x << " to player score " << player << " at line (" << i << ", 0)" << " => " << score << std::endl; 
-	// 	score += x;
-	// 	// std::cout << "score => " << score << std::endl;
-	// 	x = this->evalLine(std::make_pair(0, i), vLine, player, this->size);
-	// 	// std::cout << "adding " << x << " to player score " << player << " at line (0, " << i << ")" << " => " << score << std::endl; 
-	// 	score += x;
-	// 	// std::cout << "score => " << score << std::endl;
-	// }
+	for (int i = 0; i < this->size; i++) {
+		int x = this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
+		// std::cout << "adding " << x << " to player score " << player << " at line (" << i << ", 0)" << " => " << score << std::endl; 
+		score += x;
+		// std::cout << "score => " << score << std::endl;
+		x = this->evalLine(std::make_pair(0, i), vLine, player, this->size);
+		// std::cout << "adding " << x << " to player score " << player << " at line (0, " << i << ")" << " => " << score << std::endl; 
+		score += x;
+		// std::cout << "score => " << score << std::endl;
+	}
 
 	for (int i = 0; i < this->size - this->winStreakLength; i++) {
 		x = this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i);
-		std::cout << "adding " << x << " to player " << player << " at line (0, " << i << ")" << ", direction: (" << dLine1.first << ", " << dLine1.second << ") SCORE:[" << score << " => ";
+		// std::cout << "adding " << x << " to player " << player << " at line (0, " << i << ")" << ", direction: (" << dLine1.first << ", " << dLine1.second << ") SCORE:[" << score << " => ";
 		score += x;
-		std::cout << score << "]" << std::endl;
+		// std::cout << score << "]" << std::endl;
 		if (i != 0) {
 			x = this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i);
-			std::cout << "adding " << x << " to player " << player << " at line (" << i << ", 0)" << ", direction: (" << dLine1.first << ", " << dLine1.second << ") SCORE:[" << score << " => ";
+			// std::cout << "adding " << x << " to player " << player << " at line (" << i << ", 0)" << ", direction: (" << dLine1.first << ", " << dLine1.second << ") SCORE:[" << score << " => ";
 			score += x;
-			std::cout << score << "]" << std::endl; 
+			// std::cout << score << "]" << std::endl; 
 		}
 	}
-	// for (int i = this->winStreakLength - 1; i < this->size; i++) {
-	// 	score += this->evalLine(std::make_pair(0, i), dLine2, player, this->winStreakLength + i);
-	// }
+
+	for (int i = this->size - 1; i >= this->winStreakLength; i--) {
+
+		x = this->evalLine(std::make_pair(0, i), dLine2, player, i + 1);
+		// std::cout << "adding " << x << " to player " << player << " at line (0, " << i << ")" << ", direction: (" << dLine2.first << ", " << dLine2.second << ") SCORE:[" << score << " => ";
+		score += x;
+		// std::cout << score << "]" << std::endl;
+	}
+
+	for (int i = 1; i <= this->size - this->winStreakLength; i++) {
+		x = this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i);
+
+		// std::cout << "adding " << x << " to player " << player << " at line (" << i << ", " << this->size - 1 <<  ")" << ", direction: (" << dLine2.first << ", " << dLine2.second << ") SCORE:[" << score << " => ";
+		score += x;
+		// std::cout << score << "]" << std::endl;
+	}
 
 	return score;
 }
 
-float hPlayerMultiplier = 0.2;
+float hPlayerMultiplier = 0.5;
 
 int Gomoku::heuristic(int depth) {
 
@@ -350,10 +364,15 @@ int Gomoku::heuristic(int depth) {
 
 	// std::cout << "INDEX: " << this->heuristicPlayer->index << std::endl;
 
+	// std::cout << "Before factors:" << std::endl;
+	// std::cout << "Score0: " << score0 << std::endl;
+	// std::cout << "Score1: " << score1 << std::endl;
+
+	// std::cout << "finalScore before depth: " << (this->heuristicPlayer->index == 0 ? score0 - score1 : score1 - score0) << std::endl;
 	// return this->heuristicByPlayer(this->heuristicPlayer->index);
 	int finalScore = (this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0) / (this->minmax->maxDepth - depth);
 
-	std::cout << "finalScore: " << finalScore << std::endl;
+	// std::cout << "finalScore: " << finalScore << std::endl;
 
 	return finalScore;
 	// return this->heuristicByPlayer(this->heuristicPlayer->index) - this->heuristicByPlayer(this->heuristicPlayer->index == 1 ? 0 : 1) * 2.1f;

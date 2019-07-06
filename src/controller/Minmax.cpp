@@ -45,7 +45,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 		int val;
 		if (keyVal == this->TT.end()) {
 			val = this->gomoku.heuristic(depth);
-			// val = this->gomoku.endState >= 0 ? 1000000 : this->gomoku.heuristic();
+			// val = this->gomoku.endState >= 0 ? val * 100 : val;
 			this->TT[key] = val;
 		} else {
 			val = keyVal->second;
