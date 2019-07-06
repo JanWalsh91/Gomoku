@@ -210,32 +210,71 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
-int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen) {
+const int VICTORY = 1000;
 
-	int score = 0;
+int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player) {
+
+	int victory = VICTORY * 
+		(player == this->currentPlayer->index ? 1 : 2); 
 
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
 
-	if (currentStreakNum == 3 && !halfOpen) {
-		// score = pow(100, currentStreakNum);
-		score = 50;
-	} else if ((currentStreakNum == 4 && !halfOpen) || currentStreakNum == 5) {
-		score = 100;
-	} else if (currentStreakNum == 4 && halfOpen) {
-		score = 40;
-	} else if (currentStreakNum > 0) {
-		// score = pow(currentStreakNum, 3) * (halfOpen ? 1 : 2);
-		// score = currentStreakNum * 2 + (halfOpen ? 0 : 5);
-		score = halfOpen ? currentStreakNum : currentStreakNum * 2;
+	// if (currentStreakNum == 4 && (!halfOpen)) {
+	// 	return VICTORY;
+	// }
+	return currentStreakNum == 5 ? VICTORY : currentStreakNum * currentStreakNum * currentStreakNum;
+
+
+	if (currentStreakNum < 3) {
+		if (halfOpen) {
+			return currentStreakNum ;
+		} else {
+			return currentStreakNum * 2;
+		}
 	}
+	if (currentStreakNum == 3) {
+		return currentStreakNum * 
+			(halfOpen ? 1 : 2) *  
+			(player == this->currentPlayer->index ? 1 : 2); 
+	}
+	if (currentStreakNum == 4) {
+		if (!halfOpen) {
+			// CERTAIN VICTORY
+			return victory;	
+		}
+		if (player == this->currentPlayer->index) {
+			// CERTAIN VICTORY
+			return victory;
+		}
+		return currentStreakNum;
+	}
+	if (currentStreakNum == 5) {
+		// VICTORY
+		return victory;
+	}
+
+
+	// if (currentStreakNum == 3 && (!halfOpen || player == this->currentPlayer->index)) {
+	// 	// score = pow(100, currentStreakNum);
+	// 	score = 50;
+	// } else if ((currentStreakNum == 4 && (!halfOpen || player == this->currentPlayer->index)) || currentStreakNum == 5) {
+	// 	score = 100;
+	// } else if (currentStreakNum == 4 && (halfOpen || player == this->currentPlayer->index)) {
+	// 	score = 40;
+	// } else if (currentStreakNum > 0) {
+	// 	// score = pow(currentStreakNum, 3) * (halfOpen ? 1 : 2);
+	// 	// score = currentStreakNum * 2 + (halfOpen ? 0 : 5);
+	// 	score = halfOpen ? currentStreakNum : currentStreakNum * 2;
+	// }
 
 
 	// std::cout << "evalStreakScore currentStreakNum: " << currentStreakNum << ", currentStreakPotential: " << currentStreakPotential << ", halfOpen: " << halfOpen << std::endl;
 	// std::cout << "score: " << score << std::endl;
 
-	return score;
+	// return score;
+	return 0;
 }
 
 int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player, int length) {
@@ -276,9 +315,9 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& 
 			}
 		} else {
 			if (streaking) {
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player);
 			} else {
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen, player);
 			}
 			streakingPotential = false;
 			streaking = false;
@@ -288,9 +327,9 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& 
 	}
 
 	if (streaking) {
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true);
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player);
 	} else {
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen);
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen, player);
 	}
 
 	return score;
@@ -350,7 +389,7 @@ int Gomoku::heuristicByPlayer(int player) {
 	return score;
 }
 
-float hPlayerMultiplier = 0.5;
+float hPlayerMultiplier = 1;
 
 int Gomoku::heuristic(int depth) {
 
@@ -370,8 +409,15 @@ int Gomoku::heuristic(int depth) {
 
 	// std::cout << "finalScore before depth: " << (this->heuristicPlayer->index == 0 ? score0 - score1 : score1 - score0) << std::endl;
 	// return this->heuristicByPlayer(this->heuristicPlayer->index);
-	int finalScore = (this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0) / (this->minmax->maxDepth - depth);
+	// int finalScore = (this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0) / (this->minmax->maxDepth - depth);
 
+	int finalScore = this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
+	if (depth != 0) {
+		std::cout << "depth: " << depth << ", finalScore: " << finalScore << " => "; 
+		finalScore *= (1 + (depth / (float)this->minmax->searchDepth));
+		// finalScore *= (depth + 1);
+		std::cout << finalScore << std::endl;
+	}
 	// std::cout << "finalScore: " << finalScore << std::endl;
 
 	return finalScore;
