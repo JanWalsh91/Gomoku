@@ -56,7 +56,7 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 				} else {
 					numAligned++;
 					if (numAligned >= 5) {
-						// std::cout << "FIVE ALIGNED (top)"  << std::endl;
+						std::cout << "FIVE ALIGNED (1)"  << std::endl;
 						return playerIndex;
 					}
 				}
@@ -72,7 +72,7 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 
 					numAligned++;
 					if (numAligned >= 5) {
-						// std::cout << "FIVE ALIGNED"  << std::endl;
+						std::cout << "FIVE ALIGNED (2)"  << std::endl;
 						return playerIndex;
 					}
 				}
@@ -210,50 +210,78 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
-const int VICTORY = 1000;
+const int VICTORY = 1'000;
+const int THREAT  = 1'000'000;
 
-int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player) {
-
-	int victory = VICTORY * 
-		(player == this->currentPlayer->index ? 1 : 2); 
-
+int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, bool discontinuedStreak) {
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
 
-	// if (currentStreakNum == 4 && (!halfOpen)) {
-	// 	return VICTORY;
+	if (currentStreakNum >= 5 && !discontinuedStreak) {
+		std::cout << "ON N'EST PAS LA !!!" << std::endl; 
+	}
+
+
+	if (player == this->heuristicPlayer->index) { // ??
+		// Look for victory conditions
+		if (currentStreakNum >= 5) {
+			return VICTORY;
+		}
+		if (currentStreakNum == 4 && !halfOpen) {
+			return VICTORY;
+		}
+		return pow(currentStreakNum, 3) * (halfOpen ? 1 : 2);  // give particiaption medal
+	} else {
+		// Look for threats
+		if (currentStreakNum >= 5) {
+			return THREAT;
+		}
+		if (currentStreakNum == 4) {
+			return THREAT;
+		}
+		if (currentStreakNum == 3 && !halfOpen) {
+			return THREAT;
+		}
+		return 0;
+	}
+
+
+	// if (discontinuedStreak) {
+	// 	currentStreakNum++;	
 	// }
-	return currentStreakNum == 5 ? VICTORY : currentStreakNum * currentStreakNum * currentStreakNum;
 
-
-	if (currentStreakNum < 3) {
-		if (halfOpen) {
-			return currentStreakNum ;
-		} else {
-			return currentStreakNum * 2;
-		}
-	}
-	if (currentStreakNum == 3) {
-		return currentStreakNum * 
-			(halfOpen ? 1 : 2) *  
-			(player == this->currentPlayer->index ? 1 : 2); 
-	}
-	if (currentStreakNum == 4) {
-		if (!halfOpen) {
-			// CERTAIN VICTORY
-			return victory;	
-		}
-		if (player == this->currentPlayer->index) {
-			// CERTAIN VICTORY
-			return victory;
-		}
-		return currentStreakNum;
-	}
-	if (currentStreakNum == 5) {
-		// VICTORY
-		return victory;
-	}
+	// if (currentStreakNum < 3) {
+	// 	if (halfOpen) {
+	// 		return currentStreakNum;
+	// 	} else {
+	// 		return currentStreakNum * 2;
+	// 	}
+	// }
+	// if (currentStreakNum == 3) {
+	// 	if (!halfOpen && player == this->currentPlayer->index) {
+	// 		return victory;
+	// 	}
+	// 	return currentStreakNum * 
+	// 		(halfOpen ? 1 : 2) *  
+	// 		(player == this->currentPlayer->index ? 1 : 2); 
+	// }
+	// if (currentStreakNum == 4) {
+	// 	if (!halfOpen) {
+	// 		// CERTAIN VICTORY
+	// 		return victory;	
+	// 	}
+	// 	if (player == this->currentPlayer->index) {
+	// 		// CERTAIN VICTORY
+	// 		return victory;
+	// 	}
+	// 	return currentStreakNum;
+	// }
+	// if (currentStreakNum == 5) {
+	// 	// std::cout << "ON EST PAS LA" << std::endl;
+	// 	// VICTORY
+	// 	return victory * 10;
+	// }
 
 
 	// if (currentStreakNum == 3 && (!halfOpen || player == this->currentPlayer->index)) {
@@ -285,6 +313,7 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& 
 	bool streaking = false;
 	bool streakingPotential = false;
 	bool halfOpen = true;
+	bool discontinuedStreak = false;
 
 	int otherPlayer = player == 0 ? 1 : 0;
 
@@ -311,25 +340,34 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& 
 					currentStreakNum = 1;
 				}
 			} else {
-				streaking = false;
+				// streaking = false;
+				if (streaking) {
+					if (discontinuedStreak) {
+						streaking = false;
+						discontinuedStreak = false;
+					} else {
+						discontinuedStreak = true;
+					}
+				}
 			}
 		} else {
 			if (streaking) {
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player, discontinuedStreak);
 			} else {
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen, player);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen, player, discontinuedStreak);
 			}
 			streakingPotential = false;
 			streaking = false;
+			discontinuedStreak = false;
 			currentStreakPotential = 0;
 			currentStreakNum = 0;
 		}
 	}
 
 	if (streaking) {
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player);
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player, discontinuedStreak);
 	} else {
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen, player);
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, halfOpen, player, discontinuedStreak);
 	}
 
 	return score;
@@ -412,12 +450,12 @@ int Gomoku::heuristic(int depth) {
 	// int finalScore = (this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0) / (this->minmax->maxDepth - depth);
 
 	int finalScore = this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
-	if (depth != 0) {
-		std::cout << "depth: " << depth << ", finalScore: " << finalScore << " => "; 
+	// if (depth != 0) {
+		// std::cout << "depth: " << depth << ", finalScore: " << finalScore << " => "; 
 		finalScore *= (1 + (depth / (float)this->minmax->searchDepth));
 		// finalScore *= (depth + 1);
-		std::cout << finalScore << std::endl;
-	}
+		// std::cout << finalScore << std::endl;
+	// }
 	// std::cout << "finalScore: " << finalScore << std::endl;
 
 	return finalScore;

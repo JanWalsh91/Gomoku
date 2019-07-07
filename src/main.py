@@ -2,7 +2,6 @@
 import argparse
 import pygame
 import sys
-from threading import Thread
 import math
 
 
@@ -26,6 +25,8 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-s', action="store", dest="board_size", type=int, help='Size of the board')
 	parser.add_argument('-d', action="store", dest="depth", type=int, help='Min max depth')
+	
+	parser.add_argument('-q', action="store", dest="max_turn", type=int, help='Turn timeout')
 
 	parser.add_argument('-r0', action='store_true', default=False, dest='r0', help='Remove default rules')
 	for key in rules_dictionary:
@@ -39,8 +40,9 @@ def main():
 	# if RuleFactory.Name.CAPTURE_GAME_ENDING in rules and RuleFactory.Name.CAPTURE not in rules:
 	# 	rules.append(RuleFactory.Name.CAPTURE)
 
-	players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.HUMAN]
+	# players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.HUMAN]
 	# players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.AI]
+	players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.AI]
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
@@ -95,11 +97,23 @@ def main():
 	interface.players[0].on_change_type = on_player_change_type
 	interface.players[1].on_change_type = on_player_change_type
 	
+	turn = 0
+
+	print('Max Turn: ', args.max_turn)
+
 	while True:
 		interface.render()
 	
 		if GomokuModule.is_playing() and GomokuModule.is_current_player_AI():
+			turn += 1
+			print('===> TURN ', turn)
+			if args.max_turn and turn > args.max_turn:
+				print('STOPPING')
+				GomokuModule.set_playing(False)
+				continue
+
 			pos = GomokuModule.run()
+			# pos = 
 			print('AI, I choose you', pos)
 			if pos:
 				GomokuModule.place(pos[0], pos[1])

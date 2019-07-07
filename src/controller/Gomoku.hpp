@@ -61,7 +61,7 @@ public:
 // private:
 
 
-	int evalStreakScore(int, int, bool, int player);
+	int evalStreakScore(int, int, bool, int player, bool discontinuedStreak);
 
 	int size;
 	std::vector<std::vector<int>> board;
