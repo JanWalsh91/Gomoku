@@ -23,6 +23,8 @@ def main():
 
 
 	parser = argparse.ArgumentParser()
+	parser.add_argument('-t', action="store_true", dest="test", default=False, help='Launch line test')
+
 	parser.add_argument('-s', action="store", dest="board_size", type=int, help='Size of the board')
 	parser.add_argument('-d', action="store", dest="depth", type=int, help='Min max depth')
 	
@@ -33,6 +35,10 @@ def main():
 		parser.add_argument('-' + key, action='store_true', default=False, dest=key, help='Rule ' + key)
 
 	args = parser.parse_args()
+	if args.test == True:
+		test_lines()
+		return
+	
 	rules = [] if args.r0 else default_rules
 	for key in rules_dictionary:
 		if vars(args)[key]:
@@ -134,6 +140,10 @@ def main():
 			else:
 				GomokuModule.set_playing(False)
 
+
+def test_lines():
+	# init boards
+	GomokuModule.test_eval_line()
 
 if __name__ == '__main__':
 	main()

@@ -39,6 +39,7 @@ public:
 	static PyObject* isCurrentPlayerAI(PyObject* self, PyObject* args);
 	static PyObject* setPlayerType(PyObject* self, PyObject* args);
 
+	static PyObject* testEvalLine(PyObject* self, PyObject* args);
 
 	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
 	void place(int& y, int& x);
