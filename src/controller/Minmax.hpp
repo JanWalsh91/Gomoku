@@ -37,7 +37,7 @@ public:
 private:
 
 	Gomoku& gomoku;
-	int minmaxAlphaBeta(int depth, int alpha, int beta, int player);
+	int minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing);
 
 	int scaleByDepth(int depth, int value);
 

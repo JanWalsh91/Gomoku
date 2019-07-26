@@ -363,7 +363,13 @@ void Gomoku::printBoard() {
 void Gomoku::printBoard(std::vector<std::vector<int>> board) {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
-			std::cout << std::setw(6) << board[j][i] << " ";
+			if (board[j][i] < Minmax::INF_MIN + 20) {
+				std::cout << std::setw(6) << "m" + std::to_string(std::abs(board[j][i] % 10)) << " ";
+			} else if (board[j][i] > Minmax::INF_MAX - 20) {
+				std::cout << std::setw(6) << "M" + std::to_string(std::abs(board[j][i] % 10))  << " ";
+			} else {
+				std::cout << std::setw(6) << board[j][i] << " ";
+			}
 		}
 		std::cout << std::endl;
 	}
