@@ -2,6 +2,7 @@
 
 #include <Python.h>
 #include <map>
+#include <algorithm>
 
 class Gomoku;
 
@@ -24,10 +25,14 @@ public:
 	static const int UPPERBOUND = 1;
 	static const int EXACT      = 2;
 
+	static const int INF_MIN = std::numeric_limits<int>::min() + 1;
+	static const int INF_MAX = std::numeric_limits<int>::max();
+
+	static const int VICTORY = 1'000;
+	static const int CERTAIN_VICTORY = 10'000;
 	std::map<std::string, Entry>TT; 
 
 	int maxDepth;
-	int searchDepth;
 
 private:
 
@@ -36,7 +41,6 @@ private:
 
 	int scaleByDepth(int depth, int value);
 
-	static const int VICTORY = 1'000;
 
 };
 

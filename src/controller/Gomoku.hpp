@@ -51,13 +51,12 @@ public:
 
 	void printBoard();
 	void printBoard(std::vector<std::vector<int>> board);
-	std::string hashState();
 
 	int checkWinCondition(std::pair<int, int> pos, int& playerIndex);
 
-	int heuristic(int depth);
+	int heuristic();
 	int heuristicByPlayer(int player);
-	int evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player, int length);
+	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length);
 	std::vector<std::pair<int, int>> getMoves();
 	std::vector<AAction*> doMove(std::pair<int, int>& pos);
 	void undoMove(std::vector<AAction*>& actions);

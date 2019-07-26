@@ -6,7 +6,6 @@
 
 #include "Gomoku.hpp"
 
-// TODO: is PLaying, reset function
 Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5) {
 	this->players.push_back(Player(0, player0Type));
 	this->players.push_back(Player(1, player1Type));
@@ -29,10 +28,7 @@ void Gomoku::reset() {
 }
 
 int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
-	// std::cout << "checkWinCondition" << std::endl;
-	// this->printBoard();
 
-	// std::cout << "remainingStones " << remainingStones << std::endl;
 	if (this->remainingStones <= 0) {
 		return State::DRAW;
 	}
@@ -47,44 +43,40 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 	for (std::pair<std::pair<int, int>, std::pair<int, int>>& line: lines) {
 		int numAligned = 1;
 
-			for (int i = 1; i < 5; i++) {
-				std::pair<int, int> nextPos = std::make_pair(pos.first + line.first.first * i, pos.second + line.first.second * i);
-				if (nextPos.first >= this->size || nextPos.first < 0 ||
-					nextPos.second >= this->size || nextPos.second < 0 ||
-					this->board[nextPos.first][nextPos.second] != playerIndex) {
-						break ;
-				} else {
-					numAligned++;
-					if (numAligned >= 5) {
-						// std::cout << "FIVE ALIGNED (1) [" << pos.first << ", " << pos.second << "]" << std::endl;
-						return playerIndex;
-					}
+		for (int i = 1; i < 5; i++) {
+			std::pair<int, int> nextPos = std::make_pair(pos.first + line.first.first * i, pos.second + line.first.second * i);
+			if (nextPos.first >= this->size || nextPos.first < 0 ||
+				nextPos.second >= this->size || nextPos.second < 0 ||
+				this->board[nextPos.first][nextPos.second] != playerIndex) {
+					break ;
+			} else {
+				numAligned++;
+				if (numAligned >= 5) {
+					return playerIndex;
 				}
 			}
+		}
 
-			for (int i = 1; i < 5; i++) {
-				std::pair<int, int> nextPos = std::make_pair(pos.first + line.second.first * i, pos.second + line.second.second * i);
-				if (nextPos.first >= this->size || nextPos.first < 0 ||
-					nextPos.second >= this->size || nextPos.second < 0 ||
-					this->board[nextPos.first][nextPos.second] != playerIndex) {
-						break ;
-				} else {
+		for (int i = 1; i < 5; i++) {
+			std::pair<int, int> nextPos = std::make_pair(pos.first + line.second.first * i, pos.second + line.second.second * i);
+			if (nextPos.first >= this->size || nextPos.first < 0 ||
+				nextPos.second >= this->size || nextPos.second < 0 ||
+				this->board[nextPos.first][nextPos.second] != playerIndex) {
+					break ;
+			} else {
 
-					numAligned++;
-					if (numAligned >= 5) {
-						// std::cout << "FIVE ALIGNED (2) [" << pos.first << ", " << pos.second << "]" << std::endl;
-						return playerIndex;
-					}
+				numAligned++;
+				if (numAligned >= 5) {
+					return playerIndex;
 				}
 			}
-			
+		}
 	}
 	return State::PLAYING;
 }
 
 std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 	std::vector<AAction*> actions;
-
 
 	std::pair<int, int> pos = std::make_pair(y, x);
 
@@ -106,24 +98,11 @@ std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 }
 
 void Gomoku::switchPlayer() {
-	// std::cout << "Current Player: " << this->currentPlayer->index << std::endl;
 	if (this->currentPlayer == &this->players[0]) {
 		this->currentPlayer = &this->players[1];
 	} else {
 		this->currentPlayer = &this->players[0];
 	}
-	// std::cout << "New Player: " << this->currentPlayer->index << std::endl;
-}
-
-std::string Gomoku::hashState() {
-	std::ostringstream oss;
-	for (int j = 0; j < this->size; j++) {
-		for (int i = 0; i < this->size; i++) {
-			oss << this->board[j][i] << ",";
-		}
-	}
-	return oss.str();
-	// std::cout << oss.str() << std::endl;
 }
 
 std::vector<std::pair<int, int>> Gomoku::getMoves() {
@@ -134,12 +113,6 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	int currentPlayer = this->currentPlayer->index;
 
 	bool empty = true; 
-
-
-	// this->printBoard();
-	// std::cout << "Last move: [" << move.first << "; " << move.second << "]" << std::endl;
-	// move = this->lastMoves[1];
-
 
 	for (int i = (currentPlayer == 0 ? 0 : 1); i != (currentPlayer == 0 ? 2 : -1); i += (currentPlayer == 0 ? 1 : -1)) {
 		auto move = this->lastMoves[i];
@@ -181,122 +154,44 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	}
 
 	if (empty) {
-		std::cout <<" EMPTY" << std::endl;
-		// this->printBoard();
 		moves.push_back(std::make_pair<int, int>((int)(this->size / 2), (int)(this->size / 2)));
 	}
-
-	// std::cout << "===== GET CHILD " << std::endl;
-	// for (unsigned long i = 0; i < moves.size(); i++) {
-	// 	std::cout << moves[i].first << ", " << moves[i].second << std::endl;
-	// }
-	// std::cout << "===== GET CHILD " << std::endl;
-
 	return moves;
 }
 
-const int VICTORY = 1'000;
-const int CERTAIN_VICTORY = 10'000;
-// const int THREAT  = 1'000'000;
-
 int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, bool discontinuedStreak) {
-	// std::cout << std::endl << "evalStreakScore. currentStreakNum: " << currentStreakNum << ", currentStreakPotential: " << currentStreakPotential << ", halfOpen: " << halfOpen << ", discontinuedStreak: " << discontinuedStreak <<  std::endl;
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
 
-	if (currentStreakNum >= 5 && !discontinuedStreak) {
-		// std::cout << "ON N'EST PAS LA !!!" << std::endl;
-		// return VICTORY;
-	}
-
-	// return currentStreakNum;
-
-	// if (player == this->heuristicPlayer->index) {
-		// Look for victory conditions
+	if (player == this->heuristicPlayer->index) {
+		// Look for Minmax::victory conditions
 		if (currentStreakNum >= 5 && !discontinuedStreak) {
 			std::cout << "SHOULD NOT BE HERE" << std::endl;
-			return CERTAIN_VICTORY;
+			return Minmax::CERTAIN_VICTORY;
 		}
 		if (currentStreakNum == 4 && !halfOpen && !discontinuedStreak) {
-			return VICTORY;
+			return Minmax::VICTORY;
 		}
-		return pow(currentStreakNum, 3) * (halfOpen ? 1 : 2) * (discontinuedStreak ? 1 : 2);  // give particiaption medal
-	// } else {
-	// 	// Look for threats
-	// 	if (currentStreakNum >= 5) {
-	// 		return CERTAIN_VICTORY;
-	// 	}
-	// 	if (currentStreakNum == 4) {
-	// 		return VICTORY;
-	// 	}
-	// 	if (currentStreakNum == 3 && !halfOpen) {
-	// 		return VICTORY;
-	// 	}
-	// 	return 0;
-	// }
+		return static_cast<int>(pow(currentStreakNum, 3) * (halfOpen ? 1 : 2) * (discontinuedStreak ? 1 : 2));  // give particiaption medal
+	} else {
+		// Look for threats
+		if (currentStreakNum >= 5) {
+			return Minmax::CERTAIN_VICTORY;
+		}
+		if (currentStreakNum == 4) {
+			return Minmax::VICTORY;
+		}
+		if (currentStreakNum == 3 && !halfOpen) {
+			return Minmax::VICTORY;
+		}
+		return 0;
+	}
 
-
-	// if (discontinuedStreak) {
-	// 	currentStreakNum++;	
-	// }
-
-	// if (currentStreakNum < 3) {
-	// 	if (halfOpen) {
-	// 		return currentStreakNum;
-	// 	} else {
-	// 		return currentStreakNum * 2;
-	// 	}
-	// }
-	// if (currentStreakNum == 3) {
-	// 	if (!halfOpen && player == this->currentPlayer->index) {
-	// 		return victory;
-	// 	}
-	// 	return currentStreakNum * 
-	// 		(halfOpen ? 1 : 2) *  
-	// 		(player == this->currentPlayer->index ? 1 : 2); 
-	// }
-	// if (currentStreakNum == 4) {
-	// 	if (!halfOpen) {
-	// 		// CERTAIN VICTORY
-	// 		return victory;	
-	// 	}
-	// 	if (player == this->currentPlayer->index) {
-	// 		// CERTAIN VICTORY
-	// 		return victory;
-	// 	}
-	// 	return currentStreakNum;
-	// }
-	// if (currentStreakNum == 5) {
-	// 	// std::cout << "ON EST PAS LA" << std::endl;
-	// 	// VICTORY
-	// 	return victory * 10;
-	// }
-
-
-	// if (currentStreakNum == 3 && (!halfOpen || player == this->currentPlayer->index)) {
-	// 	// score = pow(100, currentStreakNum);
-	// 	score = 50;
-	// } else if ((currentStreakNum == 4 && (!halfOpen || player == this->currentPlayer->index)) || currentStreakNum == 5) {
-	// 	score = 100;
-	// } else if (currentStreakNum == 4 && (halfOpen || player == this->currentPlayer->index)) {
-	// 	score = 40;
-	// } else if (currentStreakNum > 0) {
-	// 	// score = pow(currentStreakNum, 3) * (halfOpen ? 1 : 2);
-	// 	// score = currentStreakNum * 2 + (halfOpen ? 0 : 5);
-	// 	score = halfOpen ? currentStreakNum : currentStreakNum * 2;
-	// }
-
-
-	// std::cout << "evalStreakScore currentStreakNum: " << currentStreakNum << ", currentStreakPotential: " << currentStreakPotential << ", halfOpen: " << halfOpen << std::endl;
-	// std::cout << "score: " << score << std::endl;
-
-	// return score;
 	return 0;
 }
 
 void resetStreak(bool &streaking, bool &frontBlocked, bool &discontinuedStreak, int &currentStreakNum, int &currentStreakPotential, int& emptyCellCount) {
-	// std::cout << std::endl << "resetStreak" << std::endl;
 	streaking = false;
 	frontBlocked = false;
 	discontinuedStreak = false;
@@ -305,126 +200,75 @@ void resetStreak(bool &streaking, bool &frontBlocked, bool &discontinuedStreak, 
 	emptyCellCount = 0;
 }
 
-int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int>& line, int& player, int length) {
+int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length) {
 
 	int score = 0;
 	bool streaking, frontBlocked, discontinuedStreak;
 	int currentStreakNum, currentStreakPotential, emptyCellCount;
 
 	resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
-	// currentStreakNum = 1;
-	// currentStreakPotential = 1;
 
 	int otherPlayer = player == 0 ? 1 : 0;
 
 	std::pair<int, int> pos;
-	// std::cout << "Before the for loop" << std::endl;
 
 	for (int i = 0; i < length; i++) {
-		// std::cout << "i: " << i << ". ";
 		pos = std::make_pair<int, int>(start.first + line.first * i, start.second + line.second * i);
 
-		// if self
-		// std::cout << "Before First if" << std::endl;
+		// if player
 		if (this->board[pos.first][pos.second] == player) {
-			// std::cout << "Inside First if" << std::endl;
 			if (!streaking) {
 				if (currentStreakNum) {
 					score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
-					
-					// std::cout << ", score => " << score;
 					resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
-					// std::cout << ", set streaking to true"; 
-					
 					currentStreakNum = 1;
 					currentStreakPotential = 1;
-					// std::cout << ", set currentStreakPotential to " << currentStreakPotential; 
 				} else {
 					currentStreakNum++;
 					currentStreakPotential++;
 				}
 
-				// Error in those lines
-				// frontBlocked = pos.second - 1 < 0 || this->board[pos.first - line.first][pos.second - line.second] == otherPlayer;
 				frontBlocked = pos.second - 1 < 0 || pos.first - line.first < 0 || pos.second - line.second < 0 || this->board[pos.first - line.first][pos.second - line.second] == otherPlayer;
-				
-				
-				// std::cout << ", set frontBlocked to " << frontBlocked;
 				streaking = true;
 			} else {
 				if (emptyCellCount == 1) {
 					if (!discontinuedStreak) {
 						discontinuedStreak = true;
-						// std::cout << ", set discontinuedStreak to true"; 
 					} else {
 						score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
-						// std::cout << ", score => " << score;
 						resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
-						
-						// Same here
-						// frontBlocked = pos.second - 1 < 0 || this->board[pos.first - line.first][pos.second - line.second] == otherPlayer;
 						frontBlocked = pos.second - 1 < 0 || pos.first - line.first < 0 || pos.second - line.second < 0 || this->board[pos.first - line.first][pos.second - line.second] == otherPlayer;
-						
-						// std::cout << ", set frontBlocked to " << frontBlocked;
 						streaking = true;
 					}
 				}
 				currentStreakPotential++;
-				// std::cout << ", increment currentStreakPotential to " << currentStreakPotential; 
 				currentStreakNum++;
 			}
-			// std::cout << ", set emptyCellCount to 0"; 
 			emptyCellCount = 0;
 		}
-		// std::cout << "After First if" << std::endl;
-
-		// std::cout << "Before second if" << std::endl;
-		// if empty
 		if (this->board[pos.first][pos.second] == -1) {
-			// std::cout << "Inside second if" << std::endl;
 			currentStreakPotential++;
-			// std::cout << ", increment currentStreakPotential to " << currentStreakPotential; 
 			emptyCellCount++;
-			// std::cout << ", increment emptyCellCount"; 
 
 			if (streaking) {
-				// if only one empty space before
 				if (emptyCellCount > 1) {
 					streaking = false;
-					// discontinuedStreak = true;
-					// std::cout << ", set streaking to false"; 
-					// std::cout << ", set discontinuedStreak to false"; 
 				}
-
-			} else {
-				// if (frontBlocked && currentStreakPotential == 1) {
-				// 	std::cout << ", set frontBlocked to false"; 
-				// 	frontBlocked = false;
-				// }
 			}
 		}
-		// std::cout << "After second if" << std::endl;
 
-		// std::cout << "Before last if" << std::endl;
 		// if other player
 		if (this->board[pos.first][pos.second] == otherPlayer) {
 			if (streaking) {
 				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player, discontinuedStreak);
-				// std::cout << ", score => " << score;
 			} else {
 				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
-				// std::cout << ", score => " << score;
 			}
 			resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
 
 		}
-		// std::cout << "After last if" << std::endl;
-		// std::cout << std::endl;
 	}
 
-	// std::cout << "After the for loop" << std::endl;
-
-	// if end
 	if (streaking) {
 		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player, discontinuedStreak);
 	} else {
@@ -443,99 +287,43 @@ int Gomoku::heuristicByPlayer(int player) {
 	std::pair<int, int> dLine1 = std::make_pair<int, int>(1, 1);
 	std::pair<int, int> dLine2 = std::make_pair<int, int>(1, -1);
 
-	// std::cout << "heuristicByPlayer for player " << player << std::endl;
-
-	// int i = 0;
-	// std::cout << std::to_string(++i) << std::endl;
-
 	for (int i = 0; i < this->size; i++) {
-		// std::cout << "eval line 1 " << player << std::endl;
-		int x = this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
-		// std::cout << "adding " << x << " to player score " << player << " at line (" << i << ", 0)" << " => " << score << std::endl; 
-		score += x;
-		// std::cout << "score => " << score << std::endl;
-		// std::cout << "eval line 2 " << player << std::endl;
-		x = this->evalLine(std::make_pair(0, i), vLine, player, this->size);
-		// std::cout << "adding " << x << " to player score " << player << " at line (0, " << i << ")" << " => " << score << std::endl; 
-		score += x;
-		// std::cout << "score => " << score << std::endl;
+		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
+		score += this->evalLine(std::make_pair(0, i), vLine, player, this->size);
 	}
-
-	// std::cout << std::to_string(++i) << std::endl;
 
 	for (int i = 0; i < this->size - this->winStreakLength; i++) {
-		x = this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i);
-		// std::cout << "adding " << x << " to player " << player << " at line (0, " << i << ")" << ", direction: (" << dLine1.first << ", " << dLine1.second << ") SCORE:[" << score << " => ";
-		score += x;
-		// std::cout << score << "]" << std::endl;
+		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i);
 		if (i != 0) {
-			x = this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i);
-			// std::cout << "adding " << x << " to player " << player << " at line (" << i << ", 0)" << ", direction: (" << dLine1.first << ", " << dLine1.second << ") SCORE:[" << score << " => ";
-			score += x;
-			// std::cout << score << "]" << std::endl; 
+			score += this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i);
 		}
 	}
-	// std::cout << std::to_string(++i) << std::endl;
 
 	for (int i = this->size - 1; i >= this->winStreakLength; i--) {
-
-		x = this->evalLine(std::make_pair(0, i), dLine2, player, i + 1);
-		// std::cout << "adding " << x << " to player " << player << " at line (0, " << i << ")" << ", direction: (" << dLine2.first << ", " << dLine2.second << ") SCORE:[" << score << " => ";
-		score += x;
-		// std::cout << score << "]" << std::endl;
+		score += this->evalLine(std::make_pair(0, i), dLine2, player, i + 1);
 	}
-	// std::cout << std::to_string(++i) << std::endl;
 
 	for (int i = 1; i <= this->size - this->winStreakLength; i++) {
-		x = this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i);
-
-		// std::cout << "adding " << x << " to player " << player << " at line (" << i << ", " << this->size - 1 <<  ")" << ", direction: (" << dLine2.first << ", " << dLine2.second << ") SCORE:[" << score << " => ";
-		score += x;
-		// std::cout << score << "]" << std::endl;
+		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i);
 	}
-	// std::cout << std::to_string(++i) << std::endl;
 
 	return score;
 }
 
-float hPlayerMultiplier = 0.2;
+float hPlayerMultiplier = 1;
 
-int Gomoku::heuristic(int depth) {
+int Gomoku::heuristic() {
 
-	// std::cout << "HEU" << std::endl;
-	// this->printBoard();
 	int score0 = this->heuristicByPlayer(0);
 	int score1 = this->heuristicByPlayer(1);
-	// std::cout << std::endl << "score0: " << score0 << ", score1: " << score1 << std::endl;
-	// std::cout << std::endl;
-	// return score1 - (int)(score0);
+	return this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
 
-	// std::cout << "INDEX: " << this->heuristicPlayer->index << std::endl;
-
-	// std::cout << "Before factors:" << std::endl;
-	// std::cout << "Score0: " << score0 << std::endl;
-	// std::cout << "Score1: " << score1 << std::endl;
-
-	// std::cout << "finalScore before depth: " << (this->heuristicPlayer->index == 0 ? score0 - score1 : score1 - score0) << std::endl;
-	// return this->heuristicByPlayer(this->heuristicPlayer->index);
-	// int finalScore = (this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0) / (this->minmax->maxDepth - depth);
-
-	int finalScore = this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
-	// if (depth != 0) {
-		// std::cout << "depth: " << depth << ", finalScore: " << finalScore << " => "; 
-		// finalScore *= (1 + (depth / (float)this->minmax->searchDepth));
-		// finalScore *= (depth + 1);
-		// std::cout << finalScore << std::endl;
-	// }
-	// std::cout << "finalScore: " << finalScore << std::endl;
-
-	return finalScore;
-	// return this->heuristicByPlayer(this->heuristicPlayer->index) - this->heuristicByPlayer(this->heuristicPlayer->index == 1 ? 0 : 1) * 2.1f;
+	// return this->heuristicPlayer->index == 0 ? score0 : score1;
+	// return finalScore;
 }
 
 
 std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
-
 	std::vector<AAction*> actions = this->place(pos.first, pos.second, this->currentPlayer->index);
 	this->switchPlayer();
 	return actions;
@@ -544,7 +332,6 @@ std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
 void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	this->switchPlayer();
 	
-
 	ActionUpdateBoard* aub;
 	ActionSetEndState* aes;
 	for (AAction* action: actions) {
@@ -606,11 +393,7 @@ PyObject* Gomoku::reset(PyObject* self, PyObject* args) {
 }
 
 PyObject* Gomoku::run(PyObject* self, PyObject* args) {
-	// std::cout << "Gomoku Run" << std::endl;
-
 	auto pos = Gomoku::gomoku->minmax->run();
-
-	// std::cout << "pos: " << pos.first << ", " << pos.second << std::endl;
 
 	PyObject* res = PyTuple_New(2);
     PyObject* y = PyLong_FromLong(pos.first);
@@ -627,7 +410,6 @@ PyObject* Gomoku::place(PyObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
 		return NULL;
 	}
-	std::cout << "=> Python choose to place at " << y << ", " << x << std::endl;
 	Gomoku::gomoku->stackActions.push_back(Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index));
 	return PyLong_FromLong(0);
 }
@@ -657,20 +439,17 @@ PyObject* Gomoku::isPlaying(PyObject* self, PyObject* args) {
 
 
 PyObject* Gomoku::setPlaying(PyObject* self, PyObject* args) {
-	// bool playing;
 	
 	if (!PyArg_ParseTuple(args, "b", &Gomoku::gomoku->playing)) {
 		return NULL;
 	}
 
-	// Gomoku::gomoku->playing = playing;
 	return PyLong_FromLong(0);
 }
 
 PyObject* Gomoku::isCurrentPlayerAI(PyObject* self, PyObject* args) {
 	return PyBool_FromLong(Gomoku::gomoku->currentPlayer->type == Player::AI);
 }
-
 
 PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
 	int playerIndex;
@@ -680,7 +459,6 @@ PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "ii", &playerIndex, &playerType)) {
 		return NULL;
 	}
-	std::cout << "setPlayerType to: " << playerType << std::endl;
 
 	Gomoku::gomoku->players[playerIndex].type = (Player::Type)playerType;
 	return PyLong_FromLong(0);

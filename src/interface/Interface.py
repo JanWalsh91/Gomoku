@@ -9,7 +9,7 @@ from interface.gui.TextBox import TextBox
 from interface.board.Board import Board
 from interface.colors import *
 
-BOARD_SIZE = 600 # BOARD (not window) size in pixels (=> determines window size based on ratio)
+BOARD_SIZE = 800 # BOARD (not window) size in pixels (=> determines window size based on ratio)
 
 class Interface:
 	"""

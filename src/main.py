@@ -87,7 +87,7 @@ def main():
 			if value != -1:
 				GomokuModule.set_playing(False)
 				if value >= 0:
-					interface.message = ("Black" if value == 0 else "White") + " win!"  
+					interface.message = ("Black" if value == 0 else "White") + " win! " + str(turn)
 				else:
 					interface.message = "DRAW"
 			
@@ -149,7 +149,7 @@ def main():
 					if value != -1:
 						GomokuModule.set_playing(False)
 						if value >= 0:
-							interface.message = ("Black" if value == 0 else "White") + " win!"  
+							interface.message = ("Black" if value == 0 else "White") + " win! " + str(turn)  
 						else:
 							interface.message = "DRAW"
 
