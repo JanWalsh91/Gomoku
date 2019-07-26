@@ -39,6 +39,9 @@ public:
 	static PyObject* isCurrentPlayerAI(PyObject* self, PyObject* args);
 	static PyObject* setPlayerType(PyObject* self, PyObject* args);
 
+	static PyObject* undo(PyObject* self, PyObject* args);
+
+
 	static PyObject* testEvalLine(PyObject* self, PyObject* args);
 
 	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
@@ -63,6 +66,8 @@ public:
 
 
 	int evalStreakScore(int, int, bool, int player, bool discontinuedStreak);
+
+	std::vector<std::vector<AAction*>> stackActions;
 
 	int size;
 	std::vector<std::vector<int>> board;

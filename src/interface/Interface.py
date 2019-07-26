@@ -36,6 +36,7 @@ class Interface:
 		self.__on_grid_click = []
 		self.__on_start = []
 		self.__on_reset = []
+		self.__on_key_down = []
 		# self.__on_new_turn = []
 		self.is_playing = False
 		self.is_reset = True
@@ -177,6 +178,10 @@ class Interface:
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
 				sys.exit()
 			
+			if event.type == pygame.KEYDOWN:
+				for callback in self.on_key_down:
+					callback(event)
+			
 			self.gui.handle_event(event, self.screen)
 			self.board.handle_event(event, self.screen)
 
@@ -232,6 +237,13 @@ class Interface:
 	@on_current_player_change.setter
 	def on_current_player_change(self, fn):
 		self.__on_current_player_change.append(fn)
+
+	@property
+	def on_key_down(self):
+		return self.__on_key_down
+	@on_key_down.setter
+	def on_key_down(self, fn):
+		self.__on_key_down.append(fn)
 
 	@property
 	def message(self):

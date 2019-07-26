@@ -4,7 +4,6 @@ import pygame
 import sys
 import math
 
-
 import GomokuModule
 # from controller.rules.ARule import ARule
 # from controller.rules.RuleFactory import RuleFactory
@@ -19,9 +18,13 @@ default_rules = []
 # rules_dictionary = {'r' + str(i + 1):  rule for i, rule in enumerate(RuleFactory.Name)}
 rules_dictionary = {}
 
+
 def main():
 
-
+	print('SET PAUSE')
+	pause = False
+	play_once = False
+	
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-t', action="store_true", dest="test", default=False, help='Launch line test')
 
@@ -57,6 +60,17 @@ def main():
 	else:
 		GomokuModule.init(19, args.depth if args.depth else 5, int(players[0]), int(players[1]))
 		interface = Interface(players)
+	
+	def on_key_down(event):
+		nonlocal pause
+		nonlocal play_once
+		print('on key down')
+		if event.key == pygame.K_SPACE:
+			print('Use PAUSE')
+			print(pause)
+			pause = not pause
+		if event.key == pygame.K_PERIOD:
+			play_once = True
 
 	# ==== set up your callbacks ==== #
 	def on_click(interface, pos):
@@ -97,6 +111,7 @@ def main():
 		GomokuModule.set_player_type(player_view_model.index, player_view_model.type)
 
 
+	interface.on_key_down = on_key_down
 	interface.on_reset = on_reset
 	interface.on_start = on_start
 	interface.on_grid_click = on_click
@@ -111,34 +126,44 @@ def main():
 		interface.render()
 	
 		if GomokuModule.is_playing() and GomokuModule.is_current_player_AI():
-			turn += 1
-			print('===> TURN ', turn)
-			if args.max_turn and turn > args.max_turn:
-				print('STOPPING')
-				GomokuModule.set_playing(False)
-				continue
+			if not pause or play_once:
+				turn += 1
+				interface.message = str(turn)
+				print('===> TURN ', turn)
+				if args.max_turn and turn > args.max_turn:
+					print('posing')
+					pause = True
+					args.max_turn = 0
+					# GomokuModule.set_playing(False)
+					if not play_once:
+						continue
 
-			pos = GomokuModule.run()
-			# pos = 
-			print('AI, I choose you', pos)
-			if pos:
-				GomokuModule.place(pos[0], pos[1])
+				pos = GomokuModule.run()
+				# pos = 
+				print('AI, I choose you', pos, ' for player ', interface.current_player.name)
+				if pos:
+					GomokuModule.place(pos[0], pos[1])
 
-				value = GomokuModule.get_end_state()
-				print('value: ' + str(value))
-				if value != -1:
+					value = GomokuModule.get_end_state()
+					print('value: ' + str(value))
+					if value != -1:
+						GomokuModule.set_playing(False)
+						if value >= 0:
+							interface.message = ("Black" if value == 0 else "White") + " win!"  
+						else:
+							interface.message = "DRAW"
+
+					interface.place_stone_at(pos)
+
+					GomokuModule.switch_player()
+					interface.next_turn()
+				else:
 					GomokuModule.set_playing(False)
-					if value >= 0:
-						interface.message = ("Black" if value == 0 else "White") + " win!"  
-					else:
-						interface.message = "DRAW"
+				
+			play_once = False
 
-				interface.place_stone_at(pos)
 
-				GomokuModule.switch_player()
-				interface.next_turn()
-			else:
-				GomokuModule.set_playing(False)
+					
 
 
 def test_lines():

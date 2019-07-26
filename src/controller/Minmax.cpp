@@ -29,6 +29,7 @@ std::pair<int, int> Minmax::run() {
 		// TODO: out of time
 		std::cout << "search with depth " << this->searchDepth << std::endl;
 		this->minmaxAlphaBeta(this->searchDepth, std::numeric_limits<int>::min() + 1, std::numeric_limits<int>::max(), 1);
+		std::cout << "after search with depth " << this->searchDepth << std::endl;
 
 	// }
 
@@ -76,24 +77,28 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 
 	// If node is a leaf or if end state
 	if (depth == 0 || this->gomoku.endState != Gomoku::PLAYING) {
-		if (depth != 0) {
-			std::cout << "TOWANDA" << std::endl;
-		}
 		if (this->gomoku.endState != Gomoku::PLAYING) {
-
-			if (depth != 0) {
-				std::cout << "Before scaling at depth: " << depth << " " << player * (this->gomoku.endState == this->gomoku.heuristicPlayer->index ? 1 : -1) * Minmax::VICTORY <<
-				" => " << this->scaleByDepth(depth, player * (this->gomoku.endState == this->gomoku.heuristicPlayer->index ? 1 : -1) * Minmax::VICTORY) << std::endl;
-			}
-			return this->scaleByDepth(depth, player * (this->gomoku.endState == this->gomoku.heuristicPlayer->index ? 1 : -2) * Minmax::VICTORY);
+			int tmp = this->scaleByDepth(depth, player * 10'000);
+			std::cout << "TOWANDA at depth " << depth << ", score = " << tmp << std::endl;
+			return tmp;
 		} else {
-			if (depth != 0) {
-					std::cout << "Before scaling at depth: " << depth << " " << player * this->gomoku.heuristic(depth) <<
-				" => " << this->scaleByDepth(depth, player * this->gomoku.heuristic(depth)) << std::endl;
-			}
-
 			return this->scaleByDepth(depth, player * this->gomoku.heuristic(depth));
 		}
+
+
+		// 	if (depth != 0) {
+		// 		std::cout << "Before scaling at depth: " << depth << " " << player * (this->gomoku.endState == this->gomoku.heuristicPlayer->index ? 1 : -1) * Minmax::VICTORY <<
+		// 		" => " << this->scaleByDepth(depth, player * (this->gomoku.endState == this->gomoku.heuristicPlayer->index ? 1 : -1) * Minmax::VICTORY) << std::endl;
+		// 	}
+		// 	return this->scaleByDepth(depth, player * (this->gomoku.endState == this->gomoku.heuristicPlayer->index ? 1 : -2) * Minmax::VICTORY);
+		// } else {
+		// 	if (depth != 0) {
+		// 			std::cout << "Before scaling at depth: " << depth << " " << player * this->gomoku.heuristic(depth) <<
+		// 		" => " << this->scaleByDepth(depth, player * this->gomoku.heuristic(depth)) << std::endl;
+		// 	}
+
+		// }
+		// return player * this->gomoku.heuristic(depth);
 	}
 
 	auto moves = this->gomoku.getMoves();
@@ -107,10 +112,9 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, int player) {
 		if (depth == this->searchDepth) {
 			heuristicValues[move.first][move.second] = ret;
 		}
-		if (depth == this->searchDepth && this->bestValue != value) {
-			// std::cout << "SET BEST MOVE" << std::endl;
+		if ((depth == this->searchDepth || this->gomoku.endState != Gomoku::PLAYING) && this->bestValue < ret) {
 			this->bestMove = move;
-			this->bestValue = value;	
+			this->bestValue = ret;
 		}
 		this->gomoku.undoMove(undoMoves);
 
