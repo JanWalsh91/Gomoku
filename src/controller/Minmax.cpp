@@ -144,7 +144,7 @@ std::vector<std::pair<int, int>> Minmax::getSortedMoves(std::vector<std::pair<in
 		
 		this->gomoku.undoMove(undoMoves);
 	}
-	while (movesHeuristicValues.size() && sortedMoves.size() < 20) {
+	while (movesHeuristicValues.size() && sortedMoves.size() < 5) {
 		int maxValue = std::numeric_limits<int>::min();
 		int maxValueIndex = -1;
 		for (unsigned i = 0; i < moves.size(); i++) {

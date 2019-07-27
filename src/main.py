@@ -53,8 +53,8 @@ def main():
 
 	# players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.HUMAN]
 	# players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.AI]
-	# players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.AI]
-	players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.HUMAN]
+	players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.AI]
+	# players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.HUMAN]
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:

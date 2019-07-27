@@ -164,6 +164,7 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	while (it != moves.end()) {
 		bool erased = false;
 		if (!this->canPlace(*it)) {
+			std::cout << "Removed " << it->first << ", " << it->second << std::endl;
 			erased = true;
 			it = moves.erase(it);
 		}
