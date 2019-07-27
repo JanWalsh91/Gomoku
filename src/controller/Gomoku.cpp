@@ -5,6 +5,7 @@
 #include <iomanip>
 
 #include "Gomoku.hpp"
+#include "rules/NoDoubleFreeThree.hpp"
 
 Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5) {
 	this->players.push_back(Player(0, player0Type));
@@ -15,6 +16,8 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 	this->currentPlayer = &this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+
+	this->rules.push_back(new NoDoubleFreeThree());
 }
 
 void Gomoku::reset() {
@@ -155,6 +158,18 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 	if (empty) {
 		moves.push_back(std::make_pair<int, int>((int)(this->size / 2), (int)(this->size / 2)));
+	}
+
+	auto it = moves.begin();
+	while (it != moves.end()) {
+		bool erased = false;
+		if (!this->canPlace(*it)) {
+			erased = true;
+			it = moves.erase(it);
+		}
+		if (!erased) {
+			it++;
+		}
 	}
 	return moves;
 }
@@ -328,6 +343,16 @@ std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
 	return actions;
 }
 
+bool Gomoku::canPlace(std::pair<int, int> move) const {
+	for (auto rule: this->rules) {
+		if (!rule->canPlace(*Gomoku::gomoku, move)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
 void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	this->switchPlayer();
 	
@@ -456,6 +481,17 @@ PyObject* Gomoku::isCurrentPlayerAI(PyObject* self, PyObject* args) {
 	return PyBool_FromLong(Gomoku::gomoku->currentPlayer->type == Player::AI);
 }
 
+PyObject* Gomoku::canPlace(PyObject* self, PyObject* args) {
+	int y, x;
+	
+	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
+		return NULL;
+	}
+
+	return PyBool_FromLong(Gomoku::gomoku->canPlace(std::make_pair(y, x)));
+}
+
+
 PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
 	int playerIndex;
 	int playerType;
@@ -482,6 +518,7 @@ static PyMethodDef methods[] = {
 	{"is_current_player_AI", Gomoku::isCurrentPlayerAI, METH_VARARGS, "Returns the ai state machine."},
 	{"set_player_type", Gomoku::setPlayerType, METH_VARARGS, "Returns the ai pouet machine."},
 	{"test_eval_line", Gomoku::testEvalLine, METH_VARARGS, "Returns the eval_line_test pouet machine."},
+	{"can_place", Gomoku::canPlace, METH_VARARGS, "fuck the eval_line_test pouet machine."},
 	// {"undo", Gomoku::undo, METH_VARARGS, "Returns the undo pouet machines."},
 	{NULL, NULL, 0, NULL}
 };

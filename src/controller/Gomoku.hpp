@@ -9,6 +9,9 @@
 #include "AAction.hpp"
 #include "ActionUpdateBoard.hpp"
 #include "ActionSetEndState.hpp"
+#include "rules/ARule.hpp"
+
+class ARule;
 
 class Gomoku {
 
@@ -43,6 +46,8 @@ public:
 
 
 	static PyObject* testEvalLine(PyObject* self, PyObject* args);
+	static PyObject* canPlace(PyObject* self, PyObject* args);
+
 
 	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
 	void place(int& y, int& x);
@@ -61,8 +66,11 @@ public:
 	std::vector<AAction*> doMove(std::pair<int, int>& pos);
 	void undoMove(std::vector<AAction*>& actions);
 
+	bool canPlace(std::pair<int, int>) const;
+
 // private:
 
+	std::vector<ARule*> rules;
 
 	int evalStreakScore(int, int, bool, int player, bool discontinuedStreak);
 

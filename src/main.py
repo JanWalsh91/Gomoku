@@ -53,7 +53,8 @@ def main():
 
 	# players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.HUMAN]
 	# players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.AI]
-	players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.AI]
+	# players = [PlayerViewModel.TYPE.AI, PlayerViewModel.TYPE.AI]
+	players = [PlayerViewModel.TYPE.HUMAN, PlayerViewModel.TYPE.HUMAN]
 
 	# ==== create interface (line_num optional) ==== #
 	if args.board_size:
@@ -81,7 +82,9 @@ def main():
 				print('It\'s the AI\'s turn!', interface.current_player.name)
 				return
 			
-
+			if not GomokuModule.can_place(pos[0], pos[1]):
+				print('Can"t place here')
+				return 
 			GomokuModule.place(pos[0], pos[1])
 
 			value = GomokuModule.get_end_state()

@@ -49,6 +49,8 @@ std::pair<int, int> Minmax::run() {
 	return this->bestMove;
 }
 
+
+
 int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 
 	if (this->gomoku.endState != Gomoku::PLAYING) {
@@ -78,7 +80,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 
 		for (auto& move: moves) {
 			auto undoMoves = this->gomoku.doMove(move);
-			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false);
+			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false); // TODO: pass heuristic results if depth will == 0
 			this->gomoku.undoMove(undoMoves);		
 
 			if (m > ret) {
@@ -88,7 +90,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 				beta = m;
 			}
 			if (alpha >= beta) {
-				// break;
+				break;
 			}
 		}
 		return m;
@@ -108,7 +110,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 				alpha = M;
 			}
 			if (alpha >= beta) {
-				// break;
+				break;
 			}
 		}
 		return M;
@@ -142,7 +144,7 @@ std::vector<std::pair<int, int>> Minmax::getSortedMoves(std::vector<std::pair<in
 		
 		this->gomoku.undoMove(undoMoves);
 	}
-	while (movesHeuristicValues.size()) {
+	while (movesHeuristicValues.size() && sortedMoves.size() < 20) {
 		int maxValue = std::numeric_limits<int>::min();
 		int maxValueIndex = -1;
 		for (unsigned i = 0; i < moves.size(); i++) {
