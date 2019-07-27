@@ -5,6 +5,9 @@
 
 #include "Minmax.hpp"
 
+#include <chrono>
+#include <random>       // std::default_random_engine
+
 Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku) {
 	this->TT = std::map<std::string, Minmax::Entry>();
 	this->bestMove = std::make_pair(-1, -1);
@@ -66,11 +69,13 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 		return this->gomoku.heuristic();
 	}
 
+	auto moves = this->gomoku.getMoves();
+	moves = this->getSortedMoves(moves, maximizing, depth);
+
 	if (maximizing) {
 
 		int m = Minmax::INF_MAX;
 
-		auto moves = this->gomoku.getMoves();
 		for (auto& move: moves) {
 			auto undoMoves = this->gomoku.doMove(move);
 			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false);
@@ -83,7 +88,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 				beta = m;
 			}
 			if (alpha >= beta) {
-				break;
+				// break;
 			}
 		}
 		return m;
@@ -91,7 +96,6 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 
 		int M = Minmax::INF_MIN;
 
-		auto moves = this->gomoku.getMoves();
 		for (auto& move: moves) {
 			auto undoMoves = this->gomoku.doMove(move);
 			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, true);
@@ -104,7 +108,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 				alpha = M;
 			}
 			if (alpha >= beta) {
-				break;
+				// break;
 			}
 		}
 		return M;
@@ -115,4 +119,41 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing) {
 int		Minmax::scaleByDepth(int depth, int value) {
 	// return value * (depth + 1);
 	return value;
+}
+
+std::vector<std::pair<int, int>> Minmax::getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const {
+	auto sortedMoves = std::vector<std::pair<int, int>>();
+	
+	std::vector<int> movesHeuristicValues;
+	for (auto& move: moves) {
+		auto undoMoves = this->gomoku.doMove(move);
+
+		if (this->gomoku.endState >= 0) {
+			if (maximizing) {
+				movesHeuristicValues.push_back(Minmax::INF_MAX - (this->maxDepth - depth));
+			} else {
+				movesHeuristicValues.push_back(Minmax::INF_MIN + (this->maxDepth - depth));
+			}
+		} else if (this->gomoku.endState == Gomoku::State::DRAW) {
+			movesHeuristicValues.push_back(0);
+		} else {
+			movesHeuristicValues.push_back(this->gomoku.heuristic());
+		}
+		
+		this->gomoku.undoMove(undoMoves);
+	}
+	while (movesHeuristicValues.size()) {
+		int maxValue = std::numeric_limits<int>::min();
+		int maxValueIndex = -1;
+		for (unsigned i = 0; i < moves.size(); i++) {
+			if (movesHeuristicValues[i] > maxValue) {
+				maxValueIndex = i;
+				maxValue = movesHeuristicValues[i];
+			}
+		}
+		sortedMoves.push_back(moves[maxValueIndex]);
+		movesHeuristicValues.erase(movesHeuristicValues.begin() + maxValueIndex);
+		moves.erase(moves.begin() + maxValueIndex);
+	}
+	return sortedMoves;
 }

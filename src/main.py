@@ -24,6 +24,8 @@ def main():
 	print('SET PAUSE')
 	pause = False
 	play_once = False
+	turn = 0
+	averageExecutionTime = 0
 	
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-t', action="store_true", dest="test", default=False, help='Launch line test')
@@ -106,6 +108,8 @@ def main():
 	def on_reset(interface):
 		print('interface has reset.')
 		GomokuModule.reset()
+		turn = 0
+		averageExecutionTime = 0
 
 	def on_player_change_type(player_view_model):
 		GomokuModule.set_player_type(player_view_model.index, player_view_model.type)
@@ -118,8 +122,6 @@ def main():
 	interface.players[0].on_change_type = on_player_change_type
 	interface.players[1].on_change_type = on_player_change_type
 	
-	turn = 0
-
 	print('Max Turn: ', args.max_turn)
 
 	while True:
@@ -134,13 +136,18 @@ def main():
 					print('posing')
 					pause = True
 					args.max_turn = 0
+					print('Average execution time: ', str(round(averageExecutionTime / turn, 4)))
 					# GomokuModule.set_playing(False)
 					if not play_once:
 						continue
 
+				start = time.time()
 				pos = GomokuModule.run()
-				# pos = 
-				print('AI, I choose you', pos, ' for player ', interface.current_player.name)
+				end = time.time()
+
+				print('AI, I choose you', pos, ' for player ', interface.current_player.name, ' in ', round(end - start, 4), 'seconds')
+				averageExecutionTime = averageExecutionTime + end - start
+
 				if pos:
 					GomokuModule.place(pos[0], pos[1])
 
@@ -148,6 +155,7 @@ def main():
 					print('value: ' + str(value))
 					if value != -1:
 						GomokuModule.set_playing(False)
+						print('Average execution time: ', str(round(averageExecutionTime / turn, 4)))
 						if value >= 0:
 							interface.message = ("Black" if value == 0 else "White") + " win! " + str(turn)  
 						else:

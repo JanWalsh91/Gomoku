@@ -41,6 +41,7 @@ private:
 
 	int scaleByDepth(int depth, int value);
 
+	std::vector<std::pair<int, int>> getSortedMoves(std::vector<std::pair<int, int>>&, bool maximizing, int depth) const;
 
 };
 

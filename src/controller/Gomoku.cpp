@@ -279,7 +279,6 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 }
 
 int Gomoku::heuristicByPlayer(int player) {
-	int x = 0;
 	int score = 0;
 	std::pair<int, int> hLine = std::make_pair<int, int>(0, 1);
 	std::pair<int, int> vLine = std::make_pair<int, int>(1, 0);
