@@ -1,34 +1,110 @@
 #include "Grid.hpp"
 
-Grid::Grid() {
+#include <iostream>
 
-	// width = 800 - 10 (borders) - 40 (margin)
+Grid::Grid(int size, float boardSize, float margin) : size(size), boardSize(boardSize), margin(margin) {
 
-	const float boardSize = 800.0f;
-	const float border = 5.0f;
-	const float margin = 20.0f;
+	this->cellSize = (boardSize - margin * 2) / (size + 1);
 
-	const int nbCells = 5;
-	const float cellSize = (boardSize - border * 2 - margin * 2) / nbCells;
-
-
-	for (int i = 0; i < nbCells + 2; i++) {
+	for (int i = 0; i < size + 2; i++) {
 
 		auto Hline = std::make_shared<sf::RectangleShape>(sf::Vector2f(boardSize - margin * 2, 1));
-		Hline->move(border + margin, border + margin + (i * cellSize));
+		Hline->move(margin, margin + (i * cellSize));
 
 		auto Vline = std::make_shared<sf::RectangleShape>(sf::Vector2f(boardSize - margin * 2, 1));
-		Vline->move(border + margin + (i * cellSize), border + margin);
+		Vline->move(margin + (i * cellSize), margin);
 		Vline->rotate(90.0f);
 
 		gridLines.push_back(Hline);
 		gridLines.push_back(Vline);
 	}
-
 }
+
+/**
+	Places a stone at the position pos. Pos reprensents the indices in the grid (0, 0), (1, 2), ...
+*/
+void Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
+
+	if (stones.find(pos) != stones.end()) {
+		std::cout << "Error, already stone here" << std::endl;
+		return;
+	}
+	if (pos.first < 0 || pos.second < 0 || pos.first >= size || pos.second >= size) {
+		std::cout << "Error, wrong position" << std::endl;
+		return;
+	}
+
+	auto stone = std::make_shared<sf::CircleShape>(cellSize / 2.0f);
+	//stone->move(margin + (pos.second * cellSize), margin + (pos.first * cellSize));
+	stone->move(margin + (pos.second * cellSize) + cellSize / 2.0f, margin + (pos.first * cellSize) + cellSize / 2.0f);
+
+	//stone->move(margin + cellSize / 2.0f + (pos.second * cellSize), margin + cellSize / 2.0f + (pos.first * cellSize));
+	stone->setFillColor(color);
+
+	stones[pos] = stone;
+}
+
+std::pair<int, int> Grid::windowToGridCoord(sf::Vector2i mousePosition) {
+
+	if (mousePosition.x < margin * 1.5f || mousePosition.y < margin * 1.5f || mousePosition.x > boardSize - margin * 1.5f || mousePosition.y > boardSize - margin * 1.5f) {
+		return std::make_pair(-1, -1);
+	}
+
+	// move away from the margin
+
+	//mousePosition.x + margin
+
+	//std::cout << "World Position: " << mousePosition.x << ", " << mousePosition.y << std::endl;
+	//auto pair = std::make_pair(static_cast<int>(std::round(mousePosition.y / cellSize)), static_cast<int>(std::round(mousePosition.x / cellSize)));
+	auto pair = std::make_pair(static_cast<int>((mousePosition.y / cellSize) - margin / cellSize - 0.5f), static_cast<int>((mousePosition.x / cellSize) - margin / cellSize - 0.5f));
+	//std::cout << "Grid Position before cast: " << ((mousePosition.y / cellSize) - margin / cellSize) << ", " << ((mousePosition.x / cellSize) - margin / cellSize) << std::endl;
+	//std::cout << "Grid Position: " << pair.first << ", " << pair.second << std::endl;
+	//std::cout << "cellSize: " << cellSize << std::endl;
+	return pair;
+}
+
 
 void Grid::render(sf::RenderWindow& window) {
 	for (auto& line : gridLines) {
 		window.draw(*line);
 	}
+
+	for (auto& stone : stones) {
+		window.draw(*stone.second);
+	}
+}
+
+void Grid::click(sf::Vector2i mousePosition) {
+
+	if (mousePosition.x < 800 && mousePosition.y < 800) {
+		for (auto& callback : callbacks) {
+			callback(mousePosition);
+		}
+	}
+}
+
+void Grid::hover(sf::Vector2i mousePosition) {
+
+	if (mousePosition.x < 800 && mousePosition.y < 800) {
+		auto pos = this->windowToGridCoord(mousePosition);
+
+		if (pos.first < 0 || pos.second < 0 || pos.first >= size || pos.second >= size || stones.find(pos) != stones.end()) {
+			return;
+		}
+		
+
+		float xPosition = (pos.first + 1) * cellSize - margin / 2.0f;
+		float yPosition = (pos.second + 1) * cellSize - margin / 2.0f;
+
+
+		for (auto& callback : hoverCallbacks) {
+
+
+			callback(sf::Vector2i(static_cast<int>(xPosition), static_cast<int>(yPosition)));
+		}
+	}
+}
+
+float Grid::getCellSize() const {
+	return this->cellSize;
 }
