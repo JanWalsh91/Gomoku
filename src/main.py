@@ -28,7 +28,7 @@ def main():
 	averageExecutionTime = 0
 	
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-t', action="store_true", dest="test", default=False, help='Launch line test')
+	parser.add_argument('-t', action="store", dest="test", type=int, help='Launch line test')
 
 	parser.add_argument('-s', action="store", dest="board_size", type=int, help='Size of the board')
 	parser.add_argument('-d', action="store", dest="depth", type=int, help='Min max depth')
@@ -40,8 +40,16 @@ def main():
 		parser.add_argument('-' + key, action='store_true', default=False, dest=key, help='Rule ' + key)
 
 	args = parser.parse_args()
-	if args.test == True:
-		test_lines()
+	if args.test:
+
+
+
+		if args.test == 1:
+			GomokuModule.test_eval_line()
+		elif args.test == 2:
+			GomokuModule.test_heuristic()
+		elif args.test == 3:
+			GomokuModule.test_minmax()#;
 		return
 	
 	rules = [] if args.r0 else default_rules
@@ -74,6 +82,14 @@ def main():
 			pause = not pause
 		if event.key == pygame.K_PERIOD:
 			play_once = True
+		if event.key == pygame.K_PLUS:
+			args.depth = args.depth + 1
+			GomokuModule.set_depth(args.depth)
+			print('Depth: ', args.depth)
+		if event.key == pygame.K_MINUS:
+			args.depth = args.depth - 1
+			GomokuModule.set_depth(args.depth)
+			print('Depth: ', args.depth)
 
 	# ==== set up your callbacks ==== #
 	def on_click(interface, pos):
@@ -109,6 +125,8 @@ def main():
 		GomokuModule.set_playing(True)
 
 	def on_reset(interface):
+		nonlocal turn
+		nonlocal averageExecutionTime
 		print('interface has reset.')
 		GomokuModule.reset()
 		turn = 0
@@ -177,9 +195,6 @@ def main():
 					
 
 
-def test_lines():
-	# init boards
-	GomokuModule.test_eval_line()
 
 if __name__ == '__main__':
 	main()

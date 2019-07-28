@@ -15,7 +15,7 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 
 	this->currentPlayer = &this->players[0];
 	this->heuristicPlayer = nullptr;
-	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+	// this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 
 	this->rules.push_back(new NoDoubleFreeThree());
 }
@@ -24,7 +24,7 @@ void Gomoku::reset() {
 	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
 	this->currentPlayer = &this->players[0];
 	this->heuristicPlayer = nullptr;
-	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+	// this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 	this->endState = State::PLAYING;
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
@@ -84,7 +84,7 @@ std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 	std::pair<int, int> pos = std::make_pair(y, x);
 
 	this->board[y][x] = playerIndex;
-	this->lastMoves[playerIndex] = pos;
+	// this->lastMoves[playerIndex] = pos;
 
 	actions.push_back(new ActionUpdateBoard(pos, -1));
 
@@ -111,31 +111,31 @@ void Gomoku::switchPlayer() {
 std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	std::vector<std::pair<int, int>> moves;
 
-	int distAroundLastMoves = 1;
+	// int distAroundLastMoves = 1;
 
 	int currentPlayer = this->currentPlayer->index;
 
 	bool empty = true; 
 
-	for (int i = (currentPlayer == 0 ? 0 : 1); i != (currentPlayer == 0 ? 2 : -1); i += (currentPlayer == 0 ? 1 : -1)) {
-		auto move = this->lastMoves[i];
+	// for (int i = (currentPlayer == 0 ? 0 : 1); i != (currentPlayer == 0 ? 2 : -1); i += (currentPlayer == 0 ? 1 : -1)) {
+	// 	auto move = this->lastMoves[i];
 		
-		if (move.first != -1) {
-			for (int i = -distAroundLastMoves; i <= distAroundLastMoves; i++) {
-				int i2 = i + move.first;
-				for (int j = -distAroundLastMoves; j <= distAroundLastMoves; j++) {
-					int j2 = j + move.second;
-					if (i2 >= 0 && i2 < this->size && j2 >= 0 && j2 < this->size && this->board[i2][j2] == -1) {
-						auto child = std::make_pair(i2, j2);
-						if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
-							moves.push_back(child);
-							empty = false;
-						}
-					}
-				}
-			}
-		}
-	}
+	// 	if (move.first != -1) {
+	// 		for (int i = -distAroundLastMoves; i <= distAroundLastMoves; i++) {
+	// 			int i2 = i + move.first;
+	// 			for (int j = -distAroundLastMoves; j <= distAroundLastMoves; j++) {
+	// 				int j2 = j + move.second;
+	// 				if (i2 >= 0 && i2 < this->size && j2 >= 0 && j2 < this->size && this->board[i2][j2] == -1) {
+	// 					auto child = std::make_pair(i2, j2);
+	// 					if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
+	// 						moves.push_back(child);
+	// 						empty = false;
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	int dist = 2;
 	for (int i = 0; i < this->size; i++) {
@@ -164,7 +164,7 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	while (it != moves.end()) {
 		bool erased = false;
 		if (!this->canPlace(*it)) {
-			std::cout << "Removed " << it->first << ", " << it->second << std::endl;
+			// std::cout << "Removed " << it->first << ", " << it->second << std::endl;
 			erased = true;
 			it = moves.erase(it);
 		}
@@ -180,29 +180,30 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 		return 0;
 	}
 
-	if (player == this->heuristicPlayer->index) {
+	// if (player == this->heuristicPlayer->index) {
 		// Look for Minmax::victory conditions
 		if (currentStreakNum >= 5 && !discontinuedStreak) {
 			std::cout << "SHOULD NOT BE HERE" << std::endl;
 			return Minmax::CERTAIN_VICTORY;
 		}
 		if (currentStreakNum == 4 && !halfOpen && !discontinuedStreak) {
-			return Minmax::VICTORY;
-		}
-		return static_cast<int>(pow(currentStreakNum, 3) * (halfOpen ? 1 : 2) * (discontinuedStreak ? 1 : 2));  // give particiaption medal
-	} else {
-		// Look for threats
-		if (currentStreakNum >= 5) {
 			return Minmax::CERTAIN_VICTORY;
 		}
-		if (currentStreakNum == 4) {
-			return Minmax::VICTORY;
-		}
-		if (currentStreakNum == 3 && !halfOpen) {
-			return Minmax::VICTORY;
-		}
-		return 0;
-	}
+		return static_cast<int>(pow(currentStreakNum, 3) * (halfOpen ? 1 : 2) * (discontinuedStreak ? 1 : 2));  // give particiaption medal
+	// } else {
+	// 	// Look for threats
+	// 	if (currentStreakNum >= 5 && !discontinuedStreak) {
+	// 		std::cout << "SHOULD NOT BE HERE" << std::endl;
+	// 		return Minmax::CERTAIN_VICTORY;
+	// 	}
+	// 	if (currentStreakNum == 4) {
+	// 		return Minmax::CERTAIN_VICTORY;
+	// 	}
+	// 	if (currentStreakNum == 3 && !halfOpen) {
+	// 		return Minmax::CERTAIN_VICTORY;
+	// 	}
+	// 	return 0;
+	// }
 
 	return 0;
 }
@@ -400,6 +401,39 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board) {
 	}
 }
 
+void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos) {
+	for (int j = 0; j < this->size; j++) {
+		for (int i = 0; i < this->size; i++) {
+			std::string value;
+
+			if (board[j][i] < Minmax::INF_MIN + 20) {
+				value = "m" + std::to_string(std::abs(board[j][i] % 10));
+			} else if (board[j][i] > Minmax::INF_MAX - 20) {
+				value = "M" + std::to_string(std::abs(board[j][i] % 10));
+			} else {
+				value = std::to_string(board[j][i]);
+			}
+			if (j == pos.first && i == pos.second) {
+				std::cout << "\033[1;31m" << std::setw(6) << value << "\033[0m" << " ";
+			} else {
+				std::cout << std::setw(6) << value << " ";
+			}
+		}
+		
+		std::cout << std::endl;
+	}
+}
+
+void Gomoku::printState() {
+	std::cout << "====================== STATE ====================== " << std::endl;
+	std::cout << "Size: " << this->size << std::endl;
+	std::cout << "Current Player Index: " << this->currentPlayer->index << std::endl;
+	// std::cout << "Heuristic Player Index: " << this->heuristicPlayer->index << std::endl;
+	// std::cout << "Last Moves: " << this->lastMoves[this->lastMoves.size() - 1].first << ", " << this->lastMoves[this->lastMoves.size() - 1].second << std::endl;
+	std::cout << "EndState: " << this->endState << std::endl;
+	std::cout << "=================================================== " << std::endl;
+}
+
 Gomoku* Gomoku::gomoku = nullptr;
 
 PyObject* Gomoku::init(PyObject* self, PyObject* args) {
@@ -424,6 +458,22 @@ PyObject* Gomoku::reset(PyObject* self, PyObject* args) {
 }
 
 PyObject* Gomoku::run(PyObject* self, PyObject* args) {
+	
+	// auto board = Gomoku::gomoku->board;
+	// int playerIndex = Gomoku::gomoku->currentPlayer->index;
+
+	// Gomoku::gomoku = new Gomoku(7, (Player::Type)0, (Player::Type)0);
+	// Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, 4);
+	// Gomoku::gomoku->playing = true;
+	// Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[playerIndex];
+
+	// Gomoku::gomoku->board = board;
+
+	// std::cout << "Minmax run, current player: " << Gomoku::gomoku->currentPlayer->index << std::endl;
+	// Gomoku::gomoku->printBoard();
+
+	Gomoku::gomoku->printState();
+
 	auto pos = Gomoku::gomoku->minmax->run();
 
 	PyObject* res = PyTuple_New(2);
@@ -506,6 +556,17 @@ PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
 	return PyLong_FromLong(0);
 }
 
+PyObject* Gomoku::setDepth(PyObject* self, PyObject* args) {
+	int depth;
+	
+
+	if (!PyArg_ParseTuple(args, "i", &depth)) {
+		return NULL;
+	}
+
+	Gomoku::gomoku->minmax->maxDepth = depth;
+	return PyLong_FromLong(0);
+}
 
 static PyMethodDef methods[] = {
 	{"init", Gomoku::init, METH_VARARGS, "Returns the heuristic value."},
@@ -519,7 +580,10 @@ static PyMethodDef methods[] = {
 	{"is_current_player_AI", Gomoku::isCurrentPlayerAI, METH_VARARGS, "Returns the ai state machine."},
 	{"set_player_type", Gomoku::setPlayerType, METH_VARARGS, "Returns the ai pouet machine."},
 	{"test_eval_line", Gomoku::testEvalLine, METH_VARARGS, "Returns the eval_line_test pouet machine."},
+	{"test_heuristic", Gomoku::testHeuristic, METH_VARARGS, "Returns the HEURISTIC test pouet machine."},
+	{"test_minmax", Gomoku::testMinmax, METH_VARARGS, "Returns thefklg;d HEURISTIC test pouet machine."},
 	{"can_place", Gomoku::canPlace, METH_VARARGS, "fuck the eval_line_test pouet machine."},
+	{"set_depth", Gomoku::setDepth, METH_VARARGS, "fuck the eval_line_test pouet machine."},
 	// {"undo", Gomoku::undo, METH_VARARGS, "Returns the undo pouet machines."},
 	{NULL, NULL, 0, NULL}
 };
@@ -641,6 +705,133 @@ PyObject* Gomoku::testEvalLine(PyObject* self, PyObject* args) {
 		for (int i = 0; i < 10; i++) {
 			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
 			printLineScore(Gomoku::gomoku->board[i], 10, ret);
+		}
+	}
+	return PyLong_FromLong(0);
+}
+
+PyObject* Gomoku::testHeuristic(PyObject* self, PyObject* args) {
+	std::cout << "testHeuristic" << std::endl;
+	
+	Gomoku::gomoku = new Gomoku(7, Player::Type::AI, Player::Type::AI);
+
+	Gomoku::gomoku->board = std::vector<std::vector<int>>();
+
+	Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[0];
+
+	{
+		int lines[][7] = {
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1,  0 },
+			{ -1, -1,  0,  0, -1,  1, -1 },
+			{ -1, -1,  0,  0,  1, -1, -1 },
+			{ -1,  1, -1,  1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		};
+
+		for (auto &line: lines) {
+			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+		}
+
+		Gomoku::gomoku->heuristicPlayer = Gomoku::gomoku->currentPlayer;
+
+		auto heuristicValues = std::vector<std::vector<int>>(Gomoku::gomoku->size, std::vector<int>(Gomoku::gomoku->size, 0));
+		
+		auto moves = Gomoku::gomoku->getMoves();
+		for (auto &move: moves) {
+			auto undoMoves = Gomoku::gomoku->doMove(move);
+
+			int ret = Gomoku::gomoku->heuristic();
+			
+			heuristicValues[move.first][move.second] = ret;
+
+			Gomoku::gomoku->undoMove(undoMoves);
+		}
+		Gomoku::gomoku->printBoard(heuristicValues);
+		std::cout << "=======\n";
+	}
+
+	return PyLong_FromLong(0);
+}
+
+PyObject* Gomoku::testMinmax(PyObject* self, PyObject* args) {
+	std::cout << "testHeuristic" << std::endl;
+	
+	Gomoku::gomoku = new Gomoku(7, Player::Type::AI, Player::Type::AI);
+	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, 4);
+
+	Gomoku::gomoku->board = std::vector<std::vector<int>>();
+	
+	// {
+		// Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[0];
+
+		// for (int i = 5; i >= 2; i--) {
+		// 	Gomoku::gomoku->minmax->maxDepth = i;
+		// 	int lines[][7] = {
+		// 		{ -1, -1, -1, -1, -1, -1, -1 },
+		// 		{ -1, -1, -1, -1, -1, -1,  0 },
+		// 		{ -1, -1,  0,  0, -1,  1, -1 },
+		// 		{ -1, -1,  0,  0,  1, -1, -1 },
+		// 		{ -1,  1, -1,  1,  1, -1, -1 },
+		// 		{ -1, -1, -1, -1, -1, -1, -1 },
+		// 		{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	};
+
+		// 	for (auto &line: lines) {
+		// 		Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+		// 	}
+
+		// 	std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
+		// 	auto pos = Gomoku::gomoku->minmax->run();
+		// }
+	// }
+	// {
+	// 	Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[1];
+
+	// 	for (int i = 5; i >= 2; i--) {
+	// 		Gomoku::gomoku->minmax->maxDepth = i;
+	// 		int lines[][7] = {
+	// 			{ -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1,  0,  1,  1, -1, -1 },
+	// 			{ -1, -1,  0,  0,  1, -1, -1 },
+	// 			{ -1, -1,  0, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1, -1, -1, -1, -1 },
+	// 		};
+
+	// 		for (auto &line: lines) {
+	// 			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+	// 		}
+
+	// 		std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
+	// 		auto pos = Gomoku::gomoku->minmax->run();
+	// 	}
+	// }
+
+	{
+		Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[1];
+		// Gomoku::gomoku->lastMoves.push_back(std::make_pair(3, 2));
+		Gomoku::gomoku->printState();
+		for (int i = 7; i >= 2; i--) {
+			Gomoku::gomoku->minmax->maxDepth = i;
+			int lines[][7] = {
+				{ -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  0, -1, -1 },
+				{ -1, -1,  0,  0,  1, -1, -1 },
+				{ -1, -1,  0,  0,  1, -1, -1 },
+				{ -1, -1, -1,  1,  1, -1, -1 },
+				{ -1, -1, -1, -1,  1, -1, -1 },
+				{ -1, -1, -1, -1,  0, -1, -1 },
+			};
+
+			for (auto &line: lines) {
+				Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+			}
+
+			std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
+			auto pos = Gomoku::gomoku->minmax->run();
 		}
 	}
 	return PyLong_FromLong(0);

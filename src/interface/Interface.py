@@ -74,9 +74,9 @@ class Interface:
 		player_vs_AI_wrapper = Gui((5, 2.5), (90, 15), background_color=LIGHT_GREY, border_color=GREY, border_width=5)
 		
 		player1_btn = Button((5, 10), (30, 80), border_color=self.players[0].stone_color, border_width=5, font_size=20, color=self.players[0].stone_color)
-		player1_btn.on_click = lambda button: self.players[0].change_type() if not self.is_playing else print('Can\'t change player type while in game!')
+		player1_btn.on_click = lambda button: self.players[0].change_type()
 		player2_btn = Button((65, 10), (30, 80), border_color=self.players[1].stone_color, border_width=5, font_size=20, color=self.players[1].stone_color)
-		player2_btn.on_click = lambda button: self.players[1].change_type() if not self.is_playing else print('Can\'t change player type while in game!')
+		player2_btn.on_click = lambda button: self.players[1].change_type()
 
 		vs_textbox = TextBox((40, 40), (20, 20), text='vs', background_color=LIGHT_GREY, color=DARK_GREY)
 

@@ -46,7 +46,12 @@ public:
 
 
 	static PyObject* testEvalLine(PyObject* self, PyObject* args);
+	static PyObject* testHeuristic(PyObject* self, PyObject* args);
+	static PyObject* testMinmax(PyObject* self, PyObject* args);
+
 	static PyObject* canPlace(PyObject* self, PyObject* args);
+
+	static PyObject* setDepth(PyObject* self, PyObject* args);
 
 
 	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
@@ -56,23 +61,26 @@ public:
 
 	void printBoard();
 	void printBoard(std::vector<std::vector<int>> board);
+	void printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos);
+	void printState();
 
 	int checkWinCondition(std::pair<int, int> pos, int& playerIndex);
 
 	int heuristic();
 	int heuristicByPlayer(int player);
 	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length);
+	int evalStreakScore(int, int, bool, int player, bool discontinuedStreak);
 	std::vector<std::pair<int, int>> getMoves();
 	std::vector<AAction*> doMove(std::pair<int, int>& pos);
 	void undoMove(std::vector<AAction*>& actions);
 
 	bool canPlace(std::pair<int, int>) const;
 
+
 // private:
 
 	std::vector<ARule*> rules;
 
-	int evalStreakScore(int, int, bool, int player, bool discontinuedStreak);
 
 	std::vector<std::vector<AAction*>> stackActions;
 
@@ -81,9 +89,10 @@ public:
 	Player* currentPlayer;
 	Player* heuristicPlayer;
 	bool playing;
-	std::vector<std::pair<int, int>> lastMoves;
+	// std::vector<std::pair<int, int>> lastMoves;
 	Minmax* minmax;
 	int remainingStones;
 	int endState;
 	int winStreakLength;
+
 };
