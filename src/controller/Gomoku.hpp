@@ -69,7 +69,8 @@ public:
 	int heuristic();
 	int heuristicByPlayer(int player);
 	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length);
-	int evalStreakScore(int, int, bool, int player, bool discontinuedStreak);
+	int evalStreakScore(int, int, bool, int player, int emptyCellCount);
+	bool hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer);
 	std::vector<std::pair<int, int>> getMoves();
 	std::vector<AAction*> doMove(std::pair<int, int>& pos);
 	void undoMove(std::vector<AAction*>& actions);
@@ -77,12 +78,13 @@ public:
 	bool canPlace(std::pair<int, int>) const;
 
 
+
 // private:
 
 	std::vector<ARule*> rules;
 
 
-	std::vector<std::vector<AAction*>> stackActions;
+	// std::vector<std::vector<AAction*>> stackActions;
 
 	int size;
 	std::vector<std::vector<int>> board;

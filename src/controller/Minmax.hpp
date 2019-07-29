@@ -30,7 +30,7 @@ private:
 
 	Gomoku& gomoku;
 
-	int minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing);
+	int minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root);
 
 	std::vector<std::pair<int, int>> getSortedMoves(std::vector<std::pair<int, int>>&, bool maximizing, int depth) const;
 

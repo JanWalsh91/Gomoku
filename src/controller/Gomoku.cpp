@@ -7,6 +7,15 @@
 #include "Gomoku.hpp"
 #include "rules/NoDoubleFreeThree.hpp"
 
+
+bool logg = false;
+
+// std::ostream & operator << (std::ostream &out, std::pair<int, int> &c) {
+//     out << "[" << c.first << ", " << c.second << "]";
+//     return out;
+// }
+
+
 Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5) {
 	this->players.push_back(Player(0, player0Type));
 	this->players.push_back(Player(1, player1Type));
@@ -83,7 +92,11 @@ std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 
 	std::pair<int, int> pos = std::make_pair(y, x);
 
+	// std::cout << "==== THEN ==== " << std::endl;
+	// this->gomoku->printBoard(this->gomoku->board, pos);
 	this->board[y][x] = playerIndex;
+	// std::cout << "===== NOW ==== " << std::endl;
+	// this->gomoku->printBoard(this->gomoku->board, pos);
 	// this->lastMoves[playerIndex] = pos;
 
 	actions.push_back(new ActionUpdateBoard(pos, -1));
@@ -175,55 +188,90 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
-int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, bool discontinuedStreak) {
+int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, int emptyCellCount) {
+	// if (logg) {
+		// std::cout <<
+		// 	" currentStreakNum: " << currentStreakNum << 
+		// 	" currentStreakPotential: " << currentStreakPotential << 
+		// 	" halfOpen: " << halfOpen << 
+		// 	" emptyCellCount: " << emptyCellCount << std::endl;
+	// }
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
 
 	// if (player == this->heuristicPlayer->index) {
 		// Look for Minmax::victory conditions
-		if (currentStreakNum >= 5 && !discontinuedStreak) {
+		if (currentStreakNum >= 5 && emptyCellCount == 0) {
 			std::cout << "SHOULD NOT BE HERE" << std::endl;
 			return Minmax::CERTAIN_VICTORY;
 		}
-		if (currentStreakNum == 4 && !halfOpen && !discontinuedStreak) {
+		if (currentStreakNum == 4 && !halfOpen && emptyCellCount == 0) {
 			return Minmax::CERTAIN_VICTORY;
 		}
-		return static_cast<int>(pow(currentStreakNum, 3) * (halfOpen ? 1 : 2) * (discontinuedStreak ? 1 : 2));  // give particiaption medal
+		int ret = static_cast<int>(pow((currentStreakNum - emptyCellCount), 3) * (halfOpen ? 1 : 2)) + currentStreakNum;  // give pat medal
+		// std::cout << "evalStreakScore: " << ret << std::endl;
+		return ret;
 	// } else {
-	// 	// Look for threats
-	// 	if (currentStreakNum >= 5 && !discontinuedStreak) {
-	// 		std::cout << "SHOULD NOT BE HERE" << std::endl;
-	// 		return Minmax::CERTAIN_VICTORY;
-	// 	}
-	// 	if (currentStreakNum == 4) {
-	// 		return Minmax::CERTAIN_VICTORY;
-	// 	}
-	// 	if (currentStreakNum == 3 && !halfOpen) {
-	// 		return Minmax::CERTAIN_VICTORY;
-	// 	}
-	// 	return 0;
+		// Look for threats
+		// if (currentStreakNum >= 5 && emptyCellCount == 0) {
+		// 	std::cout << "SHOULD NOT BE HERE" << std::endl;
+		// 	return Minmax::CERTAIN_VICTORY * 10;
+		// }
+		// if (currentStreakNum == 4) {
+		// 	return Minmax::CERTAIN_VICTORY * 10;
+		// }
+		// if (currentStreakNum == 3 && !halfOpen) {
+		// 	return Minmax::CERTAIN_VICTORY * 10;
+		// }
+		// return 0;
 	// }
 
 	return 0;
 }
 
-void resetStreak(bool &streaking, bool &frontBlocked, bool &discontinuedStreak, int &currentStreakNum, int &currentStreakPotential, int& emptyCellCount) {
+void resetStreak(bool &streaking, bool &frontBlocked, int &currentStreakNum, int& emptyCellCount, int& emptyCellCountPotential, bool rollOverEmptyCells) {
+	
+	// std::cout << "  resetStreak. rollOverEmptyCells: " << std::boolalpha << rollOverEmptyCells << std::endl;
 	streaking = false;
 	frontBlocked = false;
-	discontinuedStreak = false;
 	currentStreakNum = 0;
-	currentStreakPotential = 0;
-	emptyCellCount = 0;
+	// currentStreakPotential = rollOverEmptyCells ? emptyCellCount : 0;
+	emptyCellCountPotential = 0;
+	emptyCellCount = currentStreakNum;
+	// std::cout << "frontBlocked: " << frontBlocked << std::endl;
+}
+
+
+bool Gomoku::hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer) {
+	auto pos = start;
+	while (countToCheck--) {
+		pos = std::make_pair<int, int>(pos.first + line.first, pos.second + line.second);
+
+		if (pos.first < 0 || pos.second < 0 || pos.first >= this->size || pos.second >= this->size || this->board[pos.first][pos.second] == otherPlayer) {
+			return false;
+		}
+	}
+	return true;
 }
 
 int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length) {
+	// logg = start.first == 1 && line.second == 1;
+	// if (logg) {
+		// std::cout << "Eval line: start: " << start << std::endl;
+	// }
+
+	// std::cout << "Start: " << start << ", line: " << line << ", size: " << length << ", player: " << player << std::endl;
 
 	int score = 0;
-	bool streaking, frontBlocked, discontinuedStreak;
-	int currentStreakNum, currentStreakPotential, emptyCellCount;
+	bool streaking;
+	bool frontBlocked;
+	int currentStreakNum;
+	int currentStreakPotential = 0;
+	int emptyCellCount; // number of empty cells in a streak in between player's stones
+	int emptyCellCountPotential;
 
-	resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
+	resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, false);
 
 	int otherPlayer = player == 0 ? 1 : 0;
 
@@ -231,44 +279,77 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 
 	for (int i = 0; i < length; i++) {
 		pos = std::make_pair<int, int>(start.first + line.first * i, start.second + line.second * i);
+		// if (logg) {
+			// std::cout << "pos: " << pos << " is " << this->board[pos.first][pos.second] << std::endl;
+		// }
 
 		// if player
 		if (this->board[pos.first][pos.second] == player) {
+			// if not streaking
 			if (!streaking) {
+				// if currentStreakNum is not 0
 				if (currentStreakNum) {
-					score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
-					resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
+					// std::cout << "evalStreakScore0: " << std::endl;
+					if (currentStreakPotential < 5) {
+						if (this->hasEnoughPotential(pos, line, 5 - currentStreakPotential, otherPlayer)) {
+							score += this->evalStreakScore(currentStreakNum, 100, frontBlocked, player, emptyCellCount);
+						}
+					} else {
+						score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount);
+					}
+					resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
 					currentStreakNum = 1;
-					currentStreakPotential = 1;
+					// currentStreakPotential = 1;
+					// std::cout << "  Reset currentStreakNum: " << currentStreakNum << std::endl;
+					// std::cout << "  Reset currentStreakPotential: " << currentStreakPotential << std::endl;
 				} else {
+					// if currentStreakNum is 0
 					currentStreakNum++;
 					currentStreakPotential++;
+					// std::cout << "  Increase currentStreakNum: " << currentStreakNum << std::endl;
+					// std::cout << "  Increase currentStreakPotential: " << currentStreakPotential << std::endl;
 				}
 
-				frontBlocked = pos.second - 1 < 0 || pos.first - line.first < 0 || pos.second - line.second < 0 || this->board[pos.first - line.first][pos.second - line.second] == otherPlayer;
+				frontBlocked = i == 0 || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] == otherPlayer);
+				// std::cout << "frontBlocked: " << frontBlocked << std::endl;
+				
 				streaking = true;
-			} else {
-				if (emptyCellCount == 1) {
-					if (!discontinuedStreak) {
-						discontinuedStreak = true;
-					} else {
-						score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
-						resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
-						frontBlocked = pos.second - 1 < 0 || pos.first - line.first < 0 || pos.second - line.second < 0 || this->board[pos.first - line.first][pos.second - line.second] == otherPlayer;
-						streaking = true;
-					}
-				}
+			} else { // if streaking
+
+				emptyCellCount += emptyCellCountPotential;
+				// std::cout << "  Increase emptyCellCount: " << emptyCellCount << std::endl;
+				emptyCellCountPotential = 0;
+
+				// std::cout <<
+				// 	" streaking: " << streaking << 
+				// 	" currentStreakNum: " << currentStreakNum << 
+				// 	" currentStreakPotential: " << currentStreakPotential << 
+				// 	" emptyCellCount: " << emptyCellCount << 
+				// 	" frontBlocked: " << frontBlocked << std::endl;
+				// std::cout << "evalStreakScore1: " << std::endl;
+				// score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount);
+				// std::cout << "\tscore => " << score << std::endl;
+				// resetStreak(streaking, frontBlocked, currentStreakNum, currentStreakPotential, emptyCellCount, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
+				// frontBlocked = i == 0 || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] == otherPlayer);
+				// std::cout << "frontBlocked: " << frontBlocked << std::endl;
+				
+				streaking = true;
+
 				currentStreakPotential++;
 				currentStreakNum++;
+				// std::cout << "  Increase currentStreakNum: " << currentStreakNum << std::endl;
+				// std::cout << "  Increase currentStreakPotential: " << currentStreakPotential << std::endl;
 			}
-			emptyCellCount = 0;
 		}
 		if (this->board[pos.first][pos.second] == -1) {
 			currentStreakPotential++;
-			emptyCellCount++;
+			// std::cout << "  Increase currentStreakPotential: " << currentStreakPotential << std::endl;
 
 			if (streaking) {
-				if (emptyCellCount > 1) {
+				emptyCellCountPotential++;
+				// std::cout << "  Increase emptyCellCountPotential: " << emptyCellCountPotential << std::endl;
+
+				if (i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1) {
 					streaking = false;
 				}
 			}
@@ -277,19 +358,38 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 		// if other player
 		if (this->board[pos.first][pos.second] == otherPlayer) {
 			if (streaking) {
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player, discontinuedStreak);
+				// std::cout << "evalStreakScore2: " << std::endl;
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] != -1), player, emptyCellCount);
 			} else {
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
+				// std::cout << "evalStreakScore3: " << std::endl;
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount);
 			}
-			resetStreak(streaking, frontBlocked, discontinuedStreak, currentStreakNum, currentStreakPotential, emptyCellCount);
-
+			resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
+			currentStreakPotential = 0;
+			// std::cout << "  Reset currentStreakPotential: " << currentStreakPotential << std::endl;
 		}
 	}
 
 	if (streaking) {
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, true, player, discontinuedStreak);
+		// std::cout <<
+		// 	" streaking: " << streaking << 
+		// 	" currentStreakNum: " << currentStreakNum << 
+		// 	" currentStreakPotential: " << currentStreakPotential << 
+		// 	" emptyCellCount: " << emptyCellCount << 
+		// 	" frontBlocked: " << frontBlocked << std::endl;
+		// std::cout << "evalStreakScore4: " << std::endl;
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount);
+		// std::cout << "\tscore => " << score << std::endl;
 	} else {
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, discontinuedStreak);
+		// std::cout <<
+		// 	" streaking: " << streaking << 
+		// 	" currentStreakNum: " << currentStreakNum << 
+		// 	" currentStreakPotential: " << currentStreakPotential << 
+		// 	" emptyCellCount: " << emptyCellCount << 
+		// 	" frontBlocked: " << frontBlocked << std::endl;
+		// std::cout << "evalStreakScore5: " << std::endl;
+																				// frontBlocked useful?
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount);
 	}
 
 	return score;
@@ -303,24 +403,35 @@ int Gomoku::heuristicByPlayer(int player) {
 	std::pair<int, int> dLine1 = std::make_pair<int, int>(1, 1);
 	std::pair<int, int> dLine2 = std::make_pair<int, int>(1, -1);
 
+	// this->printBoard();
+
 	for (int i = 0; i < this->size; i++) {
 		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
-		score += this->evalLine(std::make_pair(0, i), vLine, player, this->size);
+		// std::cout << "score1: => " << score << std::endl;
+		
+		// if (i == 3) {
+			score += this->evalLine(std::make_pair(0, i), vLine, player, this->size);
+			// std::cout << "score2: => " << score << std::endl;
+		// }
 	}
 
-	for (int i = 0; i < this->size - this->winStreakLength; i++) {
+	for (int i = 0; i <= this->size - this->winStreakLength; i++) {
 		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i);
+		// std::cout << "score3: => " << score << std::endl;
 		if (i != 0) {
 			score += this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i);
+			// std::cout << "score4: => " << score << std::endl;
 		}
 	}
 
-	for (int i = this->size - 1; i >= this->winStreakLength; i--) {
+	for (int i = this->size - 1; i >= this->winStreakLength - 1; i--) {
 		score += this->evalLine(std::make_pair(0, i), dLine2, player, i + 1);
+		// std::cout << "score5: => " << score << std::endl;
 	}
 
 	for (int i = 1; i <= this->size - this->winStreakLength; i++) {
 		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i);
+		// std::cout << "score6: => " << score << std::endl;
 	}
 
 	return score;
@@ -332,6 +443,7 @@ int Gomoku::heuristic() {
 
 	int score0 = this->heuristicByPlayer(0);
 	int score1 = this->heuristicByPlayer(1);
+	// int score1 = 0;
 	return this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
 
 	// return this->heuristicPlayer->index == 0 ? score0 : score1;
@@ -472,7 +584,7 @@ PyObject* Gomoku::run(PyObject* self, PyObject* args) {
 	// std::cout << "Minmax run, current player: " << Gomoku::gomoku->currentPlayer->index << std::endl;
 	// Gomoku::gomoku->printBoard();
 
-	Gomoku::gomoku->printState();
+	// Gomoku::gomoku->printState();
 
 	auto pos = Gomoku::gomoku->minmax->run();
 
@@ -485,24 +597,26 @@ PyObject* Gomoku::run(PyObject* self, PyObject* args) {
 	return res;
 }
 
+// called by python (only)
 PyObject* Gomoku::place(PyObject* self, PyObject* args) {
 	int y, x;
 	
 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
 		return NULL;
 	}
-	Gomoku::gomoku->stackActions.push_back(Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index));
+	// Gomoku::gomoku->stackActions.push_back(Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index));
+	Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index);
 	return PyLong_FromLong(0);
 }
 
-PyObject* Gomoku::undo(PyObject* self, PyObject* args) {
-	if (Gomoku::gomoku->stackActions.size()) {
-		auto actions = Gomoku::gomoku->stackActions.back();
-		Gomoku::gomoku->stackActions.pop_back();
-		Gomoku::gomoku->undoMove(actions);
-	}
-	return PyLong_FromLong(0);
-}
+// PyObject* Gomoku::undo(PyObject* self, PyObject* args) {
+// 	if (Gomoku::gomoku->stackActions.size()) {
+// 		auto actions = Gomoku::gomoku->stackActions.back();
+// 		Gomoku::gomoku->stackActions.pop_back();
+// 		Gomoku::gomoku->undoMove(actions);
+// 	}
+// 	return PyLong_FromLong(0);
+// }
 
 
 PyObject* Gomoku::switchPlayer(PyObject* self, PyObject* args) {
@@ -628,85 +742,111 @@ PyObject* Gomoku::testEvalLine(PyObject* self, PyObject* args) {
 	Gomoku::gomoku->heuristicPlayer = &Gomoku::gomoku->players[0];
 	
 	// Streak length tests
-	std::cout << "Streak length tests" << std::endl;
-	{
-		int lines[][10] = {
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, 0, 0, 0, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-		};
+	// std::cout << "Streak length tests" << std::endl;
+	// {
+	// 	int lines[][10] = {
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, 0, 0, 0, 0, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 	};
 
-		for (auto &line: lines) {
-			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
-		} 
-		for (int i = 0; i < 7; i++) {
-			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
-			printLineScore(Gomoku::gomoku->board[i], 10, ret);
-		}
-	}
+	// 	for (auto &line: lines) {
+	// 		Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+	// 	} 
+	// 	for (int i = 0; i < 7; i++) {
+	// 		int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
+	// 		printLineScore(Gomoku::gomoku->board[i], 10, ret);
+	// 	}
+	// }
 
-	// Half opened tests
-	std::cout << "Half opened tests" << std::endl;
+	// // Half opened tests
+	// std::cout << "Half opened tests" << std::endl;
+	// Gomoku::gomoku->board.clear();
+	// {
+	// 	int lines[][10] = {
+	// 		{-1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ 1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ 0, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
+
+	// 		{-1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+	// 		{ 1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+	// 		{ 0, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 	};
+
+	// 	for (auto &line: lines) {
+	// 		Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+	// 	} 
+	// 	for (int i = 0; i < 6; i++) {
+	// 		int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
+	// 		printLineScore(Gomoku::gomoku->board[i], 10, ret);
+	// 	}
+	// }
+	// // Discontinued tests
+	// std::cout << "Discontinued tests" << std::endl;
+	// Gomoku::gomoku->board.clear();
+	// {
+	// 	int lines[][10] = {
+	// 		{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, -1, 0, -1, -1, -1, -1, -1, -1 },
+
+	// 		{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, -1, 0, -1, -1, -1, -1, -1 },
+			
+	// 		{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, -1, 0, 0, -1, -1, -1, -1 },
+	// 		{ -1, 0, -1, 0, 0, 0, -1, -1, -1, -1 },
+			
+	// 		{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
+	// 		{ -1, 0, 0, -1, 0, 0, 0, -1, -1, -1 },
+	// 		{ -1, 0, -1, -1, 0, 0, 0, 0, -1, -1 },
+	// 	};
+
+	// 	for (auto &line: lines) {
+	// 		Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+	// 	} 
+	// 	for (int i = 0; i < 10; i++) {
+	// 		int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
+	// 		printLineScore(Gomoku::gomoku->board[i], 10, ret);
+	// 	}
+	// }
+
+	Gomoku::gomoku = new Gomoku(7, Player::Type::AI, Player::Type::AI);
+
+	Gomoku::gomoku->board = std::vector<std::vector<int>>();
+
 	Gomoku::gomoku->board.clear();
 	{
-		int lines[][10] = {
-			{-1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ 1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ 0, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
-
-			{-1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ 1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ 0, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		int lines[][7] = {
+			{ -1,  0, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1,  0, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
 		};
 
 		for (auto &line: lines) {
 			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
 		} 
-		for (int i = 0; i < 6; i++) {
-			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
-			printLineScore(Gomoku::gomoku->board[i], 10, ret);
+		for (int i = 0; i < 2; i++) {
+			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 7);
+			printLineScore(Gomoku::gomoku->board[i], 7, ret);
 		}
 	}
-	// Discontinued tests
-	std::cout << "Discontinued tests" << std::endl;
-	Gomoku::gomoku->board.clear();
-	{
-		int lines[][10] = {
-			{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, -1, 0, -1, -1, -1, -1, -1, -1 },
 
-			{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, 0, -1, -1, -1, -1, -1 },
-			
-			{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, 0, 0, -1, -1, -1, -1 },
-			{ -1, 0, -1, 0, 0, 0, -1, -1, -1, -1 },
-			
-			{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, 0, 0, 0, -1, -1, -1 },
-			{ -1, 0, -1, -1, 0, 0, 0, 0, -1, -1 },
-		};
-
-		for (auto &line: lines) {
-			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
-		} 
-		for (int i = 0; i < 10; i++) {
-			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
-			printLineScore(Gomoku::gomoku->board[i], 10, ret);
-		}
-	}
 	return PyLong_FromLong(0);
 }
 
@@ -719,15 +859,93 @@ PyObject* Gomoku::testHeuristic(PyObject* self, PyObject* args) {
 
 	Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[0];
 
+	// {
+	// 	int lines[][7] = {
+	// 		{ -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1,  0 },
+	// 		{ -1, -1,  0,  0, -1,  1, -1 },
+	// 		{ -1, -1,  0,  0,  1, -1, -1 },
+	// 		{ -1,  1, -1,  1,  1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1 },
+	// 		{ -1, -1, -1, -1, -1, -1, -1 },
+	// 	};
+
+	// 	for (auto &line: lines) {
+	// 		Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+	// 	}
+
+	// 	Gomoku::gomoku->heuristicPlayer = Gomoku::gomoku->currentPlayer;
+
+	// 	auto heuristicValues = std::vector<std::vector<int>>(Gomoku::gomoku->size, std::vector<int>(Gomoku::gomoku->size, 0));
+		
+	// 	auto moves = Gomoku::gomoku->getMoves();
+	// 	for (auto &move: moves) {
+	// 		auto undoMoves = Gomoku::gomoku->doMove(move);
+
+	// 		int ret = Gomoku::gomoku->heuristic();
+			
+	// 		heuristicValues[move.first][move.second] = ret;
+
+	// 		Gomoku::gomoku->undoMove(undoMoves);
+	// 	}
+	// 	Gomoku::gomoku->printBoard(heuristicValues);
+	// 	std::cout << "=======\n";
+	// }
+
 	{
+		// int lines[][7] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1,  0, -1, -1, -1,  0, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1,  0, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1,  0, -1, -1, -1,  0, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// };
+		// int lines[][7] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1,  0, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1 },
+		// };
+		// int lines[][7] = {
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// 	{ -1,  0, -1, -1, -1,  0, -1 },
+		// 	{ -1, -1,  0, -1,  0, -1, -1 },
+		// 	{ -1, -1, -1,  0, -1, -1, -1 },
+		// 	{ -1, -1,  0, -1,  0, -1, -1 },
+		// 	{ -1,  0, -1, -1, -1,  0, -1 },
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// };
+		// int lines[][7] = {
+		// 	{  0, -1, -1,  1, -1, -1,  0 },
+		// 	{ -1,  0, -1, -1, -1,  0, -1 },
+		// 	{ -1, -1,  0, -1,  0, -1, -1 },
+		// 	{  1, -1, -1,  0, -1, -1,  1 },
+		// 	{ -1, -1,  0, -1,  0, -1, -1 },
+		// 	{ -1,  0, -1, -1, -1,  0, -1 },
+		// 	{  0, -1, -1,  1, -1, -1,  0 },
+		// };
+		// int lines[][7] = {
+		// 	{  0,  0,  0,  0,  0,  0,  0 },
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// 	{  0, -1, -1, -1, -1, -1,  0 },
+		// 	{  0,  0,  0,  0,  0,  0,  0 },
+		// };
 		int lines[][7] = {
-			{ -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1,  0 },
-			{ -1, -1,  0,  0, -1,  1, -1 },
-			{ -1, -1,  0,  0,  1, -1, -1 },
-			{ -1,  1, -1,  1,  1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1 },
+			{  0,  0,  0,  0,  0,  0,  0 },
+			{  0, -1, -1,  1, -1, -1,  0 },
+			{  0, -1,  1,  0,  1, -1,  0 },
+			{  0, -1, -1,  1, -1, -1,  0 },
+			{  0, -1, -1,  0, -1, -1,  0 },
+			{  0, -1, -1,  1, -1, -1,  0 },
+			{  0,  0,  0,  0,  0,  0,  0 },
 		};
 
 		for (auto &line: lines) {
@@ -739,7 +957,16 @@ PyObject* Gomoku::testHeuristic(PyObject* self, PyObject* args) {
 		auto heuristicValues = std::vector<std::vector<int>>(Gomoku::gomoku->size, std::vector<int>(Gomoku::gomoku->size, 0));
 		
 		auto moves = Gomoku::gomoku->getMoves();
+		// std::vector<std::pair<int, int>> moves = {
+		// 	std::make_pair(0, 0),
+		// 	std::make_pair(6, 6)
+		// };
+		// std::vector<std::pair<int, int>> moves = {
+		// 	std::make_pair(2, 3),
+		// 	std::make_pair(4, 3)
+		// };
 		for (auto &move: moves) {
+			// std::cout << "move: [" << move.first << ", " << move.second << "]" << std::endl << std::endl;   
 			auto undoMoves = Gomoku::gomoku->doMove(move);
 
 			int ret = Gomoku::gomoku->heuristic();
@@ -810,20 +1037,45 @@ PyObject* Gomoku::testMinmax(PyObject* self, PyObject* args) {
 	// 	}
 	// }
 
+	// {
+	// 	Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[1];
+	// 	// Gomoku::gomoku->lastMoves.push_back(std::make_pair(3, 2));
+	// 	Gomoku::gomoku->printState();
+	// 	for (int i = 7; i >= 2; i--) {
+	// 		Gomoku::gomoku->minmax->maxDepth = i;
+	// 		int lines[][7] = {
+	// 			{ -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1, -1,  0, -1, -1 },
+	// 			{ -1, -1,  0,  0,  1, -1, -1 },
+	// 			{ -1, -1,  0,  0,  1, -1, -1 },
+	// 			{ -1, -1, -1,  1,  1, -1, -1 },
+	// 			{ -1, -1, -1, -1,  1, -1, -1 },
+	// 			{ -1, -1, -1, -1,  0, -1, -1 },
+	// 		};
+
+	// 		for (auto &line: lines) {
+	// 			Gomoku::gomoku->board.push_back(std::vfector<int> (std::begin(line), std::end(line)));
+	// 		}
+
+	// 		std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
+	// 		auto pos = Gomoku::gomoku->minmax->run();
+	// 	}
+	// }
+
 	{
-		Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[1];
-		// Gomoku::gomoku->lastMoves.push_back(std::make_pair(3, 2));
+		Gomoku::gomoku->currentPlayer = &Gomoku::gomoku->players[0];
+		// Gomoku::gomoku->lastMoves.push_back(std::make_pair(3, 3));
 		Gomoku::gomoku->printState();
-		for (int i = 7; i >= 2; i--) {
+		for (int i = 5; i >= 2; i--) {
 			Gomoku::gomoku->minmax->maxDepth = i;
 			int lines[][7] = {
 				{ -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1,  0, -1, -1 },
+				{ -1, -1,  1, -1, -1, -1, -1 },
+				{ -1, -1,  0,  1, -1, -1, -1 },
 				{ -1, -1,  0,  0,  1, -1, -1 },
-				{ -1, -1,  0,  0,  1, -1, -1 },
-				{ -1, -1, -1,  1,  1, -1, -1 },
-				{ -1, -1, -1, -1,  1, -1, -1 },
-				{ -1, -1, -1, -1,  0, -1, -1 },
+				{ -1, -1,  0, -1,  1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1 },
 			};
 
 			for (auto &line: lines) {
@@ -831,7 +1083,7 @@ PyObject* Gomoku::testMinmax(PyObject* self, PyObject* args) {
 			}
 
 			std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
-			auto pos = Gomoku::gomoku->minmax->run();
+			Gomoku::gomoku->minmax->run();
 		}
 	}
 	return PyLong_FromLong(0);
