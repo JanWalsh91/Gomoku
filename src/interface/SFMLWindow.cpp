@@ -14,27 +14,25 @@ SFMLWindow::~SFMLWindow() {
 
 }
 
-void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players) {
+void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players, std::shared_ptr<Gomoku> gomoku) {
 	auto background = std::make_shared<Background>(790.0f, 790.0f, 5.0f, 5.0f, Colors::ForestGreen);
 	background->setBorder(5.0f, Colors::Grey);
 
 
 	auto grid = std::make_shared<Grid>(5, 800.0f, 40.0f);
 
-	grid->callbacks.push_back([grid, players, this](sf::Vector2i mousePosition) mutable {
-		black = !black;
-		grid->placeStoneAt(grid->windowToGridCoord(mousePosition), black ? sf::Color::Black : sf::Color::White);
-	});
-	grid->hoverCallbacks.push_back([grid, this](sf::Vector2i mousePosition) mutable {
+	grid->hoverCallbacks.push_back([grid, this, gomoku](sf::Vector2i mousePosition) mutable {
 		
 		//std::cout << "black: " << black << std::endl;
 
-		auto circle = sf::CircleShape(grid->getCellSize() / 2.0f);
-		circle.setFillColor(black ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
-		circle.setOutlineThickness(1.0f);
-		circle.setOutlineColor(sf::Color::Black);
-		circle.setPosition(mousePosition.y, mousePosition.x);
-		this->getWindow()->draw(circle);
+		if (gomoku->playing) {
+			auto circle = sf::CircleShape(grid->getCellSize() / 2.0f);
+			circle.setFillColor(gomoku->currentPlayer->index == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
+			circle.setOutlineThickness(1.0f);
+			circle.setOutlineColor(sf::Color::Black);
+			circle.setPosition(mousePosition.y, mousePosition.x);
+			this->getWindow()->draw(circle);
+		}
 	});
 
 
@@ -101,8 +99,15 @@ void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players) {
 	playButton->setFontColor(sf::Color::Black);
 	playButton->setBorder(2.5f, sf::Color::Black);
 
-	playButton->callbacks.push_back([playButton](sf::Vector2i mousePosition) mutable {
-		playButton->setText("RESET");
+	playButton->callbacks.push_back([playButton, gomoku](sf::Vector2i mousePosition) mutable {
+		if (gomoku->playing) {
+			playButton->setText("START !");
+			gomoku->playing = false;
+		}
+		else {
+			playButton->setText("RESET");
+			gomoku->playing = true;
+		}
 	});
 
 	auto currentPlayerPanel = std::make_shared<Background>(360.0f, 150.0f, 820.0f, 400.0f, Colors::LightGrey);
@@ -123,6 +128,33 @@ void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players) {
 	auto messageValue = std::make_shared<TextBox>(360.0f, 150.0f, 820.0f, 575.0f, sf::Color(220, 220, 220, 0));
 	messageValue->setText("-");
 	messageValue->setFontColor(sf::Color::Black);
+
+
+
+	grid->callbacks.push_back([grid, players, gomoku, messageValue, currentPlayerValue](sf::Vector2i mousePosition) mutable {
+		if (gomoku->playing) {
+			auto pos = grid->windowToGridCoord(mousePosition);
+			grid->placeStoneAt(pos, gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
+			gomoku->switchPlayer();
+
+
+			if (gomoku->endState != -1) {
+				 gomoku->playing = false;
+				if (gomoku->endState >= 0) {
+					messageValue->setText((gomoku->endState == 0 ? "Black win!" : "White win!"));
+				}
+				else {
+					messageValue->setText("DRAW");
+				}
+			}
+			else {
+				currentPlayerValue->setText(gomoku->currentPlayer->index == 0 ? "Black" : "White");
+				currentPlayerValue->setFontColor(gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+			}
+		}
+	});
+
 
 
 	this->renderables.push_back(background);
@@ -152,7 +184,7 @@ void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players) {
 
 }
 
-void SFMLWindow::loop() {
+void SFMLWindow::loop(std::function<void()> f) {
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -173,6 +205,7 @@ void SFMLWindow::loop() {
 			}
 		}
 
+		f();
 
 		window.clear(sf::Color::Black);
 

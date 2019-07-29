@@ -1,4 +1,3 @@
-#include <Python.h>
 #include <iostream>
 #include <sstream>
 
@@ -8,12 +7,12 @@
 #include "rules/NoDoubleFreeThree.hpp"
 
 Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5) {
-	this->players.push_back(Player(0, player0Type));
-	this->players.push_back(Player(1, player1Type));
+	this->players.push_back(std::make_shared<Player>(0, player0Type));
+	this->players.push_back(std::make_shared<Player>(1, player1Type));
 
 	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
 
-	this->currentPlayer = &this->players[0];
+	this->currentPlayer = this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 
@@ -22,7 +21,7 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 
 void Gomoku::reset() {
 	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
-	this->currentPlayer = &this->players[0];
+	this->currentPlayer = this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 	this->endState = State::PLAYING;
@@ -101,10 +100,10 @@ std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 }
 
 void Gomoku::switchPlayer() {
-	if (this->currentPlayer == &this->players[0]) {
-		this->currentPlayer = &this->players[1];
+	if (this->currentPlayer == this->players[0]) {
+		this->currentPlayer = this->players[1];
 	} else {
-		this->currentPlayer = &this->players[0];
+		this->currentPlayer = this->players[0];
 	}
 }
 
@@ -160,18 +159,20 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 		moves.push_back(std::make_pair<int, int>((int)(this->size / 2), (int)(this->size / 2)));
 	}
 
-	auto it = moves.begin();
-	while (it != moves.end()) {
-		bool erased = false;
-		if (!this->canPlace(*it)) {
-			std::cout << "Removed " << it->first << ", " << it->second << std::endl;
-			erased = true;
-			it = moves.erase(it);
-		}
-		if (!erased) {
-			it++;
-		}
-	}
+	//auto it = moves.begin();
+	//while (it != moves.end()) {
+		//bool erased = false;
+		//if (!this->canPlace(*it)) {
+		//	std::cout << "Removed " << it->first << ", " << it->second << std::endl;
+		//	erased = true;
+		//	it = moves.erase(it);
+		//}
+		//if (!erased) {
+		//	it++;
+		//}
+	//}
+	//std::cout << "getMoves - 3" << std::endl;
+
 	return moves;
 }
 
@@ -402,142 +403,142 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board) {
 
 Gomoku* Gomoku::gomoku = nullptr;
 
-PyObject* Gomoku::init(PyObject* self, PyObject* args) {
-	int size;
-	int maxDepth;
-	int player0Type;
-	int player1Type;
+// PyObject* Gomoku::init(PyObject* self, PyObject* args) {
+// 	int size;
+// 	int maxDepth;
+// 	int player0Type;
+// 	int player1Type;
 
-	if (!PyArg_ParseTuple(args, "iiii", &size, &maxDepth, &player0Type, &player1Type)) {
-		return NULL;
-	}
+// 	if (!PyArg_ParseTuple(args, "iiii", &size, &maxDepth, &player0Type, &player1Type)) {
+// 		return NULL;
+// 	}
 
-	Gomoku::gomoku = new Gomoku(size, (Player::Type)player0Type, (Player::Type)player1Type);
-	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, maxDepth);
+// 	Gomoku::gomoku = new Gomoku(size, (Player::Type)player0Type, (Player::Type)player1Type);
+// 	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, maxDepth);
 
-	return PyLong_FromLong(0);
-}
+// 	return PyLong_FromLong(0);
+// }
 
-PyObject* Gomoku::reset(PyObject* self, PyObject* args) {
-	Gomoku::gomoku->reset();
-	return PyLong_FromLong(0);
-}
+// PyObject* Gomoku::reset(PyObject* self, PyObject* args) {
+// 	Gomoku::gomoku->reset();
+// 	return PyLong_FromLong(0);
+// }
 
-PyObject* Gomoku::run(PyObject* self, PyObject* args) {
-	auto pos = Gomoku::gomoku->minmax->run();
+// PyObject* Gomoku::run(PyObject* self, PyObject* args) {
+// 	auto pos = Gomoku::gomoku->minmax->run();
 
-	PyObject* res = PyTuple_New(2);
-    PyObject* y = PyLong_FromLong(pos.first);
-    PyObject* x = PyLong_FromLong(pos.second);
-    PyTuple_SetItem(res, 0, y);
-    PyTuple_SetItem(res, 1, x);
+// 	PyObject* res = PyTuple_New(2);
+//     PyObject* y = PyLong_FromLong(pos.first);
+//     PyObject* x = PyLong_FromLong(pos.second);
+//     PyTuple_SetItem(res, 0, y);
+//     PyTuple_SetItem(res, 1, x);
 
-	return res;
-}
+// 	return res;
+// }
 
-PyObject* Gomoku::place(PyObject* self, PyObject* args) {
-	int y, x;
+// PyObject* Gomoku::place(PyObject* self, PyObject* args) {
+// 	int y, x;
 	
-	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
-		return NULL;
-	}
-	Gomoku::gomoku->stackActions.push_back(Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index));
-	return PyLong_FromLong(0);
-}
+// 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
+// 		return NULL;
+// 	}
+// 	Gomoku::gomoku->stackActions.push_back(Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index));
+// 	return PyLong_FromLong(0);
+// }
 
-PyObject* Gomoku::undo(PyObject* self, PyObject* args) {
-	if (Gomoku::gomoku->stackActions.size()) {
-		auto actions = Gomoku::gomoku->stackActions.back();
-		Gomoku::gomoku->stackActions.pop_back();
-		Gomoku::gomoku->undoMove(actions);
-	}
-	return PyLong_FromLong(0);
-}
-
-
-PyObject* Gomoku::switchPlayer(PyObject* self, PyObject* args) {
-	Gomoku::gomoku->switchPlayer();
-	return PyLong_FromLong(0);
-}
-
-PyObject* Gomoku::getEndState(PyObject* self, PyObject* args) {
-	return PyLong_FromLong(Gomoku::gomoku->endState);
-}
-
-PyObject* Gomoku::isPlaying(PyObject* self, PyObject* args) {
-	return PyBool_FromLong(Gomoku::gomoku->playing);
-}
+// PyObject* Gomoku::undo(PyObject* self, PyObject* args) {
+// 	if (Gomoku::gomoku->stackActions.size()) {
+// 		auto actions = Gomoku::gomoku->stackActions.back();
+// 		Gomoku::gomoku->stackActions.pop_back();
+// 		Gomoku::gomoku->undoMove(actions);
+// 	}
+// 	return PyLong_FromLong(0);
+// }
 
 
-PyObject* Gomoku::setPlaying(PyObject* self, PyObject* args) {
+// PyObject* Gomoku::switchPlayer(PyObject* self, PyObject* args) {
+// 	Gomoku::gomoku->switchPlayer();
+// 	return PyLong_FromLong(0);
+// }
+
+// PyObject* Gomoku::getEndState(PyObject* self, PyObject* args) {
+// 	return PyLong_FromLong(Gomoku::gomoku->endState);
+// }
+
+// PyObject* Gomoku::isPlaying(PyObject* self, PyObject* args) {
+// 	return PyBool_FromLong(Gomoku::gomoku->playing);
+// }
+
+
+// PyObject* Gomoku::setPlaying(PyObject* self, PyObject* args) {
 	
-	if (!PyArg_ParseTuple(args, "b", &Gomoku::gomoku->playing)) {
-		return NULL;
-	}
+// 	if (!PyArg_ParseTuple(args, "b", &Gomoku::gomoku->playing)) {
+// 		return NULL;
+// 	}
 
-	return PyLong_FromLong(0);
-}
+// 	return PyLong_FromLong(0);
+// }
 
-PyObject* Gomoku::isCurrentPlayerAI(PyObject* self, PyObject* args) {
-	return PyBool_FromLong(Gomoku::gomoku->currentPlayer->type == Player::AI);
-}
+// PyObject* Gomoku::isCurrentPlayerAI(PyObject* self, PyObject* args) {
+// 	return PyBool_FromLong(Gomoku::gomoku->currentPlayer->type == Player::AI);
+// }
 
-PyObject* Gomoku::canPlace(PyObject* self, PyObject* args) {
-	int y, x;
+// PyObject* Gomoku::canPlace(PyObject* self, PyObject* args) {
+// 	int y, x;
 	
-	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
-		return NULL;
-	}
+// 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
+// 		return NULL;
+// 	}
 
-	return PyBool_FromLong(Gomoku::gomoku->canPlace(std::make_pair(y, x)));
-}
+// 	return PyBool_FromLong(Gomoku::gomoku->canPlace(std::make_pair(y, x)));
+// }
 
 
-PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
-	int playerIndex;
-	int playerType;
+// PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
+// 	int playerIndex;
+// 	int playerType;
 	
 
-	if (!PyArg_ParseTuple(args, "ii", &playerIndex, &playerType)) {
-		return NULL;
-	}
+// 	if (!PyArg_ParseTuple(args, "ii", &playerIndex, &playerType)) {
+// 		return NULL;
+// 	}
 
-	Gomoku::gomoku->players[playerIndex].type = (Player::Type)playerType;
-	return PyLong_FromLong(0);
-}
+// 	Gomoku::gomoku->players[playerIndex].type = (Player::Type)playerType;
+// 	return PyLong_FromLong(0);
+// }
 
 
-static PyMethodDef methods[] = {
-	{"init", Gomoku::init, METH_VARARGS, "Returns the heuristic value."},
-	{"reset", Gomoku::reset, METH_VARARGS, "Returns the reset value."},
-	{"place", Gomoku::place, METH_VARARGS, "Returns the place value."},
-	{"switch_player", Gomoku::switchPlayer, METH_VARARGS, "Returns the switchPlayer value."},
-	{"run", Gomoku::run, METH_VARARGS, "Returns the minmax value."},
-	{"get_end_state", Gomoku::getEndState, METH_VARARGS, "Returns the minmax value."},
-	{"is_playing", Gomoku::isPlaying, METH_VARARGS, "Returns the playing value."},
-	{"set_playing", Gomoku::setPlaying, METH_VARARGS, "Returns the playing value."},
-	{"is_current_player_AI", Gomoku::isCurrentPlayerAI, METH_VARARGS, "Returns the ai state machine."},
-	{"set_player_type", Gomoku::setPlayerType, METH_VARARGS, "Returns the ai pouet machine."},
-	{"test_eval_line", Gomoku::testEvalLine, METH_VARARGS, "Returns the eval_line_test pouet machine."},
-	{"can_place", Gomoku::canPlace, METH_VARARGS, "fuck the eval_line_test pouet machine."},
-	// {"undo", Gomoku::undo, METH_VARARGS, "Returns the undo pouet machines."},
-	{NULL, NULL, 0, NULL}
-};
+// static PyMethodDef methods[] = {
+// 	{"init", Gomoku::init, METH_VARARGS, "Returns the heuristic value."},
+// 	{"reset", Gomoku::reset, METH_VARARGS, "Returns the reset value."},
+// 	{"place", Gomoku::place, METH_VARARGS, "Returns the place value."},
+// 	{"switch_player", Gomoku::switchPlayer, METH_VARARGS, "Returns the switchPlayer value."},
+// 	{"run", Gomoku::run, METH_VARARGS, "Returns the minmax value."},
+// 	{"get_end_state", Gomoku::getEndState, METH_VARARGS, "Returns the minmax value."},
+// 	{"is_playing", Gomoku::isPlaying, METH_VARARGS, "Returns the playing value."},
+// 	{"set_playing", Gomoku::setPlaying, METH_VARARGS, "Returns the playing value."},
+// 	{"is_current_player_AI", Gomoku::isCurrentPlayerAI, METH_VARARGS, "Returns the ai state machine."},
+// 	{"set_player_type", Gomoku::setPlayerType, METH_VARARGS, "Returns the ai pouet machine."},
+// 	{"test_eval_line", Gomoku::testEvalLine, METH_VARARGS, "Returns the eval_line_test pouet machine."},
+// 	{"can_place", Gomoku::canPlace, METH_VARARGS, "fuck the eval_line_test pouet machine."},
+// 	// {"undo", Gomoku::undo, METH_VARARGS, "Returns the undo pouet machines."},
+// 	{NULL, NULL, 0, NULL}
+// };
 
-static struct PyModuleDef definition = {
-	PyModuleDef_HEAD_INIT,
-	"GomokuModule",
-	"A Python module containing Classy type and pants() function",
-	-1,
-	methods
-};
+// static struct PyModuleDef definition = {
+// 	PyModuleDef_HEAD_INIT,
+// 	"GomokuModule",
+// 	"A Python module containing Classy type and pants() function",
+// 	-1,
+// 	methods
+// };
 
-PyMODINIT_FUNC PyInit_GomokuModule(void) {
-	Py_Initialize();
-	PyObject *m = PyModule_Create(&definition);
+// PyMODINIT_FUNC PyInit_GomokuModule(void) {
+// 	Py_Initialize();
+// 	PyObject *m = PyModule_Create(&definition);
 
-	return m;
-}
+// 	return m;
+// }
 
 
 void printLineScore(std::vector<int> line, int size, int score) {
@@ -552,96 +553,96 @@ void printLineScore(std::vector<int> line, int size, int score) {
 	std::cout << "\t => score: " << score << std::endl;
 }
 
-PyObject* Gomoku::testEvalLine(PyObject* self, PyObject* args) {
-	std::cout << "testEvalLine" << std::endl;
-	Gomoku::gomoku = new Gomoku(10, Player::Type::AI, Player::Type::AI);
+// PyObject* Gomoku::testEvalLine(PyObject* self, PyObject* args) {
+// 	std::cout << "testEvalLine" << std::endl;
+// 	Gomoku::gomoku = new Gomoku(10, Player::Type::AI, Player::Type::AI);
 
-	Gomoku::gomoku->board = std::vector<std::vector<int>>();
+// 	Gomoku::gomoku->board = std::vector<std::vector<int>>();
 
-	std::pair<int, int> dir = std::make_pair(0, 1);
+// 	std::pair<int, int> dir = std::make_pair(0, 1);
 
-	int player = 0;
-	Gomoku::gomoku->heuristicPlayer = &Gomoku::gomoku->players[0];
+// 	int player = 0;
+// 	Gomoku::gomoku->heuristicPlayer = &Gomoku::gomoku->players[0];
 	
-	// Streak length tests
-	std::cout << "Streak length tests" << std::endl;
-	{
-		int lines[][10] = {
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
-			{ -1, 0, 0, 0, 0, 0, 0, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-		};
+// 	// Streak length tests
+// 	std::cout << "Streak length tests" << std::endl;
+// 	{
+// 		int lines[][10] = {
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, 0, 0, 0, 0, -1, -1, -1 },
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 		};
 
-		for (auto &line: lines) {
-			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
-		} 
-		for (int i = 0; i < 7; i++) {
-			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
-			printLineScore(Gomoku::gomoku->board[i], 10, ret);
-		}
-	}
+// 		for (auto &line: lines) {
+// 			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+// 		} 
+// 		for (int i = 0; i < 7; i++) {
+// 			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
+// 			printLineScore(Gomoku::gomoku->board[i], 10, ret);
+// 		}
+// 	}
 
-	// Half opened tests
-	std::cout << "Half opened tests" << std::endl;
-	Gomoku::gomoku->board.clear();
-	{
-		int lines[][10] = {
-			{-1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ 1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ 0, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 	// Half opened tests
+// 	std::cout << "Half opened tests" << std::endl;
+// 	Gomoku::gomoku->board.clear();
+// 	{
+// 		int lines[][10] = {
+// 			{-1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ 1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ 0, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
 
-			{-1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ 1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ 0, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+// 			{-1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+// 			{ 1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+// 			{ 0, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
 
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-		};
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+// 		};
 
-		for (auto &line: lines) {
-			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
-		} 
-		for (int i = 0; i < 6; i++) {
-			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
-			printLineScore(Gomoku::gomoku->board[i], 10, ret);
-		}
-	}
-	// Discontinued tests
-	std::cout << "Discontinued tests" << std::endl;
-	Gomoku::gomoku->board.clear();
-	{
-		int lines[][10] = {
-			{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, -1, 0, -1, -1, -1, -1, -1, -1 },
+// 		for (auto &line: lines) {
+// 			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+// 		} 
+// 		for (int i = 0; i < 6; i++) {
+// 			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
+// 			printLineScore(Gomoku::gomoku->board[i], 10, ret);
+// 		}
+// 	}
+// 	// Discontinued tests
+// 	std::cout << "Discontinued tests" << std::endl;
+// 	Gomoku::gomoku->board.clear();
+// 	{
+// 		int lines[][10] = {
+// 			{ -1, 0, 0, -1, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, -1, 0, -1, -1, -1, -1, -1, -1 },
 
-			{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, 0, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, 0, -1, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, -1, 0, -1, -1, -1, -1, -1 },
 			
-			{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, 0, 0, -1, -1, -1, -1 },
-			{ -1, 0, -1, 0, 0, 0, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, 0, 0, -1, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, -1, 0, 0, -1, -1, -1, -1 },
+// 			{ -1, 0, -1, 0, 0, 0, -1, -1, -1, -1 },
 			
-			{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
-			{ -1, 0, 0, -1, 0, 0, 0, -1, -1, -1 },
-			{ -1, 0, -1, -1, 0, 0, 0, 0, -1, -1 },
-		};
+// 			{ -1, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
+// 			{ -1, 0, 0, -1, 0, 0, 0, -1, -1, -1 },
+// 			{ -1, 0, -1, -1, 0, 0, 0, 0, -1, -1 },
+// 		};
 
-		for (auto &line: lines) {
-			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
-		} 
-		for (int i = 0; i < 10; i++) {
-			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
-			printLineScore(Gomoku::gomoku->board[i], 10, ret);
-		}
-	}
-	return PyLong_FromLong(0);
-}
+// 		for (auto &line: lines) {
+// 			Gomoku::gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+// 		} 
+// 		for (int i = 0; i < 10; i++) {
+// 			int ret = Gomoku::gomoku->evalLine(std::make_pair(i, 0), dir, player, 10);
+// 			printLineScore(Gomoku::gomoku->board[i], 10, ret);
+// 		}
+// 	}
+// 	return PyLong_FromLong(0);
+// }

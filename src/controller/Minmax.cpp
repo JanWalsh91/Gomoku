@@ -1,4 +1,4 @@
-#include <Python.h>
+//#include <Python.h>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -40,7 +40,6 @@ std::pair<int, int> Minmax::run() {
 
 		this->gomoku.undoMove(undoMoves);
 	}
-
 
 	std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->index << std::endl;
 	this->gomoku.printBoard(heuristicValues);

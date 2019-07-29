@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <list>
+#include <functional>
 
 #include "IRenderable.hpp"
 #include "Background.hpp"
@@ -14,6 +15,7 @@
 #include "Button.hpp"
 #include "TextBox.hpp"
 #include "Colors.hpp"
+#include "Gomoku.hpp"
 
 #include "Player.hpp"
 
@@ -24,12 +26,10 @@ public:
 	SFMLWindow(int width, int height, const std::string& title);
 	~SFMLWindow();
 
-	void loop();
-	void setupGUI(std::vector<std::shared_ptr<Player>>& players);
+	void loop(std::function<void()> f);
+	void setupGUI(std::vector<std::shared_ptr<Player>>& players, std::shared_ptr<Gomoku> gomoku);
 
 	sf::RenderWindow* getWindow();
-
-	bool black = true;
 
 private:
 

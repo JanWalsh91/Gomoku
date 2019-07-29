@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Python.h>
+//#include <Python.h>
 #include <map>
 #include <algorithm>
+#include <vector>
 
 class Gomoku;
 

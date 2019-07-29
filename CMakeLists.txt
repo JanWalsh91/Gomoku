@@ -35,10 +35,13 @@ set(
 	src/interface/SFMLWindow.cpp
 	src/interface/board/Background.cpp
 	src/interface/board/Grid.cpp
-	src/controller/Player.cpp
 	src/interface/gui/Button.cpp
 	src/interface/gui/TextBox.cpp
-	src/interface/gui/Colors.cpp	
+	src/interface/gui/Colors.cpp
+	src/controller/Player.cpp
+	src/controller/Gomoku.cpp
+	src/controller/Minmax.cpp
+	src/controller/rules/NoDoubleFreeThree.cpp
 )
 
 set(
@@ -47,10 +50,13 @@ set(
 	src/interface/board/IRenderable.hpp
 	src/interface/board/Background.hpp
 	src/interface/board/Grid.hpp
-	src/controller/Player.hpp
 	src/interface/gui/Button.hpp
 	src/interface/gui/TextBox.hpp
 	src/interface/gui/Colors.hpp
+	src/controller/Player.hpp
+	src/controller/Gomoku.hpp
+	src/controller/Minmax.hpp
+	src/controller/rules/NoDoubleFreeThree.hpp
 )
 
 add_executable(gomoku ${SOURCE_FILES} ${HEADER_FILES})

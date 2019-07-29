@@ -2,7 +2,8 @@
 
 #include <vector>
 #include <map>
-#include <Python.h>
+//#include <Python.h>
+#include <memory>
 
 #include "Player.hpp"
 #include "Minmax.hpp"
@@ -25,32 +26,32 @@ public:
 	Gomoku(int size, Player::Type player0Type, Player::Type player1Type);
 
 	static Gomoku* gomoku;
-	std::vector<Player> players;
+	std::vector<std::shared_ptr<Player>> players;
 
-	static PyObject* init(PyObject* self, PyObject* args);
-	static PyObject* reset(PyObject* self, PyObject* args);
-	
-	static PyObject* place(PyObject* self, PyObject* args);
-	static PyObject* switchPlayer(PyObject* self, PyObject* args);
+	//static PyObject* init(PyObject* self, PyObject* args);
+	//static PyObject* reset(PyObject* self, PyObject* args);
+	//
+	//static PyObject* place(PyObject* self, PyObject* args);
+	//static PyObject* switchPlayer(PyObject* self, PyObject* args);
 
-	static PyObject* run(PyObject* self, PyObject* args);
-	static PyObject* getEndState(PyObject* self, PyObject* args);
+	//static PyObject* run(PyObject* self, PyObject* args);
+	//static PyObject* getEndState(PyObject* self, PyObject* args);
 
-	static PyObject* isPlaying(PyObject* self, PyObject* args);
-	static PyObject* setPlaying(PyObject* self, PyObject* args);
+	//static PyObject* isPlaying(PyObject* self, PyObject* args);
+	//static PyObject* setPlaying(PyObject* self, PyObject* args);
 
-	static PyObject* isCurrentPlayerAI(PyObject* self, PyObject* args);
-	static PyObject* setPlayerType(PyObject* self, PyObject* args);
+	//static PyObject* isCurrentPlayerAI(PyObject* self, PyObject* args);
+	//static PyObject* setPlayerType(PyObject* self, PyObject* args);
 
-	static PyObject* undo(PyObject* self, PyObject* args);
+	//static PyObject* undo(PyObject* self, PyObject* args);
 
 
-	static PyObject* testEvalLine(PyObject* self, PyObject* args);
-	static PyObject* canPlace(PyObject* self, PyObject* args);
+	//static PyObject* testEvalLine(PyObject* self, PyObject* args);
+	//static PyObject* canPlace(PyObject* self, PyObject* args);
 
 
 	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
-	void place(int& y, int& x);
+	//void place(int& y, int& x);
 	void switchPlayer();
 	void reset();
 
@@ -78,11 +79,11 @@ public:
 
 	int size;
 	std::vector<std::vector<int>> board;
-	Player* currentPlayer;
-	Player* heuristicPlayer;
+	std::shared_ptr<Player> currentPlayer;
+	std::shared_ptr<Player> heuristicPlayer;
 	bool playing;
 	std::vector<std::pair<int, int>> lastMoves;
-	Minmax* minmax;
+	std::shared_ptr<Minmax> minmax;
 	int remainingStones;
 	int endState;
 	int winStreakLength;
