@@ -92,14 +92,10 @@ void Grid::hover(sf::Vector2i mousePosition) {
 			return;
 		}
 		
-
-		float xPosition = (pos.first + 1) * cellSize - margin / 2.0f;
-		float yPosition = (pos.second + 1) * cellSize - margin / 2.0f;
-
+		float xPosition = margin + (pos.first * cellSize) + cellSize / 2.0f;
+		float yPosition = margin + (pos.second * cellSize) + cellSize / 2.0f;
 
 		for (auto& callback : hoverCallbacks) {
-
-
 			callback(sf::Vector2i(static_cast<int>(xPosition), static_cast<int>(yPosition)));
 		}
 	}

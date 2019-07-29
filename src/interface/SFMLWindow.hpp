@@ -11,6 +11,9 @@
 #include "IRenderable.hpp"
 #include "Background.hpp"
 #include "Grid.hpp"
+#include "Button.hpp"
+#include "TextBox.hpp"
+#include "Colors.hpp"
 
 #include "Player.hpp"
 

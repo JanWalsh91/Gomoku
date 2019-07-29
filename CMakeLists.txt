@@ -23,6 +23,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/board)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller)
 
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
@@ -35,8 +36,11 @@ set(
 	src/interface/board/Background.cpp
 	src/interface/board/Grid.cpp
 	src/controller/Player.cpp
+	src/interface/gui/Button.cpp
+	src/interface/gui/TextBox.cpp
+	src/interface/gui/Colors.cpp	
 )
-	
+
 set(
 	HEADER_FILES
 	src/interface/SFMLWindow.hpp
@@ -44,6 +48,9 @@ set(
 	src/interface/board/Background.hpp
 	src/interface/board/Grid.hpp
 	src/controller/Player.hpp
+	src/interface/gui/Button.hpp
+	src/interface/gui/TextBox.hpp
+	src/interface/gui/Colors.hpp
 )
 
 add_executable(gomoku ${SOURCE_FILES} ${HEADER_FILES})

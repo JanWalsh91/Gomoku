@@ -1,11 +1,10 @@
 #include "Background.hpp"
 
-Background::Background() {
-	this->shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(790.0f, 790.0f));
-	this->shape->setFillColor(sf::Color(39, 174, 96));
-	this->shape->setOutlineThickness(5.0f);
-	this->shape->setOutlineColor(sf::Color(200, 200, 200));
-	this->shape->move(5.0f, 5.0f);
+Background::Background(float width, float height, float xPos, float yPos, sf::Color backgroundColor) {
+
+	this->shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(width, height));
+	this->shape->setFillColor(backgroundColor);
+	this->shape->move(xPos, yPos);
 }
 
 void Background::render(sf::RenderWindow& window) {

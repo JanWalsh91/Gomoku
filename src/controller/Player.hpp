@@ -13,7 +13,7 @@ public:
 
 	bool isAI() const;
 	bool isHuman() const;
-	void changeType() const;
+	void changeType(Type t);
 
 	int index;
 	Type type;

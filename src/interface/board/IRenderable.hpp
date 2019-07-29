@@ -16,6 +16,12 @@ public:
 
 	std::vector<std::function<void(sf::Vector2i mousePosition)>> callbacks;
 	std::vector<std::function<void(sf::Vector2i mousePosition)>> hoverCallbacks;
+
+
+	void setBorder(float thickness, sf::Color color) {
+		this->shape->setOutlineThickness(thickness);
+		this->shape->setOutlineColor(color);
+	}
 protected:
 	std::shared_ptr<sf::Shape> shape;
 };
