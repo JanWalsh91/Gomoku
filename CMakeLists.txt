@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 project(gomoku)
 include(ExternalProject)
 
-if (UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++1z -O3")
-endif()
-
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/libs/)
 	execute_process(COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/libs/)
 endif()
@@ -27,6 +23,19 @@ if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/libs/args)
 	execute_process(COMMAND rm ${CMAKE_CURRENT_BINARY_DIR}/libs/args.zip)
 endif()
 
+option(ARGS_BUILD_EXAMPLE "Build example" OFF)
+option(ARGS_BUILD_UNITTESTS "Build unittests" OFF)
+
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/args)
+
+if (UNIX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++1z -O3")
+else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /O2")
+endif()
+
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libs/args)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
@@ -36,11 +45,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller/rules)
 
-option(ARGS_BUILD_EXAMPLE "Build example" OFF)
-option(ARGS_BUILD_UNITTESTS "Build unittests" OFF)
-
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/args)
 
 
 set(
@@ -73,6 +77,7 @@ set(
 	src/controller/Minmax.hpp
 	src/controller/rules/NoDoubleFreeThree.hpp
 	src/interface/gui/GUI.hpp
+	src/Common.hpp
 )
 
 add_executable(gomoku ${SOURCE_FILES} ${HEADER_FILES})

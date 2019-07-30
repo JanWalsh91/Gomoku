@@ -168,18 +168,35 @@ std::vector<std::pair<int, int>> Minmax::getSortedMoves(std::vector<std::pair<in
 		
 		this->gomoku.undoMove(undoMoves);
 	}
-	while (movesHeuristicValues.size()/* && sortedMoves.size() < 5*/) {
-		int maxValue = std::numeric_limits<int>::min();
-		int maxValueIndex = -1;
-		for (unsigned i = 0; i < moves.size(); i++) {
-			if (movesHeuristicValues[i] > maxValue) {
-				maxValueIndex = i;
-				maxValue = movesHeuristicValues[i];
+	if (maximizing) {
+		while (movesHeuristicValues.size()/* && sortedMoves.size() < 10*/) {
+			int maxValue = std::numeric_limits<int>::min();
+			int maxValueIndex = -1;
+			for (unsigned i = 0; i < moves.size(); i++) {
+				if (movesHeuristicValues[i] > maxValue) {
+					maxValueIndex = i;
+					maxValue = movesHeuristicValues[i];
+				}
 			}
+			sortedMoves.push_back(moves[maxValueIndex]);
+			movesHeuristicValues.erase(movesHeuristicValues.begin() + maxValueIndex);
+			moves.erase(moves.begin() + maxValueIndex);
 		}
-		sortedMoves.push_back(moves[maxValueIndex]);
-		movesHeuristicValues.erase(movesHeuristicValues.begin() + maxValueIndex);
-		moves.erase(moves.begin() + maxValueIndex);
+	}
+	else {
+		while (movesHeuristicValues.size()/* && sortedMoves.size() < 10*/) {
+			int minValue = std::numeric_limits<int>::max();
+			int minValueIndex = -1;
+			for (unsigned i = 0; i < moves.size(); i++) {
+				if (movesHeuristicValues[i] < minValue) {
+					minValueIndex = i;
+					minValue = movesHeuristicValues[i];
+				}
+			}
+			sortedMoves.push_back(moves[minValueIndex]);
+			movesHeuristicValues.erase(movesHeuristicValues.begin() + minValueIndex);
+			moves.erase(moves.begin() + minValueIndex);
+		}
 	}
 	return sortedMoves;
 }

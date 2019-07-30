@@ -407,7 +407,11 @@ int Gomoku::heuristicByPlayer(int player) {
 
 	// this->printBoard();
 
+	//std::vector<std::future<int>> scores;
+	//auto start = std::chrono::steady_clock::now();
 	for (int i = 0; i < this->size; i++) {
+		
+		//scores.push_back(std::async(&Gomoku::evalLine, this, std::make_pair(i, 0), hLine, player, this->size));
 		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
 		// std::cout << "score1: => " << score << std::endl;
 		
@@ -416,6 +420,12 @@ int Gomoku::heuristicByPlayer(int player) {
 			// std::cout << "score2: => " << score << std::endl;
 		// }
 	}
+	//auto end = std::chrono::steady_clock::now();
+	//std::cout << std::chrono::duration <double, std::milli>(end - start).count() << " ms" << std::endl;
+
+	//for (auto it = scores.begin(); it != scores.end(); ++it) {
+	//	score += it->get();
+	//}
 
 	for (int i = 0; i <= this->size - this->winStreakLength; i++) {
 		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i);
@@ -445,7 +455,7 @@ int Gomoku::heuristic() {
 
 	int score0 = this->heuristicByPlayer(0);
 	int score1 = this->heuristicByPlayer(1);
-	// int score1 = 0;
+
 	return this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
 
 	// return this->heuristicPlayer->index == 0 ? score0 : score1;

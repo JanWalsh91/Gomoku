@@ -130,6 +130,10 @@ void GUI::setup() {
 
 	grid->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		if (gomoku->playing) {
+			if (gomoku->currentPlayer->isAI()) {
+				std::cout << "AI Turn, be patient" << std::endl;
+				return;
+			}
 			auto pos = grid->windowToGridCoord(mousePosition);
 			if (!grid->placeStoneAt(pos, gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White)) {
 				return ;
