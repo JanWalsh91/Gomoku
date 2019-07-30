@@ -8,7 +8,7 @@ bool logg = false;
 // }
 
 
-Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5) {
+Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5), turn(0) {
 	this->players.push_back(std::make_shared<Player>(0, player0Type));
 	this->players.push_back(std::make_shared<Player>(1, player1Type));
 
@@ -29,6 +29,7 @@ void Gomoku::reset() {
 	this->endState = State::PLAYING;
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
+	this->turn = 0;
 }
 
 void Gomoku::nextTurn() {

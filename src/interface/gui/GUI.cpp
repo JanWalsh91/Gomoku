@@ -33,22 +33,24 @@ void GUI::setup() {
 	playersPanel->setBorder(2.5f, Colors::Grey);
 
 
-	playerOneButton = std::make_shared<Button>(100.0f, 100.0f, 840.0f, 32.5f, Colors::Human);
+	playerOneButton = std::make_shared<Button>(100.0f, 100.0f, 840.0f, 32.5f, gomoku->players[0]->isHuman() ? Colors::Human : Colors::AI);
 	playerOneButton->setText(gomoku->players[0]->isHuman() ? "Human" : "AI");
 	playerOneButton->setFontColor(sf::Color::Black);
 	playerOneButton->setBorder(3.f, sf::Color::Black);
 	playerOneButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		if (gomoku->players[0]->isHuman()) {
 			playerOneButton->setText("AI");
+			playerOneButton->setBackgroundColor(Colors::AI);
 			gomoku->players[0]->changeType(Player::AI);
 		}
 		else {
 			playerOneButton->setText("Human");
+			playerOneButton->setBackgroundColor(Colors::Human);
 			gomoku->players[0]->changeType(Player::HUMAN);
 		}
 	});
 
-	playerTwoButton = std::make_shared<Button>(100.0f, 100.0f, 1060.0f, 32.5f, Colors::AI);
+	playerTwoButton = std::make_shared<Button>(100.0f, 100.0f, 1060.0f, 32.5f, gomoku->players[1]->isHuman() ? Colors::Human : Colors::AI);
 	playerTwoButton->setText(gomoku->players[1]->isHuman() ? "Human" : "AI");
 	playerTwoButton->setFontColor(sf::Color::White);
 	playerTwoButton->setBorder(3.f, sf::Color::White);
@@ -56,9 +58,11 @@ void GUI::setup() {
 		if (gomoku->players[1]->isHuman()) {
 			playerTwoButton->setText("AI");
 			gomoku->players[1]->changeType(Player::AI);
+			playerTwoButton->setBackgroundColor(Colors::AI);
 		}
 		else {
 			playerTwoButton->setText("Human");
+			playerTwoButton->setBackgroundColor(Colors::Human);
 			gomoku->players[1]->changeType(Player::HUMAN);
 		}
 	});
@@ -170,7 +174,7 @@ void GUI::nextTurn() {
 	if (gomoku->endState != -1) {
 		gomoku->playing = false;
 		if (gomoku->endState >= 0) {
-			messageValue->setText((gomoku->endState == 0 ? "Black win!" : "White win!"));
+			messageValue->setText((gomoku->endState == 0 ? "Black" : "White") + std::string(" win! ") + std::to_string(gomoku->turn));
 		}
 		else {
 			messageValue->setText("DRAW");

@@ -72,8 +72,10 @@ int main(int argc, char *argv[]) {
 
 			if (gomoku->playing && gomoku->currentPlayer->isAI() && (nextStep || !pause)) {
 				std::cout << "AI turn" << std::endl;
+				auto start = std::chrono::high_resolution_clock::now();
 				auto pos = gomoku->minmax->run();
-				std::cout << "pos: " << pos.first << ", " << pos.second << std::endl;
+				auto end = std::chrono::high_resolution_clock::now();
+				std::cout << "pos: " << pos.first << ", " << pos.second << ", in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 				if (!gui->place(pos.first, pos.second)) {
 					return ;
 				}

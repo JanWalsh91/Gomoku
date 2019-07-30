@@ -18,6 +18,11 @@ public:
 		this->shape->setOutlineThickness(thickness);
 		this->shape->setOutlineColor(color);
 	}
+
+	void setBackgroundColor(sf::Color color) {
+		this->shape->setFillColor(color);
+	}
+
 protected:
 	std::shared_ptr<sf::Shape> shape;
 };

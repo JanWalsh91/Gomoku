@@ -3,7 +3,7 @@ project(gomoku)
 include(ExternalProject)
 
 if (UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++1z")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++1z -O3")
 endif()
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/libs/)
@@ -35,6 +35,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/board)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller/rules)
+
+option(ARGS_BUILD_EXAMPLE "Build example" OFF)
+option(ARGS_BUILD_UNITTESTS "Build unittests" OFF)
 
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/args)
