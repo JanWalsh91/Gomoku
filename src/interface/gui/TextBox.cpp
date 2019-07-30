@@ -16,7 +16,7 @@ TextBox::TextBox(float width, float height, float xPos, float yPos, sf::Color ba
 
 	this->text.setPosition(pos.x, pos.y + size.y / 2.0f - 25 / 2.0f); // Take font size into account
 	this->text.setCharacterSize(25);
-	this->text.setStyle(sf::Text::Bold);
+	// this->text.setStyle(sf::Text::Bold);
 }
 
 void TextBox::render(sf::RenderWindow& window) {
@@ -53,7 +53,8 @@ void TextBox::setFontSize(unsigned fontSize) {
 sf::Font TextBox::font;
 
 void TextBox::loadFont() {
-	if (!TextBox::font.loadFromFile("../resources/Roboto-Regular.ttf")) {
+	// if (!TextBox::font.loadFromFile("../resources/Roboto-Regular.ttf")) {
+	if (!TextBox::font.loadFromFile("../resources/Catamaran-Regular.ttf")) {
 		std::cout << "Error while loading font" << std::endl;
 	}
 }

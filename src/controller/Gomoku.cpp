@@ -6,7 +6,7 @@
 #include "Gomoku.hpp"
 #include "rules/NoDoubleFreeThree.hpp"
 
-Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5) {
+Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5), turn(0) {
 	this->players.push_back(std::make_shared<Player>(0, player0Type));
 	this->players.push_back(std::make_shared<Player>(1, player1Type));
 
@@ -27,6 +27,15 @@ void Gomoku::reset() {
 	this->endState = State::PLAYING;
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
+	this->turn = 0;
+}
+
+void Gomoku::nextTurn() {
+	++this->turn;
+}
+
+int Gomoku::getTurn() const {
+	return this->turn;
 }
 
 int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
@@ -402,144 +411,6 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board) {
 }
 
 Gomoku* Gomoku::gomoku = nullptr;
-
-// PyObject* Gomoku::init(PyObject* self, PyObject* args) {
-// 	int size;
-// 	int maxDepth;
-// 	int player0Type;
-// 	int player1Type;
-
-// 	if (!PyArg_ParseTuple(args, "iiii", &size, &maxDepth, &player0Type, &player1Type)) {
-// 		return NULL;
-// 	}
-
-// 	Gomoku::gomoku = new Gomoku(size, (Player::Type)player0Type, (Player::Type)player1Type);
-// 	Gomoku::gomoku->minmax = new Minmax(*Gomoku::gomoku, maxDepth);
-
-// 	return PyLong_FromLong(0);
-// }
-
-// PyObject* Gomoku::reset(PyObject* self, PyObject* args) {
-// 	Gomoku::gomoku->reset();
-// 	return PyLong_FromLong(0);
-// }
-
-// PyObject* Gomoku::run(PyObject* self, PyObject* args) {
-// 	auto pos = Gomoku::gomoku->minmax->run();
-
-// 	PyObject* res = PyTuple_New(2);
-//     PyObject* y = PyLong_FromLong(pos.first);
-//     PyObject* x = PyLong_FromLong(pos.second);
-//     PyTuple_SetItem(res, 0, y);
-//     PyTuple_SetItem(res, 1, x);
-
-// 	return res;
-// }
-
-// PyObject* Gomoku::place(PyObject* self, PyObject* args) {
-// 	int y, x;
-	
-// 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
-// 		return NULL;
-// 	}
-// 	Gomoku::gomoku->stackActions.push_back(Gomoku::gomoku->place(y, x, Gomoku::gomoku->currentPlayer->index));
-// 	return PyLong_FromLong(0);
-// }
-
-// PyObject* Gomoku::undo(PyObject* self, PyObject* args) {
-// 	if (Gomoku::gomoku->stackActions.size()) {
-// 		auto actions = Gomoku::gomoku->stackActions.back();
-// 		Gomoku::gomoku->stackActions.pop_back();
-// 		Gomoku::gomoku->undoMove(actions);
-// 	}
-// 	return PyLong_FromLong(0);
-// }
-
-
-// PyObject* Gomoku::switchPlayer(PyObject* self, PyObject* args) {
-// 	Gomoku::gomoku->switchPlayer();
-// 	return PyLong_FromLong(0);
-// }
-
-// PyObject* Gomoku::getEndState(PyObject* self, PyObject* args) {
-// 	return PyLong_FromLong(Gomoku::gomoku->endState);
-// }
-
-// PyObject* Gomoku::isPlaying(PyObject* self, PyObject* args) {
-// 	return PyBool_FromLong(Gomoku::gomoku->playing);
-// }
-
-
-// PyObject* Gomoku::setPlaying(PyObject* self, PyObject* args) {
-	
-// 	if (!PyArg_ParseTuple(args, "b", &Gomoku::gomoku->playing)) {
-// 		return NULL;
-// 	}
-
-// 	return PyLong_FromLong(0);
-// }
-
-// PyObject* Gomoku::isCurrentPlayerAI(PyObject* self, PyObject* args) {
-// 	return PyBool_FromLong(Gomoku::gomoku->currentPlayer->type == Player::AI);
-// }
-
-// PyObject* Gomoku::canPlace(PyObject* self, PyObject* args) {
-// 	int y, x;
-	
-// 	if (!PyArg_ParseTuple(args, "ii", &y, &x)) {
-// 		return NULL;
-// 	}
-
-// 	return PyBool_FromLong(Gomoku::gomoku->canPlace(std::make_pair(y, x)));
-// }
-
-
-// PyObject* Gomoku::setPlayerType(PyObject* self, PyObject* args) {
-// 	int playerIndex;
-// 	int playerType;
-	
-
-// 	if (!PyArg_ParseTuple(args, "ii", &playerIndex, &playerType)) {
-// 		return NULL;
-// 	}
-
-// 	Gomoku::gomoku->players[playerIndex].type = (Player::Type)playerType;
-// 	return PyLong_FromLong(0);
-// }
-
-
-// static PyMethodDef methods[] = {
-// 	{"init", Gomoku::init, METH_VARARGS, "Returns the heuristic value."},
-// 	{"reset", Gomoku::reset, METH_VARARGS, "Returns the reset value."},
-// 	{"place", Gomoku::place, METH_VARARGS, "Returns the place value."},
-// 	{"switch_player", Gomoku::switchPlayer, METH_VARARGS, "Returns the switchPlayer value."},
-// 	{"run", Gomoku::run, METH_VARARGS, "Returns the minmax value."},
-// 	{"get_end_state", Gomoku::getEndState, METH_VARARGS, "Returns the minmax value."},
-// 	{"is_playing", Gomoku::isPlaying, METH_VARARGS, "Returns the playing value."},
-// 	{"set_playing", Gomoku::setPlaying, METH_VARARGS, "Returns the playing value."},
-// 	{"is_current_player_AI", Gomoku::isCurrentPlayerAI, METH_VARARGS, "Returns the ai state machine."},
-// 	{"set_player_type", Gomoku::setPlayerType, METH_VARARGS, "Returns the ai pouet machine."},
-// 	{"test_eval_line", Gomoku::testEvalLine, METH_VARARGS, "Returns the eval_line_test pouet machine."},
-// 	{"can_place", Gomoku::canPlace, METH_VARARGS, "fuck the eval_line_test pouet machine."},
-// 	// {"undo", Gomoku::undo, METH_VARARGS, "Returns the undo pouet machines."},
-// 	{NULL, NULL, 0, NULL}
-// };
-
-// static struct PyModuleDef definition = {
-// 	PyModuleDef_HEAD_INIT,
-// 	"GomokuModule",
-// 	"A Python module containing Classy type and pants() function",
-// 	-1,
-// 	methods
-// };
-
-// PyMODINIT_FUNC PyInit_GomokuModule(void) {
-// 	Py_Initialize();
-// 	PyObject *m = PyModule_Create(&definition);
-
-// 	return m;
-// }
-
 
 void printLineScore(std::vector<int> line, int size, int score) {
 	// std::cout << "==============";

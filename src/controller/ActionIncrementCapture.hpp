@@ -6,7 +6,7 @@ class ActionIncrementCapture: AAction {
 
 public:
 
-	ActionIncrementCapture(int playerIndex): AAction(AAction::Type::INCREMENT_CAPTURE) playerIndex(playerIndex) {}
+	ActionIncrementCapture(int playerIndex): AAction(AAction::Type::INCREMENT_CAPTURE), playerIndex(playerIndex) {}
 
 	int playerIndex;
 };

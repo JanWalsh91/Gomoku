@@ -1,10 +1,6 @@
 #pragma once
 
-#include <SFML/Graphics/Shape.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-#include <memory>
-#include <functional>
+#include "Common.hpp"
 
 class IRenderable {
 

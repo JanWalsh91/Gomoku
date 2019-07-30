@@ -1,18 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <map>
-//#include <Python.h>
-#include <memory>
-
-#include "Player.hpp"
-#include "Minmax.hpp"
-#include "AAction.hpp"
-#include "ActionUpdateBoard.hpp"
-#include "ActionSetEndState.hpp"
-#include "rules/ARule.hpp"
+#include "Common.hpp"
 
 class ARule;
+class Minmax;
 
 class Gomoku {
 
@@ -27,24 +18,6 @@ public:
 
 	static Gomoku* gomoku;
 	std::vector<std::shared_ptr<Player>> players;
-
-	//static PyObject* init(PyObject* self, PyObject* args);
-	//static PyObject* reset(PyObject* self, PyObject* args);
-	//
-	//static PyObject* place(PyObject* self, PyObject* args);
-	//static PyObject* switchPlayer(PyObject* self, PyObject* args);
-
-	//static PyObject* run(PyObject* self, PyObject* args);
-	//static PyObject* getEndState(PyObject* self, PyObject* args);
-
-	//static PyObject* isPlaying(PyObject* self, PyObject* args);
-	//static PyObject* setPlaying(PyObject* self, PyObject* args);
-
-	//static PyObject* isCurrentPlayerAI(PyObject* self, PyObject* args);
-	//static PyObject* setPlayerType(PyObject* self, PyObject* args);
-
-	//static PyObject* undo(PyObject* self, PyObject* args);
-
 
 	//static PyObject* testEvalLine(PyObject* self, PyObject* args);
 	//static PyObject* canPlace(PyObject* self, PyObject* args);
@@ -69,6 +42,8 @@ public:
 
 	bool canPlace(std::pair<int, int>) const;
 
+	void nextTurn();
+	int getTurn() const;
 // private:
 
 	std::vector<ARule*> rules;
@@ -87,4 +62,6 @@ public:
 	int remainingStones;
 	int endState;
 	int winStreakLength;
+
+	int turn;
 };

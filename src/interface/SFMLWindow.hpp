@@ -1,19 +1,8 @@
 #pragma once
 
-#include <string>
+#include "Common.hpp"
 
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-
-#include <memory>
-#include <list>
-#include <functional>
-
-
-#include "Gomoku.hpp"
-
-#include "Player.hpp"
-#include "IRenderable.hpp"
+class Gomoku;
 
 class SFMLWindow {
 
@@ -22,7 +11,7 @@ public:
 	SFMLWindow(int width, int height, const std::string& title);
 	~SFMLWindow();
 
-	void loop(std::function<void()> f);
+	void loop(std::function<void()> f, std::function<void(sf::Event)> event);
 	void setupGUI(std::vector<std::shared_ptr<Player>>& players, std::shared_ptr<Gomoku> gomoku);
 
 	sf::RenderWindow* getWindow();

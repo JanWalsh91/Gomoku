@@ -19,7 +19,16 @@ if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
 	execute_process(COMMAND rm ${CMAKE_CURRENT_BINARY_DIR}/libs/SFML.zip)
 endif()
 
+if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/libs/args)
+	message(STATUS "Downloading args...")
+	file(DOWNLOAD https://github.com/Taywee/args/archive/6.2.2.zip ${CMAKE_CURRENT_BINARY_DIR}/libs/args.zip)
+	execute_process(COMMAND unzip -q ${CMAKE_CURRENT_BINARY_DIR}/libs/args.zip -d ${CMAKE_CURRENT_BINARY_DIR}/libs/)
+	execute_process(COMMAND mv ${CMAKE_CURRENT_BINARY_DIR}/libs/args-6.2.2 ${CMAKE_CURRENT_BINARY_DIR}/libs/args)
+	execute_process(COMMAND rm ${CMAKE_CURRENT_BINARY_DIR}/libs/args.zip)
+endif()
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/libs/args)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/board)
@@ -27,6 +36,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller)
 
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/args)
 
 
 set(

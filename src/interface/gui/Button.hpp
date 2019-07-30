@@ -1,10 +1,6 @@
 #pragma once
 
-#include "IRenderable.hpp"
-#include "TextBox.hpp"
-
-#include <string>
-
+#include "Common.hpp"
 
 class Button: public IRenderable {
 

@@ -1,9 +1,6 @@
 #pragma once
 
-//#include <Python.h>
-#include <map>
-#include <algorithm>
-#include <vector>
+#include "Common.hpp"
 
 class Gomoku;
 

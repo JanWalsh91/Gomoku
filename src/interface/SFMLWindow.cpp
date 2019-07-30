@@ -19,7 +19,7 @@ void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players, std::sh
 
 }
 
-void SFMLWindow::loop(std::function<void()> f) {
+void SFMLWindow::loop(std::function<void()> f, std::function<void(sf::Event)> e) {
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -38,6 +38,7 @@ void SFMLWindow::loop(std::function<void()> f) {
 					renderable->click(sf::Mouse::getPosition(this->window));
 				}
 			}
+			e(event);
 		}
 
 		f();

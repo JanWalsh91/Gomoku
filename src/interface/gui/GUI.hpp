@@ -1,14 +1,12 @@
 #pragma once
 
-#include "IRenderable.hpp"
-#include "Background.hpp"
-#include "Grid.hpp"
-#include "Button.hpp"
-#include "TextBox.hpp"
-#include "Colors.hpp"
+#include "Common.hpp"
 
-#include "Gomoku.hpp"
-#include "SFMLWindow.hpp"
+class SFMLWindow;
+class Background;
+class Grid;
+class Button;
+class TextBox;
 
 class GUI {
 

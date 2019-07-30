@@ -1,9 +1,6 @@
 #pragma once
 
-#include "IRenderable.hpp"
-
-#include <vector>
-#include <memory>
+#include "Common.hpp"
 
 class Grid: public IRenderable {
 

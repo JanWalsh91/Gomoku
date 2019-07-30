@@ -10,7 +10,7 @@ void GUI::setup() {
 	background->setBorder(5.0f, Colors::Grey);
 
 
-	grid = std::make_shared<Grid>(5, 800.0f, 40.0f);
+	grid = std::make_shared<Grid>(gomoku->size, 800.0f, 40.0f);
 
 	grid->hoverCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		
@@ -131,6 +131,7 @@ void GUI::setup() {
 			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
 			gomoku->switchPlayer();
 			this->nextTurn();
+			gomoku->nextTurn();
 		}
 	});
 
@@ -176,6 +177,7 @@ void GUI::nextTurn() {
 	else {
 		currentPlayerValue->setText(gomoku->currentPlayer->index == 0 ? "Black" : "White");
 		currentPlayerValue->setFontColor(gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+		messageValue->setText(std::to_string(gomoku->getTurn()));
 	}
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "IRenderable.hpp"
-#include <SFML/Graphics.hpp>
+#include "Common.hpp"
 
 class Background: public IRenderable {
 
