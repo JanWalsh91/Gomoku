@@ -104,3 +104,8 @@ void Grid::hover(sf::Vector2i mousePosition) {
 float Grid::getCellSize() const {
 	return this->cellSize;
 }
+
+void Grid::reset() {
+	stones.clear(); // TODO: leaks? Check shared_ptr
+	std::cout << "Cleard the stones: " << stones.size() << std::endl;
+}

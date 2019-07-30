@@ -3,7 +3,7 @@ project(gomoku)
 include(ExternalProject)
 
 if (UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -std=c++1z")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++1z")
 endif()
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/libs/)
@@ -38,6 +38,7 @@ set(
 	src/interface/gui/Button.cpp
 	src/interface/gui/TextBox.cpp
 	src/interface/gui/Colors.cpp
+	src/interface/gui/GUI.cpp
 	src/controller/Player.cpp
 	src/controller/Gomoku.cpp
 	src/controller/Minmax.cpp
@@ -57,6 +58,7 @@ set(
 	src/controller/Gomoku.hpp
 	src/controller/Minmax.hpp
 	src/controller/rules/NoDoubleFreeThree.hpp
+	src/interface/gui/GUI.hpp
 )
 
 add_executable(gomoku ${SOURCE_FILES} ${HEADER_FILES})

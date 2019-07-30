@@ -9,15 +9,11 @@
 #include <list>
 #include <functional>
 
-#include "IRenderable.hpp"
-#include "Background.hpp"
-#include "Grid.hpp"
-#include "Button.hpp"
-#include "TextBox.hpp"
-#include "Colors.hpp"
+
 #include "Gomoku.hpp"
 
 #include "Player.hpp"
+#include "IRenderable.hpp"
 
 class SFMLWindow {
 
@@ -30,6 +26,8 @@ public:
 	void setupGUI(std::vector<std::shared_ptr<Player>>& players, std::shared_ptr<Gomoku> gomoku);
 
 	sf::RenderWindow* getWindow();
+
+	void addRenderable(std::shared_ptr<IRenderable> renderable);
 
 private:
 

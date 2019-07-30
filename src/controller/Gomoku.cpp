@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sstream>
-
+#include <cmath>
 #include <iomanip>
 
 #include "Gomoku.hpp"

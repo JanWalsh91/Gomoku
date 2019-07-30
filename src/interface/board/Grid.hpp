@@ -19,6 +19,8 @@ public:
 
 	float getCellSize() const;
 
+	void reset();
+
 private:
 	std::vector<std::shared_ptr<sf::Shape>> gridLines;
 	std::map<std::pair<int, int>, std::shared_ptr<sf::Shape>> stones;
