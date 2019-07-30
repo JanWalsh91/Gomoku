@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 				gui->nextTurn();
 				nextStep = false;
 
-				if (gomoku->getTurn() >= maxTurn) {
+				if (maxTurn !=-1 && gomoku->getTurn() >= maxTurn) {
 					pause = true;
 				}
 			}
