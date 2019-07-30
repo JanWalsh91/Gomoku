@@ -23,15 +23,15 @@ Grid::Grid(int size, float boardSize, float margin) : size(size), boardSize(boar
 /**
 	Places a stone at the position pos. Pos reprensents the indices in the grid (0, 0), (1, 2), ...
 */
-void Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
+bool Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
 
 	if (stones.find(pos) != stones.end()) {
 		std::cout << "Error, already stone here" << std::endl;
-		return;
+		return false;
 	}
 	if (pos.first < 0 || pos.second < 0 || pos.first >= size || pos.second >= size) {
 		std::cout << "Error, wrong position" << std::endl;
-		return;
+		return false;
 	}
 
 	auto stone = std::make_shared<sf::CircleShape>(cellSize / 2.0f);
@@ -42,6 +42,7 @@ void Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
 	stone->setFillColor(color);
 
 	stones[pos] = stone;
+	return true;
 }
 
 std::pair<int, int> Grid::windowToGridCoord(sf::Vector2i mousePosition) {

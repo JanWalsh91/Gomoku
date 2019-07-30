@@ -3,7 +3,7 @@
 #include <iostream>
 NoDoubleFreeThree::NoDoubleFreeThree(): ARule("NO DOUBLE FREE THREE") {}
 
-bool NoDoubleFreeThree::canPlace(Gomoku& gomoku, std::pair<int, int>& move) {
+bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move) {
 	std::vector<std::pair<int, int>> directions = {
 		std::make_pair(0,  1),
 		std::make_pair(1,  0),

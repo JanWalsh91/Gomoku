@@ -15,7 +15,7 @@ public:
 
 	void setup();
 
-	void place(int xPos, int yPos);
+	bool place(int xPos, int yPos);
 	void nextTurn();
 	void reset();
 private:

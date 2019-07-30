@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
 	args::ValueFlag<int> boardSizeArgs(parser, "size", "Size of the board", {'s'});
 	args::ValueFlag<int> depthArgs(parser, "depth", "Depth search of MinMax", {'d'});
 	args::ValueFlag<int> maxTurnArgs(parser, "maxTurn", "Pause the game after n turns", {'q'});
+	args::ValueFlag<int> runTestArgs(parser, "test", "Run unit test set", {'t'});
 
     try
     {
@@ -43,10 +44,18 @@ int main(int argc, char *argv[]) {
 	if (maxTurnArgs) {
 		maxTurn = std::clamp(args::get(maxTurnArgs), 1, 100'000);
 	}
+	if (runTestArgs) {
+		switch(args::get(runTestArgs)) {
+			case 0:
+				Gomoku::testEvalLine();
+			break;
+		}
+		return 0;
+	}
 
 	{
 		std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::HUMAN, Player::HUMAN);
+		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
 		std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 
 		std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
@@ -65,8 +74,10 @@ int main(int argc, char *argv[]) {
 				std::cout << "AI turn" << std::endl;
 				auto pos = gomoku->minmax->run();
 				std::cout << "pos: " << pos.first << ", " << pos.second << std::endl;
+				if (!gui->place(pos.first, pos.second)) {
+					return ;
+				}
 				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
-				gui->place(pos.first, pos.second);
 				gomoku->switchPlayer();
 				gomoku->nextTurn();
 				gui->nextTurn();

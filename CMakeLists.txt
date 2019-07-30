@@ -34,6 +34,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/board)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller/rules)
 
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/SFML)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/libs/args)

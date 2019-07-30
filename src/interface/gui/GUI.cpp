@@ -127,7 +127,9 @@ void GUI::setup() {
 	grid->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		if (gomoku->playing) {
 			auto pos = grid->windowToGridCoord(mousePosition);
-			grid->placeStoneAt(pos, gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+			if (!grid->placeStoneAt(pos, gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White)) {
+				return ;
+			}
 			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
 			gomoku->switchPlayer();
 			this->nextTurn();
@@ -160,8 +162,8 @@ void GUI::setup() {
 	window->addRenderable(messageValue);
 }
 
-void GUI::place(int xPos, int yPos) {
-	grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+bool GUI::place(int xPos, int yPos) {
+	return grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
 }
 
 void GUI::nextTurn() {

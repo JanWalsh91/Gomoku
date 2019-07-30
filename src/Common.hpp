@@ -6,6 +6,7 @@
 #include <memory>
 #include <functional>
 #include <list>
+#include <iomanip>
 
 #include <args.hxx>
 
@@ -21,7 +22,8 @@
 #include "ActionIncrementCapture.hpp"
 #include "ActionSetEndState.hpp"
 
-// #include "NoDoubleFreeThree.hpp"
+#include "ARule.hpp"
+#include "NoDoubleFreeThree.hpp"
 #include "IRenderable.hpp"
 #include "Background.hpp"
 #include "Grid.hpp"
