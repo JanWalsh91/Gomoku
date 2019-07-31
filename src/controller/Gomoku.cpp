@@ -822,10 +822,10 @@ void Gomoku::testHeuristic() {
 void Gomoku::testMinmax() {
 	std::cout << "testHeuristic" << std::endl;
 	
-	Gomoku* gomoku = new Gomoku(7, Player::Type::AI, Player::Type::AI);
-	gomoku->minmax = std::make_shared<Minmax>(*gomoku, 4);
+	//Gomoku* gomoku = new Gomoku(7, Player::Type::AI, Player::Type::AI);
+	//gomoku->minmax = std::make_shared<Minmax>(*gomoku, 4);
 
-	gomoku->board = std::vector<std::vector<int>>();
+	//gomoku->board = std::vector<std::vector<int>>();
 	
 	// {
 		// gomoku->currentPlayer = &gomoku->players[0];
@@ -899,28 +899,70 @@ void Gomoku::testMinmax() {
 	// 	}
 	// }
 
+	//{
+	//	gomoku->currentPlayer = gomoku->players[0];
+	//	// gomoku->lastMoves.push_back(std::make_pair(3, 3));
+	//	gomoku->printState();
+	//	for (int i = 5; i >= 2; i--) {
+	//		gomoku->minmax->maxDepth = i;
+	//		int lines[][7] = {
+	//			{ -1, -1, -1, -1, -1, -1, -1 },
+	//			{ -1, -1,  1, -1, -1, -1, -1 },
+	//			{ -1, -1,  0,  1, -1, -1, -1 },
+	//			{ -1, -1,  0,  0,  1, -1, -1 },
+	//			{ -1, -1,  0, -1,  1, -1, -1 },
+	//			{ -1, -1, -1, -1, -1, -1, -1 },
+	//			{ -1, -1, -1, -1, -1, -1, -1 },
+	//		};
+
+	//		for (auto &line: lines) {
+	//			gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+	//		}
+
+	//		std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
+	//		gomoku->minmax->run();
+	//	}
+	//}
+
 	{
-		gomoku->currentPlayer = gomoku->players[0];
+		Gomoku* gomoku = new Gomoku(19, Player::Type::AI, Player::Type::AI);
+		gomoku->minmax = std::make_shared<Minmax>(*gomoku, 4);
+
+		gomoku->board = std::vector<std::vector<int>>();
+		gomoku->currentPlayer = gomoku->players[1];
 		// gomoku->lastMoves.push_back(std::make_pair(3, 3));
 		gomoku->printState();
-		for (int i = 5; i >= 2; i--) {
+		for (int i = 4; i >= 2; i--) {
 			gomoku->minmax->maxDepth = i;
-			int lines[][7] = {
-				{ -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1,  1, -1, -1, -1, -1 },
-				{ -1, -1,  0,  1, -1, -1, -1 },
-				{ -1, -1,  0,  0,  1, -1, -1 },
-				{ -1, -1,  0, -1,  1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1 },
+			int lines[][19] = {
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1,  0,  0,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1,  1,  1,  0,  1,  1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1,  1,  1,  1,  0,  1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1,  0,  0,  0,  1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 			};
 
-			for (auto &line: lines) {
-				gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
+			for (auto& line : lines) {
+				gomoku->board.push_back(std::vector<int>(std::begin(line), std::end(line)));
 			}
 
-			std::cout << "===== DEPTH " << i  << " ====="<< std::endl;
+			std::cout << "===== DEPTH " << i << " =====" << std::endl;
 			gomoku->minmax->run();
 		}
 	}
+
 }

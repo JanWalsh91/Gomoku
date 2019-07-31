@@ -46,9 +46,15 @@ int main(int argc, char *argv[]) {
 	}
 	if (runTestArgs) {
 		switch(args::get(runTestArgs)) {
-			case 0:
+			case 1:
 				Gomoku::testEvalLine();
 			break;
+			case 2:
+				Gomoku::testHeuristic();
+				break;
+			case 3:
+				Gomoku::testMinmax();
+				break;
 		}
 		return 0;
 	}
