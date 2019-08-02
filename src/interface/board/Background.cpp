@@ -23,7 +23,7 @@ void Background::setTexture(std::string pathToTexture) {
 	if (_texture.loadFromFile(pathToTexture)) {
 		this->shape->setTexture(&_texture);
 		this->shape->setFillColor(sf::Color::White);
-		this->shape->setTextureRect(sf::IntRect(0, 0, 3000, 3000));
+		this->shape->setTextureRect(sf::IntRect(0, 0, 1000, 1000));
 
 	}
 }
