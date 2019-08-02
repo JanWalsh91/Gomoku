@@ -128,7 +128,7 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 	// int distAroundLastMoves = 1;
 
-	int currentPlayer = this->currentPlayer->index;
+	// int currentPlayer = this->currentPlayer->index;
 
 	bool empty = true; 
 
@@ -202,18 +202,31 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 		return 0;
 	}
 
-	// if (player == this->heuristicPlayer->index) {
-		// Look for Minmax::victory conditions
-		if (currentStreakNum >= 5 && emptyCellCount == 0) {
-			std::cout << "SHOULD NOT BE HERE" << std::endl;
+	if (currentStreakNum >= 5 && emptyCellCount == 0) {
+		std::cout << "SHOULD NOT BE HERE" << std::endl;
+		return Minmax::INF_MAX / 2;
+	}
+
+	if (player == this->currentPlayer->index) { // YOUR TURN
+		// you win moar
+		if (currentStreakNum == 4) {
 			return Minmax::CERTAIN_VICTORY;
 		}
+		if (currentStreakNum == 3 && currentStreakPotential > 5 && !halfOpen && emptyCellCount < 2) {
+			return Minmax::CERTAIN_VICTORY / 3;
+		}
+
+	} else {
 		if (currentStreakNum == 4 && !halfOpen && emptyCellCount == 0) {
-			return Minmax::CERTAIN_VICTORY;
+			return Minmax::CERTAIN_VICTORY / 2;
 		}
-		int ret = static_cast<int>(pow((currentStreakNum - emptyCellCount), 3) * (halfOpen ? 1 : 2)) + currentStreakNum;  // give pat medal
-		// std::cout << "evalStreakScore: " << ret << std::endl;
-		return ret;
+	}
+
+	int ret = static_cast<int>(pow((currentStreakNum - emptyCellCount), 3) * (halfOpen ? 1 : 2)) + currentStreakNum;  // give pat medal
+	// std::cout << "evalStreakScore: " << ret << std::endl;
+	return ret;
+
+	// if (player == this->heuristicPlayer->index) {
 	// } else {
 		// Look for threats
 		// if (currentStreakNum >= 5 && emptyCellCount == 0) {
@@ -504,7 +517,7 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 void Gomoku::printBoard() {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
-			std::cout << std::setw(6) << this->board[j][i] << " ";
+			std::cout << std::setw(6) << (this->board[j][i] == -1 ? "." : std::to_string(this->board[j][i])) << " ";
 		}
 		std::cout << std::endl;
 	}
@@ -540,7 +553,7 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int>
 			if (j == pos.first && i == pos.second) {
 				std::cout << "\033[1;31m" << std::setw(6) << value << "\033[0m" << " ";
 			} else {
-				std::cout << std::setw(6) << value << " ";
+				std::cout << std::setw(6) << (board[j][i] == -1 ? "." : value) << " ";
 			}
 		}
 		
@@ -691,12 +704,6 @@ void Gomoku::testEvalLine() {
 void Gomoku::testHeuristic() {
 	std::cout << "testHeuristic" << std::endl;
 	
-	Gomoku* gomoku = new Gomoku(7, Player::Type::AI, Player::Type::AI);
-
-	gomoku->board = std::vector<std::vector<int>>();
-
-	gomoku->currentPlayer = gomoku->players[0];
-
 	// {
 	// 	int lines[][7] = {
 	// 		{ -1, -1, -1, -1, -1, -1, -1 },
@@ -776,15 +783,96 @@ void Gomoku::testHeuristic() {
 		// 	{  0, -1, -1, -1, -1, -1,  0 },
 		// 	{  0,  0,  0,  0,  0,  0,  0 },
 		// };
-		int lines[][7] = {
-			{  0,  0,  0,  0,  0,  0,  0 },
-			{  0, -1, -1,  1, -1, -1,  0 },
-			{  0, -1,  1,  0,  1, -1,  0 },
-			{  0, -1, -1,  1, -1, -1,  0 },
-			{  0, -1, -1,  0, -1, -1,  0 },
-			{  0, -1, -1,  1, -1, -1,  0 },
-			{  0,  0,  0,  0,  0,  0,  0 },
+		// int lines[][7] = {
+		// 	{  0,  0,  0,  0,  0,  0,  0 },
+		// 	{  0, -1, -1,  1, -1, -1,  0 },
+		// 	{  0, -1,  1,  0,  1, -1,  0 },
+		// 	{  0, -1, -1,  1, -1, -1,  0 },
+		// 	{  0, -1, -1,  0, -1, -1,  0 },
+		// 	{  0, -1, -1,  1, -1, -1,  0 },
+		// 	{  0,  0,  0,  0,  0,  0,  0 },
+		// };
+
+		// int lines[][9] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1,  0,  0,  0,  0, -1, -1, -1 },
+		// 	{ -1, -1, -1,  1,  0,  0,  0, -1, -1 },
+		// 	{ -1, -1,  1,  1,  0,  1,  1, -1, -1 },
+		// 	{ -1, -1,  1,  1,  1,  0,  1, -1, -1 },
+		// 	{ -1, -1,  1,  0,  0,  0,  1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// };
+
+		// int lines[][9] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1,  0,  0,  0,  0, -1, -1, -1 },
+		// 	{ -1, -1, -1,  1,  0,  0,  0, -1, -1 },
+		// 	{ -1, -1,  1,  1,  0,  1,  1, -1, -1 },
+		// 	{ -1, -1,  1,  1,  1,  0,  1, -1, -1 },
+		// 	{ -1, -1,  1,  0,  0,  0,  1, -1, -1 },
+		// 	{ -1, -1,  1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// };
+		// int lines[][9] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1,  1,  1,  1,  1, -1, -1, -1 },
+		// 	{ -1, -1, -1,  0,  1,  1,  1, -1, -1 },
+		// 	{ -1, -1,  0,  0,  1,  0,  0, -1, -1 },
+		// 	{ -1, -1,  0,  0,  0,  1,  0, -1, -1 },
+		// 	{ -1, -1,  0,  1,  1,  1,  0, -1, -1 },
+		// 	{ -1, -1,  0, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// };
+
+		// int lines[][9] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1,  1,  1,  1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1,  0,  0, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// };
+
+		// int lines[][9] = {
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1,  0,  0,  0, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1,  1,  1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+		// };
+
+		int lines[][10] = {
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1,  1, -1,  1,  0, -1, -1, -1 },
+			{ -1, -1, -1, -1,  1,  0,  0, -1, -1, -1 },
+			{ -1, -1, -1, -1,  1,  0, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1,  0, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 		};
+
+
+
+		Gomoku* gomoku = new Gomoku(10, Player::Type::AI, Player::Type::AI);
+
+		gomoku->board = std::vector<std::vector<int>>();
+
+		gomoku->currentPlayer = gomoku->players[1];
+
 
 		for (auto &line: lines) {
 			gomoku->board.push_back(std::vector<int> (std::begin(line), std::end(line)));
@@ -803,6 +891,9 @@ void Gomoku::testHeuristic() {
 		// 	std::make_pair(2, 3),
 		// 	std::make_pair(4, 3)
 		// };
+		int bestValue = Minmax::INF_MIN;
+		std::pair<int, int> bestMove;
+
 		for (auto &move: moves) {
 			// std::cout << "move: [" << move.first << ", " << move.second << "]" << std::endl << std::endl;   
 			auto undoMoves = gomoku->doMove(move);
@@ -811,9 +902,16 @@ void Gomoku::testHeuristic() {
 			
 			heuristicValues[move.first][move.second] = ret;
 
+			if (ret > bestValue) {
+				bestValue = ret;
+				bestMove = move;
+			}
+
 			gomoku->undoMove(undoMoves);
 		}
-		gomoku->printBoard(heuristicValues);
+		gomoku->printBoard();
+		std::cout << "==========" << std::endl;
+		gomoku->printBoard(heuristicValues, bestMove);
 		std::cout << "=======\n";
 	}
 
@@ -924,9 +1022,39 @@ void Gomoku::testMinmax() {
 	//	}
 	//}
 
+	// {
+	// 	Gomoku* gomoku = new Gomoku(9, Player::Type::AI, Player::Type::AI);
+	// 	gomoku->minmax = std::make_shared<Minmax>(*gomoku, 3);
+
+	// 	gomoku->board = std::vector<std::vector<int>>();
+	// 	gomoku->currentPlayer = gomoku->players[1];
+	// 	// gomoku->lastMoves.push_back(std::make_pair(3, 3));
+	// 	gomoku->printState();
+	// 	for (int i = 3; i >= 3; i--) {
+	// 		gomoku->minmax->maxDepth = i;
+	// 		int lines[][9] = {
+	// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1,  0,  0,  0, -1, -1, -1 },
+	// 			{ -1, -1, -1,  1,  0,  0,  0, -1, -1 },
+	// 			{ -1, -1,  1,  1,  0,  1,  1, -1, -1 },
+	// 			{ -1, -1,  1,  1,  1,  0,  1, -1, -1 },
+	// 			{ -1, -1, -1,  0,  0,  0,  1, -1, -1 },
+	// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 			{ -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+	// 		};
+
+	// 		for (auto& line : lines) {
+	// 			gomoku->board.push_back(std::vector<int>(std::begin(line), std::end(line)));
+	// 		}
+
+	// 		std::cout << "===== DEPTH " << i << " =====" << std::endl;
+	// 		gomoku->minmax->run();
+	// 	}
+	// }
 	{
-		Gomoku* gomoku = new Gomoku(19, Player::Type::AI, Player::Type::AI);
-		gomoku->minmax = std::make_shared<Minmax>(*gomoku, 4);
+		Gomoku* gomoku = new Gomoku(10, Player::Type::AI, Player::Type::AI);
+		gomoku->minmax = std::make_shared<Minmax>(*gomoku, 3);
 
 		gomoku->board = std::vector<std::vector<int>>();
 		gomoku->currentPlayer = gomoku->players[1];
@@ -934,26 +1062,17 @@ void Gomoku::testMinmax() {
 		gomoku->printState();
 		for (int i = 4; i >= 2; i--) {
 			gomoku->minmax->maxDepth = i;
-			int lines[][19] = {
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1,  0,  0,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1,  1,  1,  0,  1,  1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1,  1,  1,  1,  0,  1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1,  0,  0,  0,  1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			int lines[][10] = {
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1,  1, -1,  1,  0, -1, -1, -1 },
+				{ -1, -1, -1, -1,  1,  0,  0, -1, -1, -1 },
+				{ -1, -1, -1, -1,  1,  0, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  0, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 			};
 
 			for (auto& line : lines) {
