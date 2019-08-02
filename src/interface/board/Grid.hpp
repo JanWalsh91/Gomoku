@@ -27,4 +27,7 @@ private:
 	float cellSize;
 	float margin;
 
+	sf::Texture _blackStoneTexture;
+	sf::Texture _whiteStoneTexture;
+
 };

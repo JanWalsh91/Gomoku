@@ -18,6 +18,16 @@ Grid::Grid(int size, float boardSize, float margin) : size(size), boardSize(boar
 		gridLines.push_back(Hline);
 		gridLines.push_back(Vline);
 	}
+
+	if (_blackStoneTexture.loadFromFile("resources/textures/black_stone.png")) {
+		std::cout << "Set smooth" << std::endl;
+		_blackStoneTexture.setSmooth(false);
+	}
+	if (_whiteStoneTexture.loadFromFile("resources/textures/white_stone.png")) {
+		std::cout << "Set smooth" << std::endl;
+		_whiteStoneTexture.setSmooth(false);
+	}
+	
 }
 
 /**
@@ -37,9 +47,17 @@ bool Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
 	auto stone = std::make_shared<sf::CircleShape>(cellSize / 2.0f);
 	//stone->move(margin + (pos.second * cellSize), margin + (pos.first * cellSize));
 	stone->move(margin + (pos.second * cellSize) + cellSize / 2.0f, margin + (pos.first * cellSize) + cellSize / 2.0f);
+	if (color == sf::Color::Black) {
+		std::cout << "Set Texture here\n";
+		stone->setTexture(&_blackStoneTexture);
+	}
+	else {
+		stone->setTexture(&_whiteStoneTexture);
+	}
+	stone->setTextureRect(sf::IntRect(0, 0, 545, 545));
 
 	//stone->move(margin + cellSize / 2.0f + (pos.second * cellSize), margin + cellSize / 2.0f + (pos.first * cellSize));
-	stone->setFillColor(color);
+	//stone->setFillColor(color);
 
 	stones[pos] = stone;
 	return true;

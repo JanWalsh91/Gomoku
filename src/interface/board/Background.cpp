@@ -18,3 +18,12 @@ void Background::click(sf::Vector2i mousePosition) {
 void Background::hover(sf::Vector2i mousePosition) {
 
 }
+
+void Background::setTexture(std::string pathToTexture) {
+	if (_texture.loadFromFile(pathToTexture)) {
+		this->shape->setTexture(&_texture);
+		this->shape->setFillColor(sf::Color::White);
+		this->shape->setTextureRect(sf::IntRect(0, 0, 3000, 3000));
+
+	}
+}

@@ -4,7 +4,7 @@
 
 SFMLWindow::SFMLWindow(int width, int height, const std::string& title): width(width), height(height), title(title) {
 	sf::ContextSettings settings;
-	settings.antialiasingLevel = 8;
+	settings.antialiasingLevel = 16;
 	
 	this->window.create(sf::VideoMode(width, height), title, sf::Style::Close, settings);
 }
