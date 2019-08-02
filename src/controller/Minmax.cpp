@@ -178,7 +178,15 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 
 			if (root) {
-				// this->gomoku.printBoard();
+				for (auto lastMove : this->gomoku.lastMoves) {
+					if (lastMove.first != -1) {
+						if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
+							ret += Minmax::PROXIMITY_BONUNS;
+							break;
+						}
+					}
+				}
+
 				if (ret > this->bestValue) {
 					this->bestValue = ret;
 					this->bestMove = move.second;

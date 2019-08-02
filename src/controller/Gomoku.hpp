@@ -59,7 +59,7 @@ public:
 	std::shared_ptr<Player> currentPlayer;
 	std::shared_ptr<Player> heuristicPlayer;
 	bool playing;
-	// std::vector<std::pair<int, int>> lastMoves;
+	std::vector<std::pair<int, int>> lastMoves;
 	std::shared_ptr<Minmax> minmax;
 	int remainingStones;
 	int endState;

@@ -16,7 +16,7 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 
 	this->currentPlayer = this->players[0];
 	this->heuristicPlayer = nullptr;
-	// this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 
 	this->rules.push_back(new NoDoubleFreeThree());
 }
@@ -25,7 +25,7 @@ void Gomoku::reset() {
 	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
 	this->currentPlayer = this->players[0];
 	this->heuristicPlayer = nullptr;
-	// this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
+	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 	this->endState = State::PLAYING;
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
@@ -94,12 +94,8 @@ std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
 
 	std::pair<int, int> pos = std::make_pair(y, x);
 
-	// std::cout << "==== THEN ==== " << std::endl;
-	// this->gomoku->printBoard(this->gomoku->board, pos);
+
 	this->board[y][x] = playerIndex;
-	// std::cout << "===== NOW ==== " << std::endl;
-	// this->gomoku->printBoard(this->gomoku->board, pos);
-	// this->lastMoves[playerIndex] = pos;
 
 	actions.push_back(new ActionUpdateBoard(pos, -1));
 
@@ -458,7 +454,6 @@ int Gomoku::heuristicByPlayer(int player) {
 		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i);
 		// std::cout << "score6: => " << score << std::endl;
 	}
-
 	return score;
 }
 
@@ -497,6 +492,7 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	
 	ActionUpdateBoard* aub;
 	ActionSetEndState* aes;
+
 	for (AAction* action: actions) {
 		switch(action->type) {
 			case AAction::Type::UPDATE_BOARD:

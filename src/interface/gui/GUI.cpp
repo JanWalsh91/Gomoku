@@ -138,6 +138,7 @@ void GUI::setup() {
 			if (!grid->placeStoneAt(pos, gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White)) {
 				return ;
 			}
+			gomoku->lastMoves[gomoku->currentPlayer->index] = pos;
 			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
 			gomoku->switchPlayer();
 			this->nextTurn();
