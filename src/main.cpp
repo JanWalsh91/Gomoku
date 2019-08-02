@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
 				if (!gui->place(pos.first, pos.second)) {
 					return ;
 				}
-				gomoku->lastMoves[gomoku->currentPlayer->index] = pos;
-				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
+				gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
+				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
 				gomoku->switchPlayer();
 				gomoku->nextTurn();
 				gui->nextTurn();

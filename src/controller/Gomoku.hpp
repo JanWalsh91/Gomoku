@@ -22,8 +22,8 @@ public:
 	static void testHeuristic();
 	static void testMinmax();
 
-	std::vector<AAction*> place(int& y, int& x, int& playerIndex);
-	void place(int& y, int& x);
+	std::vector<AAction*> place(int y, int x, int playerIndex);
+	void place(int y, int x);
 	void switchPlayer();
 	void reset();
 
@@ -32,7 +32,7 @@ public:
 	void printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos);
 	void printState();
 
-	int checkWinCondition(std::pair<int, int> pos, int& playerIndex);
+	int checkWinCondition(std::pair<int, int> pos, int playerIndex);
 
 	int heuristic();
 	int heuristicByPlayer(int player);
@@ -68,3 +68,4 @@ public:
 	int turn;
 
 };
+

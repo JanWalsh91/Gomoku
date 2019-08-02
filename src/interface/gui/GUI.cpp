@@ -18,7 +18,7 @@ void GUI::setup() {
 
 		if (gomoku->playing) {
 			auto circle = sf::CircleShape(grid->getCellSize() / 2.0f);
-			circle.setFillColor(gomoku->currentPlayer->index == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
+			circle.setFillColor(gomoku->currentPlayer->getIndex() == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
 			circle.setOutlineThickness(1.0f);
 			circle.setOutlineColor(sf::Color::Black);
 			circle.setPosition(mousePosition.y, mousePosition.x);
@@ -135,11 +135,11 @@ void GUI::setup() {
 				return;
 			}
 			auto pos = grid->windowToGridCoord(mousePosition);
-			if (!grid->placeStoneAt(pos, gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White)) {
+			if (!grid->placeStoneAt(pos, gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White)) {
 				return ;
 			}
-			gomoku->lastMoves[gomoku->currentPlayer->index] = pos;
-			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->index);
+			gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
+			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
 			gomoku->switchPlayer();
 			this->nextTurn();
 			gomoku->nextTurn();
@@ -172,7 +172,7 @@ void GUI::setup() {
 }
 
 bool GUI::place(int xPos, int yPos) {
-	return grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+	return grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
 }
 
 void GUI::nextTurn() {
@@ -186,8 +186,8 @@ void GUI::nextTurn() {
 		}
 	}
 	else {
-		currentPlayerValue->setText(gomoku->currentPlayer->index == 0 ? "Black" : "White");
-		currentPlayerValue->setFontColor(gomoku->currentPlayer->index == 0 ? sf::Color::Black : sf::Color::White);
+		currentPlayerValue->setText(gomoku->currentPlayer->getIndex() == 0 ? "Black" : "White");
+		currentPlayerValue->setFontColor(gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
 		messageValue->setText(std::to_string(gomoku->getTurn()));
 	}
 }

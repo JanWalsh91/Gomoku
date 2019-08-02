@@ -25,8 +25,6 @@
 #include "ActionIncrementCapture.hpp"
 #include "ActionSetEndState.hpp"
 
-#include "ARule.hpp"
-#include "NoDoubleFreeThree.hpp"
 #include "IRenderable.hpp"
 #include "Background.hpp"
 #include "Grid.hpp"
@@ -37,5 +35,9 @@
 #include "Gomoku.hpp"
 #include "SFMLWindow.hpp"
 #include "Minmax.hpp"
+
+#include "ARule.hpp"
+#include "NoDoubleFreeThree.hpp"
+#include "Captures.hpp"
 
 #include "GUI.hpp"

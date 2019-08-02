@@ -30,6 +30,8 @@ void Gomoku::reset() {
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
 	this->turn = 0;
+	this->players[0]->reset();
+	this->players[1]->reset();
 }
 
 void Gomoku::nextTurn() {
@@ -41,7 +43,7 @@ int Gomoku::getTurn() const {
 }
 
 
-int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
+int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 
 	if (this->remainingStones <= 0) {
 		return State::DRAW;
@@ -89,7 +91,7 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int& playerIndex) {
 	return State::PLAYING;
 }
 
-std::vector<AAction*> Gomoku::place(int& y, int& x, int& playerIndex) {
+std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 	std::vector<AAction*> actions;
 
 	std::pair<int, int> pos = std::make_pair(y, x);
@@ -203,7 +205,7 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 		return Minmax::INF_MAX / 2;
 	}
 
-	if (player == this->currentPlayer->index) { // YOUR TURN
+	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
 		// you win moar
 		if (currentStreakNum == 4) {
 			return Minmax::CERTAIN_VICTORY;
@@ -464,7 +466,7 @@ int Gomoku::heuristic() {
 	int score0 = this->heuristicByPlayer(0);
 	int score1 = this->heuristicByPlayer(1);
 
-	return this->heuristicPlayer->index == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
+	return this->heuristicPlayer->getIndex() == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
 
 	// return this->heuristicPlayer->index == 0 ? score0 : score1;
 	// return finalScore;
@@ -472,7 +474,7 @@ int Gomoku::heuristic() {
 
 
 std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
-	std::vector<AAction*> actions = this->place(pos.first, pos.second, this->currentPlayer->index);
+	std::vector<AAction*> actions = this->place(pos.first, pos.second, this->currentPlayer->getIndex());
 	this->switchPlayer();
 	return actions;
 }
@@ -560,7 +562,7 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int>
 void Gomoku::printState() {
 	std::cout << "====================== STATE ====================== " << std::endl;
 	std::cout << "Size: " << this->size << std::endl;
-	std::cout << "Current Player Index: " << this->currentPlayer->index << std::endl;
+	std::cout << "Current Player Index: " << this->currentPlayer->getIndex() << std::endl;
 	// std::cout << "Heuristic Player Index: " << this->heuristicPlayer->index << std::endl;
 	// std::cout << "Last Moves: " << this->lastMoves[this->lastMoves.size() - 1].first << ", " << this->lastMoves[this->lastMoves.size() - 1].second << std::endl;
 	std::cout << "EndState: " << this->endState << std::endl;

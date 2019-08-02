@@ -9,7 +9,7 @@ std::ostream & operator << (std::ostream &out, std::pair<int, int> &c) {
 // this->minmaxAlphaBeta(depth, −∞, +∞, TRUE)
 std::pair<int, int> Minmax::run() {
 	this->gomoku.heuristicPlayer = this->gomoku.currentPlayer;
-	std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->index << std::endl;
+	std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->getIndex() << std::endl;
 	
 	this->bestMove = std::make_pair(-1, -1);
 	this->bestValue = Minmax::INF_MIN;
@@ -44,7 +44,7 @@ std::pair<int, int> Minmax::run() {
 
 
 	this->gomoku.printBoard(this->gomoku.board, this->bestMove);
-	std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->index << std::endl;
+	std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->getIndex() << std::endl;
 	this->gomoku.printBoard(this->heuristicValues, this->bestMove);
 	std::cout << std::endl;
 

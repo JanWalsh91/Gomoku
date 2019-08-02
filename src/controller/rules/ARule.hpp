@@ -15,14 +15,14 @@ public:
 		(void)pos;
 		return true;
 	}
-	virtual std::vector<AAction*> triggerEffects(Gomoku& gomoku, std::pair<int, int>& pos) {
+	virtual std::vector<AAction*> triggerEffects(const Gomoku& gomoku, std::pair<int, int>& pos) {
 		(void)gomoku;
 		(void)pos;
 		return std::vector<AAction*>();
 	}
-	virtual bool isWinningCondition(Gomoku& gomoku) {
+	virtual int checkEndGame(const Gomoku& gomoku) {
 		(void)gomoku;
-		return false;
+		return -1;
 	}
 
 };

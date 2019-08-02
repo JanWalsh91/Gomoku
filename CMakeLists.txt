@@ -59,8 +59,9 @@ set(
 	src/interface/gui/GUI.cpp
 	src/controller/Player.cpp
 	src/controller/Gomoku.cpp
-	src/controller/Minmax.cpp
 	src/controller/rules/NoDoubleFreeThree.cpp
+	src/controller/rules/Captures.cpp
+	src/controller/Minmax.cpp
 )
 
 set(
@@ -73,9 +74,11 @@ set(
 	src/interface/gui/TextBox.hpp
 	src/interface/gui/Colors.hpp
 	src/controller/Player.hpp
+	src/controller/rules/ARule.hpp
 	src/controller/Gomoku.hpp
 	src/controller/Minmax.hpp
 	src/controller/rules/NoDoubleFreeThree.hpp
+	src/controller/rules/Captures.hpp
 	src/interface/gui/GUI.hpp
 	src/Common.hpp
 )

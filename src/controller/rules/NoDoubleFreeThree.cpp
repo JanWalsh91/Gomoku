@@ -13,7 +13,7 @@ bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move
 	int numFreeThrees = 0;
 	std::vector<int> line(9);
 	std::vector<int> subLine(4);
-	int currentPlayer = gomoku.currentPlayer->index;
+	int currentPlayer = gomoku.currentPlayer->getIndex();
 	int otherPlayer = currentPlayer == 0 ? 1 : 0;
 	int lineIndex;
 	std::pair<int, int> pos;
