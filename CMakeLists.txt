@@ -85,4 +85,4 @@ set(
 
 add_executable(gomoku ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories (gomoku PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(gomoku sfml-graphics)
+target_link_libraries(gomoku sfml-graphics sfml-audio)

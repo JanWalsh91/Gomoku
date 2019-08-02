@@ -16,6 +16,7 @@
 #include <SFML/Graphics/Shape.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 
 #include "Colors.hpp"

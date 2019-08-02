@@ -1,8 +1,17 @@
 #include "GUI.hpp"
 
-GUI::GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window): gomoku(gomoku), window(window) {
+const int GUI::NbStoneSoundEffects = 3;
+
+GUI::GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window): gomoku(gomoku), window(window), _currentPlayer(0) {
 	TextBox::loadFont();
 
+	for (int i = 1; i <= NbStoneSoundEffects; i++) {
+		sf::SoundBuffer buffer;
+
+		if (buffer.loadFromFile("resources/sounds/stone_sound_" + std::to_string(i) + ".wav")) {
+			_stoneSoundEffects.push_back(buffer);
+		}
+	}
 }
 
 void GUI::setup() {
@@ -18,7 +27,7 @@ void GUI::setup() {
 
 		if (gomoku->playing) {
 			auto circle = sf::CircleShape(grid->getCellSize() / 2.0f);
-			circle.setFillColor(gomoku->currentPlayer->getIndex() == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
+			circle.setFillColor(_currentPlayer == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
 			circle.setOutlineThickness(1.0f);
 			circle.setOutlineColor(sf::Color::Black);
 			circle.setPosition(mousePosition.y, mousePosition.x);
@@ -95,6 +104,10 @@ void GUI::setup() {
 	playButton->setBorder(2.5f, sf::Color::Black);
 
 	playButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+		if (gomoku->minmax->isRunning()) {
+			std::cout << "Pause the game first" << std::endl;
+			return;
+		}
 		if (gomoku->playing || gomoku->endState != -1) {
 			playButton->setText("START !");
 			gomoku->playing = false;
@@ -130,12 +143,12 @@ void GUI::setup() {
 
 	grid->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		if (gomoku->playing) {
-			if (gomoku->currentPlayer->isAI()) {
+			if (gomoku->minmax->isRunning()) {
 				std::cout << "AI Turn, be patient" << std::endl;
 				return;
 			}
 			auto pos = grid->windowToGridCoord(mousePosition);
-			if (!grid->placeStoneAt(pos, gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White)) {
+			if (!place(pos.first, pos.second)) {
 				return ;
 			}
 			gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
@@ -172,7 +185,12 @@ void GUI::setup() {
 }
 
 bool GUI::place(int xPos, int yPos) {
-	return grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
+	bool canPlace = grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
+	if (canPlace) {
+		_sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
+		_sfx.play();
+	}
+	return canPlace;
 }
 
 void GUI::nextTurn() {
@@ -190,6 +208,7 @@ void GUI::nextTurn() {
 		currentPlayerValue->setFontColor(gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
 		messageValue->setText(std::to_string(gomoku->getTurn()));
 	}
+	_currentPlayer = _currentPlayer == 0 ? 1 : 0;
 }
 
 void GUI::reset() {

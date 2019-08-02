@@ -1,13 +1,19 @@
 #include "Minmax.hpp"
 
-Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku) {}
+Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku), _running(false) {}
 std::ostream & operator << (std::ostream &out, std::pair<int, int> &c) {
     out << "[" << c.first << ", " << c.second << "]";
     return out;
 }
 
+bool Minmax::isRunning() const {
+	return this->_running;
+}
+
 // this->minmaxAlphaBeta(depth, −∞, +∞, TRUE)
 std::pair<int, int> Minmax::run() {
+	this->_running = true;
+
 	this->gomoku.heuristicPlayer = this->gomoku.currentPlayer;
 	std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->getIndex() << std::endl;
 	
@@ -47,6 +53,8 @@ std::pair<int, int> Minmax::run() {
 	std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->getIndex() << std::endl;
 	this->gomoku.printBoard(this->heuristicValues, this->bestMove);
 	std::cout << std::endl;
+
+	this->_running = false;
 
 	return this->bestMove;
 }
@@ -178,14 +186,14 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 
 			if (root) {
-				for (auto lastMove : this->gomoku.lastMoves) {
-					if (lastMove.first != -1) {
-						if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
-							ret += Minmax::PROXIMITY_BONUNS;
-							break;
-						}
-					}
-				}
+				//for (auto lastMove : this->gomoku.lastMoves) {
+				//	if (lastMove.first != -1) {
+				//		if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
+				//			ret += Minmax::PROXIMITY_BONUNS;
+				//			break;
+				//		}
+				//	}
+				//}
 
 				if (ret > this->bestValue) {
 					this->bestValue = ret;

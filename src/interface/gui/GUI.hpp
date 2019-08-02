@@ -47,4 +47,13 @@ private:
 
 	std::shared_ptr<Gomoku> gomoku;
 	std::shared_ptr<SFMLWindow> window;
+
+	int _currentPlayer;
+	std::vector<sf::SoundBuffer> _stoneSoundEffects;
+	sf::Sound _sfx;
+
+	static const int NbStoneSoundEffects;
+
+
+
 };

@@ -1,6 +1,7 @@
 #include "Common.hpp"
 
 int main(int argc, char *argv[]) {
+	std::srand(std::time(nullptr));
 
 	args::ArgumentParser parser("This is a test program.", "This goes after the options.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -74,12 +75,19 @@ int main(int argc, char *argv[]) {
 		bool pause = false;
 		bool nextStep = false;
 
-		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn]() mutable {
+		std::future<std::pair<int, int>> future;
 
-			if (gomoku->playing && gomoku->currentPlayer->isAI() && (nextStep || !pause)) {
-				std::cout << "AI turn" << std::endl;
-				auto start = std::chrono::high_resolution_clock::now();
-				auto pos = gomoku->minmax->run();
+		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future]() mutable {
+			auto start = std::chrono::high_resolution_clock::now();
+
+			if (future.valid() && future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+				std::cout << "READY !" << std::endl;
+				if (gomoku->hasBeenReset()) {
+					std::cout << "Has been reset in between, whoops!" << std::endl;
+					gomoku->clearReset();
+					return ;
+				}
+				auto pos = future.get();
 				auto end = std::chrono::high_resolution_clock::now();
 				std::cout << "pos: " << pos.first << ", " << pos.second << ", in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 				if (!gui->place(pos.first, pos.second)) {
@@ -95,6 +103,14 @@ int main(int argc, char *argv[]) {
 				if (maxTurn !=-1 && gomoku->getTurn() >= maxTurn) {
 					pause = true;
 				}
+			}
+			if (gomoku->playing && gomoku->currentPlayer->isAI() && (nextStep || !pause) && !gomoku->minmax->isRunning()) {
+				std::cout << "AI turn" << std::endl;
+				start = std::chrono::high_resolution_clock::now();
+
+				std::cout << "Before async" << std::endl;
+				future = std::async(std::launch::async, &Minmax::run, gomoku->minmax);
+				std::cout << "After async" << std::endl;
 			}
 		}), [&pause, &nextStep](sf::Event event) mutable {
 			if (event.type == sf::Event::KeyPressed) {

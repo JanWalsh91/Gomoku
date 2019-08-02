@@ -32,6 +32,10 @@ void Gomoku::reset() {
 	this->turn = 0;
 	this->players[0]->reset();
 	this->players[1]->reset();
+	
+	if (this->minmax->isRunning()) {
+		_hasBeenReset = true;
+	}
 }
 
 void Gomoku::nextTurn() {
@@ -42,6 +46,13 @@ int Gomoku::getTurn() const {
 	return this->turn;
 }
 
+bool Gomoku::hasBeenReset() const {
+	return _hasBeenReset;
+}
+
+void Gomoku::clearReset() {
+	this->_hasBeenReset = false;
+}
 
 int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 
@@ -459,14 +470,15 @@ int Gomoku::heuristicByPlayer(int player) {
 	return score;
 }
 
-float hPlayerMultiplier = 1;
+//float hPlayerMultiplier = 1;
 
 int Gomoku::heuristic() {
 
 	int score0 = this->heuristicByPlayer(0);
 	int score1 = this->heuristicByPlayer(1);
 
-	return this->heuristicPlayer->getIndex() == 0 ? hPlayerMultiplier * score0 - score1 :  hPlayerMultiplier * score1 - score0;
+	//return this->heuristicPlayer->getIndex() == 0 ? hPlayerMultiplier * score0 - score1 : hPlayerMultiplier * score1 - score0;
+	return this->heuristicPlayer->getIndex() == 0 ? score0 - score1 : score1 - score0;
 
 	// return this->heuristicPlayer->index == 0 ? score0 : score1;
 	// return finalScore;

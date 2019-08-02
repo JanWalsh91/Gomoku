@@ -18,6 +18,8 @@ public:
 
 	std::vector<std::vector<int>> heuristicValues;
 
+	bool isRunning() const;
+
 	static const int INF_MIN = std::numeric_limits<int>::min() + 1;
 	static const int INF_MAX = std::numeric_limits<int>::max();
 	static const int PROXIMITY_BONUNS = 10;
@@ -31,6 +33,8 @@ private:
 	int minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue);
 
 	std::vector<std::pair<int, std::pair<int, int>>> getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const;
+	
+	bool _running;
 
 };
 

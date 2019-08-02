@@ -44,9 +44,12 @@ public:
 	void undoMove(std::vector<AAction*>& actions);
 
 	bool canPlace(std::pair<int, int>) const;
+	bool hasBeenReset() const;
+	void clearReset();
 
 	void nextTurn();
 	int getTurn() const;
+
 
 // private:
 
@@ -66,6 +69,7 @@ public:
 	int winStreakLength;
 
 	int turn;
+	bool _hasBeenReset;
 
 };
 
