@@ -44,6 +44,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/board)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/interface/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller/rules)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/controller/actions)
 
 
 
@@ -61,6 +62,11 @@ set(
 	src/controller/Gomoku.cpp
 	src/controller/rules/NoDoubleFreeThree.cpp
 	src/controller/rules/Captures.cpp
+	src/controller/actions/AAction.cpp
+	src/controller/actions/ActionUpdateBoard.cpp
+	src/controller/actions/ActionSetEndState.cpp
+	src/controller/actions/ActionIncrementCapture.cpp
+	src/controller/actions/ActionDecrementCapture.cpp
 	src/controller/Minmax.cpp
 )
 
@@ -79,6 +85,11 @@ set(
 	src/controller/Minmax.hpp
 	src/controller/rules/NoDoubleFreeThree.hpp
 	src/controller/rules/Captures.hpp
+	src/controller/actions/AAction.hpp
+	src/controller/actions/ActionUpdateBoard.hpp
+	src/controller/actions/ActionSetEndState.hpp
+	src/controller/actions/ActionIncrementCapture.hpp
+	src/controller/actions/ActionDecrementCapture.hpp
 	src/interface/gui/GUI.hpp
 	src/Common.hpp
 )

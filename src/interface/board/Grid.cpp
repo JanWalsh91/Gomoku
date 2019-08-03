@@ -33,20 +33,17 @@ Grid::Grid(int size, float boardSize, float margin) : size(size), boardSize(boar
 /**
 	Places a stone at the position pos. Pos reprensents the indices in the grid (0, 0), (1, 2), ...
 */
-bool Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
+void Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
 
-	if (stones.find(pos) != stones.end()) {
-		std::cout << "Error, already stone here" << std::endl;
-		return false;
-	}
 	if (pos.first < 0 || pos.second < 0 || pos.first >= size || pos.second >= size) {
 		std::cout << "Error, wrong position" << std::endl;
-		return false;
+		return ;
 	}
 
 	auto stone = std::make_shared<sf::CircleShape>(cellSize / 2.0f);
-	//stone->move(margin + (pos.second * cellSize), margin + (pos.first * cellSize));
+
 	stone->move(margin + (pos.second * cellSize) + cellSize / 2.0f, margin + (pos.first * cellSize) + cellSize / 2.0f);
+
 	if (color == sf::Color::Black) {
 		stone->setTexture(&_blackStoneTexture);
 	}
@@ -55,11 +52,11 @@ bool Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
 	}
 	stone->setTextureRect(sf::IntRect(0, 0, 545, 545));
 
-	//stone->move(margin + cellSize / 2.0f + (pos.second * cellSize), margin + cellSize / 2.0f + (pos.first * cellSize));
-	//stone->setFillColor(color);
-
 	stones[pos] = stone;
-	return true;
+}
+
+void Grid::removeStoneAt(std::pair<int, int> pos) {
+	stones.erase(pos);
 }
 
 std::pair<int, int> Grid::windowToGridCoord(sf::Vector2i mousePosition) {

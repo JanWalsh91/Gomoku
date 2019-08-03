@@ -3,6 +3,7 @@
 #include "Common.hpp"
 
 class Gomoku;
+class AAction;
 
 class ARule {
 
@@ -15,7 +16,7 @@ public:
 		(void)pos;
 		return true;
 	}
-	virtual std::vector<AAction*> triggerEffects(const Gomoku& gomoku, std::pair<int, int>& pos) {
+	virtual std::vector<AAction*> triggerEffects(Gomoku& gomoku, std::pair<int, int>& pos) {
 		(void)gomoku;
 		(void)pos;
 		return std::vector<AAction*>();

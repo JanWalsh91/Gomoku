@@ -18,7 +18,10 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 
-	this->rules.push_back(new NoDoubleFreeThree());
+	this->rules = {
+		new NoDoubleFreeThree(),
+		new Captures()
+	};
 }
 
 void Gomoku::reset() {
@@ -58,6 +61,13 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 
 	if (this->remainingStones <= 0) {
 		return State::DRAW;
+	}
+
+	for (auto rule: rules) {
+		int state = rule->checkEndGame(*this);
+		if (state != State::PLAYING) {
+			return state;
+		}
 	}
 
 	std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> lines = {
@@ -102,17 +112,55 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 	return State::PLAYING;
 }
 
+void Gomoku::updateBoardCallbacks(std::pair<int, int> pos, int value) {
+	std::cout << "updateBoardCallbacks, " << pos << " = " << value << std::endl;
+	if (minmax->isRunning()) {
+		std::cout << "minmax->isRunning" << std::endl;
+		return ;
+	}
+	for (auto& callback: _updateBoardCallbacks) {
+		std::cout << "CALLING CALBACK" << std::endl;
+		callback(pos, value);
+	}
+}
+
+void Gomoku::captureCallbacks(int playerIndex) {
+	if (minmax->isRunning()) {
+		std::cout << "minmax->isRunning" << std::endl;
+		return ;
+	}
+	for (auto& callback: _captureCallbacks) {
+		std::cout << "CALLING CALBACK" << std::endl;
+		callback(playerIndex, players[playerIndex]->getCaptures());
+	}
+}
+
+void Gomoku::onUpdateBoard(std::function<void(std::pair<int, int>, int)> f) {
+	_updateBoardCallbacks.push_back(f);
+}
+
+void Gomoku::onCapture(std::function<void(int playerIndex, int value)> f) {
+	_captureCallbacks.push_back(f);
+}
+
 std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 	std::vector<AAction*> actions;
 
 	std::pair<int, int> pos = std::make_pair(y, x);
 
-
 	this->board[y][x] = playerIndex;
 
 	actions.push_back(new ActionUpdateBoard(pos, -1));
 
+	this->updateBoardCallbacks(pos, playerIndex);
+
 	this->remainingStones--;
+
+	// trigger rule effects
+	for (auto rule : rules) {
+		std::vector<AAction*> ruleActions = rule->triggerEffects(*this, pos);
+		actions.insert(actions.end(), ruleActions.begin(), ruleActions.end());
+	}
 
 	int state = this->checkWinCondition(pos, playerIndex);
 	
@@ -505,26 +553,8 @@ bool Gomoku::canPlace(std::pair<int, int> move) const {
 void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	this->switchPlayer();
 	
-	ActionUpdateBoard* aub;
-	ActionSetEndState* aes;
-
 	for (AAction* action: actions) {
-		switch(action->type) {
-			case AAction::Type::UPDATE_BOARD:
-				aub = dynamic_cast<ActionUpdateBoard*>(action);
-				this->board[aub->pos.first][aub->pos.second] = aub->value;
-				this->remainingStones += aub->value >= 0 ? -1 : 1;
-				break;
-			case AAction::Type::SET_END_STATE:
-				aes = dynamic_cast<ActionSetEndState*>(action);
-				this->endState = aes->state;
-				break;
-			case AAction::Type::DECREMENT_CAPTURE:
-				break;
-			case AAction::Type::INCREMENT_CAPTURE:
-				break;
-		}
-
+		action->execute(*this);
 		delete action;
 	}
 }

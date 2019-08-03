@@ -4,6 +4,7 @@
 
 class ARule;
 class Minmax;
+class AAction;
 
 class Gomoku {
 
@@ -32,6 +33,9 @@ public:
 	void printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos);
 	void printState();
 
+	void updateBoardCallbacks(std::pair<int, int> pos, int value);
+	void captureCallbacks(int playerIndex);
+
 	int checkWinCondition(std::pair<int, int> pos, int playerIndex);
 
 	int heuristic();
@@ -50,6 +54,8 @@ public:
 	void nextTurn();
 	int getTurn() const;
 
+	void onUpdateBoard(std::function<void(std::pair<int, int>, int)> f);
+	void onCapture(std::function<void(int playerIndex, int value)> f);
 
 // private:
 
@@ -70,6 +76,9 @@ public:
 
 	int turn;
 	bool _hasBeenReset;
+
+	std::vector<std::function<void(std::pair<int, int>, int)>> _updateBoardCallbacks;
+	std::vector<std::function<void(int playerIndex, int value)>> _captureCallbacks;
 
 };
 

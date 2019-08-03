@@ -11,6 +11,8 @@
 #include <chrono>
 #include <future>
 
+std::ostream & operator << (std::ostream &out, std::pair<int, int> &c);
+
 #include <args.hxx>
 
 #include <SFML/Graphics/Shape.hpp>
@@ -20,11 +22,6 @@
 
 
 #include "Colors.hpp"
-#include "AAction.hpp"
-#include "ActionUpdateBoard.hpp"
-#include "ActionDecrementCapture.hpp"
-#include "ActionIncrementCapture.hpp"
-#include "ActionSetEndState.hpp"
 
 #include "IRenderable.hpp"
 #include "Background.hpp"
@@ -40,5 +37,12 @@
 #include "ARule.hpp"
 #include "NoDoubleFreeThree.hpp"
 #include "Captures.hpp"
+
+#include "AAction.hpp"
+#include "ActionUpdateBoard.hpp"
+#include "ActionDecrementCapture.hpp"
+#include "ActionIncrementCapture.hpp"
+#include "ActionSetEndState.hpp"
+
 
 #include "GUI.hpp"

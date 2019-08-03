@@ -11,7 +11,8 @@ public:
 	void click(sf::Vector2i mousePosition);
 	void hover(sf::Vector2i mousePosition);
 
-	bool placeStoneAt(std::pair<int, int> pos, sf::Color color);
+	void placeStoneAt(std::pair<int, int> pos, sf::Color color);
+	void removeStoneAt(std::pair<int, int> pos);
 	std::pair<int, int> windowToGridCoord(sf::Vector2i mousePosition);
 
 	float getCellSize() const;

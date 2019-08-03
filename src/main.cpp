@@ -77,6 +77,16 @@ int main(int argc, char *argv[]) {
 
 		std::future<std::pair<int, int>> future;
 
+		gomoku->onUpdateBoard([gui, gomoku](std::pair<int, int> pos, int value) {
+			std::cout << "onUpdateBoard, " << pos << " = " << value << std::endl;
+			gui->updateBoard(pos, value);
+		});
+
+		gomoku->onCapture([gui, gomoku](int playerIndex, int value) {
+			std::cout << "onCapture " << playerIndex << " = " << value << std::endl;
+			gui->updateCaptures(playerIndex, value);
+		});
+
 		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future]() mutable {
 			auto start = std::chrono::high_resolution_clock::now();
 
@@ -90,13 +100,9 @@ int main(int argc, char *argv[]) {
 				auto pos = future.get();
 				auto end = std::chrono::high_resolution_clock::now();
 				std::cout << "pos: " << pos.first << ", " << pos.second << ", in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
-				if (!gui->place(pos.first, pos.second)) {
-					return ;
-				}
 				gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
 				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
 				gomoku->switchPlayer();
-				gomoku->nextTurn();
 				gui->nextTurn();
 				nextStep = false;
 

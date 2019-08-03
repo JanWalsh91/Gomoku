@@ -15,7 +15,9 @@ public:
 
 	void setup();
 
-	bool place(int xPos, int yPos);
+	void updateBoard(std::pair<int, int> pos, int value);
+	void updateCaptures(int pos, int value);
+	void updateMessage(std::string message);
 	void nextTurn();
 	void reset();
 private:

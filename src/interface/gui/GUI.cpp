@@ -149,14 +149,12 @@ void GUI::setup() {
 				return;
 			}
 			auto pos = grid->windowToGridCoord(mousePosition);
-			if (!place(pos.first, pos.second)) {
-				return ;
+			if (pos.first != -1 && pos.second != -1 && gomoku->board[pos.first][pos.second] == -1 && gomoku->canPlace(pos)) {
+				gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
+				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
+				gomoku->switchPlayer();
+				this->nextTurn();
 			}
-			gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
-			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
-			gomoku->switchPlayer();
-			this->nextTurn();
-			gomoku->nextTurn();
 		}
 	});
 
@@ -185,17 +183,26 @@ void GUI::setup() {
 	window->addRenderable(messageValue);
 }
 
-bool GUI::place(int xPos, int yPos) {
-	bool canPlace = gomoku->canPlace(std::make_pair(xPos, yPos));
-	if (canPlace) {
-		canPlace = grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
+void GUI::updateBoard(std::pair<int, int> pos, int value) {
+
+	if (value >= 0) {
+		grid->placeStoneAt(pos, value == 0 ? sf::Color::Black : sf::Color::White);
+	} else if (value == -1) {
+		grid->removeStoneAt(pos);
 	}
-	if (canPlace) {
-		_sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
-		_sfx.play();
-	}
-	return canPlace;
+
+	_sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
+	_sfx.play();
 }
+
+void GUI::updateCaptures(int playerIndex, int value) {
+	if (playerIndex == 0) {
+		playerOneCaptures->setText(std::to_string(value));
+	} else {
+		playerTwoCaptures->setText(std::to_string(value));
+	}
+}
+
 
 void GUI::nextTurn() {
 	if (gomoku->endState != -1) {
@@ -213,9 +220,12 @@ void GUI::nextTurn() {
 		messageValue->setText(std::to_string(gomoku->getTurn()));
 	}
 	_currentPlayer = _currentPlayer == 0 ? 1 : 0;
+	gomoku->nextTurn();
 }
 
 void GUI::reset() {
 	grid->reset();
 	messageValue->setText("-");
+	_currentPlayer = 0;
+	currentPlayerValue->setText("Black");
 }
