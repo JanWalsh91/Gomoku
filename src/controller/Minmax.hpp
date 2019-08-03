@@ -20,8 +20,8 @@ public:
 
 	bool isRunning() const;
 
-	static const int INF_MIN = std::numeric_limits<int>::min() + 1;
-	static const int INF_MAX = std::numeric_limits<int>::max();
+	static const int INF_MIN = -100'000'000;
+	static const int INF_MAX = 100'000'000;
 	static const int PROXIMITY_BONUNS = 10;
 
 	static const int CERTAIN_VICTORY = 10'000;

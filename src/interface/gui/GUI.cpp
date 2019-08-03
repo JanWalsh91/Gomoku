@@ -228,4 +228,6 @@ void GUI::reset() {
 	messageValue->setText("-");
 	_currentPlayer = 0;
 	currentPlayerValue->setText("Black");
+	playerOneCaptures->setText("0");
+	playerTwoCaptures->setText("0");
 }

@@ -78,27 +78,26 @@ int main(int argc, char *argv[]) {
 		std::future<std::pair<int, int>> future;
 
 		gomoku->onUpdateBoard([gui, gomoku](std::pair<int, int> pos, int value) {
-			std::cout << "onUpdateBoard, " << pos << " = " << value << std::endl;
 			gui->updateBoard(pos, value);
 		});
 
 		gomoku->onCapture([gui, gomoku](int playerIndex, int value) {
-			std::cout << "onCapture " << playerIndex << " = " << value << std::endl;
 			gui->updateCaptures(playerIndex, value);
 		});
 
-		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future]() mutable {
-			auto start = std::chrono::high_resolution_clock::now();
+		auto start = std::chrono::high_resolution_clock::now();
+		auto end = std::chrono::high_resolution_clock::now();
+
+		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future, &start, &end]() mutable {
 
 			if (future.valid() && future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
-				std::cout << "READY !" << std::endl;
 				if (gomoku->hasBeenReset()) {
 					std::cout << "Has been reset in between, whoops!" << std::endl;
 					gomoku->clearReset();
 					return ;
 				}
 				auto pos = future.get();
-				auto end = std::chrono::high_resolution_clock::now();
+				end = std::chrono::high_resolution_clock::now();
 				std::cout << "pos: " << pos.first << ", " << pos.second << ", in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 				gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
 				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
@@ -114,9 +113,7 @@ int main(int argc, char *argv[]) {
 				std::cout << "AI turn" << std::endl;
 				start = std::chrono::high_resolution_clock::now();
 
-				std::cout << "Before async" << std::endl;
 				future = std::async(std::launch::async, &Minmax::run, gomoku->minmax);
-				std::cout << "After async" << std::endl;
 			}
 		}), [&pause, &nextStep](sf::Event event) mutable {
 			if (event.type == sf::Event::KeyPressed) {

@@ -113,24 +113,19 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 }
 
 void Gomoku::updateBoardCallbacks(std::pair<int, int> pos, int value) {
-	std::cout << "updateBoardCallbacks, " << pos << " = " << value << std::endl;
 	if (minmax->isRunning()) {
-		std::cout << "minmax->isRunning" << std::endl;
 		return ;
 	}
 	for (auto& callback: _updateBoardCallbacks) {
-		std::cout << "CALLING CALBACK" << std::endl;
 		callback(pos, value);
 	}
 }
 
 void Gomoku::captureCallbacks(int playerIndex) {
 	if (minmax->isRunning()) {
-		std::cout << "minmax->isRunning" << std::endl;
 		return ;
 	}
 	for (auto& callback: _captureCallbacks) {
-		std::cout << "CALLING CALBACK" << std::endl;
 		callback(playerIndex, players[playerIndex]->getCaptures());
 	}
 }
@@ -1101,31 +1096,31 @@ void Gomoku::testMinmax() {
 	// 	}
 	// }
 	{
-		Gomoku* gomoku = new Gomoku(13, Player::Type::AI, Player::Type::AI);
+		Gomoku* gomoku = new Gomoku(10, Player::Type::AI, Player::Type::AI);
 		gomoku->minmax = std::make_shared<Minmax>(*gomoku, 3);
 
 		gomoku->board = std::vector<std::vector<int>>();
-		gomoku->currentPlayer = gomoku->players[0];
-		gomoku->heuristicPlayer = gomoku->players[0];
+		gomoku->currentPlayer = gomoku->players[1];
+		gomoku->heuristicPlayer = gomoku->players[1];
 		// gomoku->lastMoves.push_back(std::make_pair(3, 3));
 		gomoku->printState();
-		for (int i = 2; i >= 2; i--) {
+		for (int i = 3; i >= 3; i--) {
 			gomoku->minmax->maxDepth = i;
-			int lines[][13] = {
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1,  0,  0, -1,  1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1,  1, -1,  0,  0,  1,  1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1,  0,  0,  1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1,  0,  1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-			};
+			// int lines[][13] = {
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  0,  0, -1,  1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1,  1, -1,  0,  0,  1,  1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  0,  0,  1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  0,  1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// };
 
 			// int lines[][13] = {
 			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
@@ -1142,6 +1137,19 @@ void Gomoku::testMinmax() {
 			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 			// };
+
+			int lines[][10] = {
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  0, -1,  1, -1, -1, -1 },
+				{ -1, -1,  0, -1, -1, -1,  0,  0, -1, -1 },
+				{ -1, -1, -1,  1,  1,  0, -1,  1, -1, -1 },
+				{ -1, -1, -1, -1,  0, -1,  0,  1, -1, -1 },
+				{ -1, -1, -1,  0,  1,  0, -1, -1, -1, -1 },
+				{ -1, -1, -1,  1, -1, -1,  1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1,  0, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1,  1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
+			};
 
 			for (auto& line : lines) {
 				gomoku->board.push_back(std::vector<int>(std::begin(line), std::end(line)));

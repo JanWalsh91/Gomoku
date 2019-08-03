@@ -3,7 +3,6 @@
 Captures::Captures(): ARule("CAPTURES") {}
 
 std::vector<AAction*> Captures::triggerEffects(Gomoku& gomoku, std::pair<int, int>& move) {
-	std::cout << "triggerEffect " << this->name << std::endl;
 
 	std::vector<AAction*> actions;
 
@@ -48,7 +47,6 @@ std::vector<AAction*> Captures::triggerEffects(Gomoku& gomoku, std::pair<int, in
 		actions.push_back(new ActionDecrementCapture(gomoku.currentPlayer->getIndex()));
 		actions.push_back(new ActionUpdateBoard(pos1, otherPlayer));
 		actions.push_back(new ActionUpdateBoard(pos2, otherPlayer));
-		std::cout << "Found capture at " << move << ", " << pos1 << ", " << pos2 << ", " << pos3 << std::endl;
 	}
 	return actions;
 }

@@ -15,7 +15,7 @@ std::pair<int, int> Minmax::run() {
 	this->_running = true;
 
 	this->gomoku.heuristicPlayer = this->gomoku.currentPlayer;
-	std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->getIndex() << std::endl;
+	// std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->getIndex() << std::endl;
 	
 	this->bestMove = std::make_pair(-1, -1);
 	this->bestValue = Minmax::INF_MIN;
@@ -24,32 +24,7 @@ std::pair<int, int> Minmax::run() {
 	
 	this->minmaxAlphaBeta(this->maxDepth, Minmax::INF_MIN, Minmax::INF_MAX, true, true, 0);
 
-	// auto moves = this->gomoku.getMoves();
-	
-	// // int alpha = Minmax::INF_MIN;
-	// // int beta = Minmax::INF_MAX;
-
-	// for (auto &move: moves) {
-	// 	auto undoMoves = this->gomoku.doMove(move);
-
-	// 														// TODO: hum?
-	// 	int ret = this->minmaxAlphaBeta(this->maxDepth - 1, Minmax::INF_MIN, Minmax::INF_MAX, false);
-	// 	// this->gomoku.printBoard(this->gomoku.board, move);
-	// 	// std::cout << "minmaxAlphaBeta ret: " << ret << std::endl;
-	// 	// getchar();
-	// 	if (ret > this->bestValue) {
-	// 		// std::cout << "ret(" << ret << ") > bestValue(" << this->bestValue << ")" << std::endl; 
-	// 		this->bestMove = move;
-	// 		this->bestValue = ret;
-	// 		// TODO ret == alpha or beta?
-	// 	}
-	// 	this->heuristicValues[move.first][move.second] = ret;
-
-	// 	this->gomoku.undoMove(undoMoves);
-	// }
-
-
-	this->gomoku.printBoard(this->gomoku.board, this->bestMove);
+	// this->gomoku.printBoard(this->gomoku.board, this->bestMove);
 	std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->getIndex() << std::endl;
 	this->gomoku.printBoard(this->heuristicValues, this->bestMove);
 	std::cout << std::endl;
@@ -87,19 +62,16 @@ auto _bestValue = std::vector<int>() =  {
 // -2: always display
 // pos pos player
 auto displayAt = std::vector<std::tuple<int, int, int>>() =  {
-		std::make_tuple(-1, -1, 0),
-
 		std::make_tuple(-1, -1, 1),
-		// std::make_tuple(8, 9, 1),
+
+		// std::make_tuple(-1, -1, 1),
+		std::make_tuple(1, 7, 1),
 		
 		// std::make_tuple(-1, -1, 0),
-		// std::make_tuple(5, 3, 0),
-		// std::make_tuple(7, 3, 0),
 		
-		std::make_tuple(8, 9, 0),
-		// std::make_tuple(7, 8, 0),
+		std::make_tuple(-1, -1, 0),
 
-		std::make_tuple(-1, -1, 1),
+		std::make_tuple(2, 5, 1),
 	
 	// std::make_pair(-2, -1)			// 3
 };
@@ -117,14 +89,12 @@ bool shouldDisplay(Gomoku& gomoku, int depth) {
 	return true;
 }
 
-auto boardD2 = std::vector<std::vector<int>>(9, std::vector<int>(9, 0));
-auto boardD1 = std::vector<std::vector<int>>(9, std::vector<int>(9, 0));
-
-// std::vector<std::vector<int>> boardD2;
-bool isinit2 = false;
-
 int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue) {
 	// getchar();
+
+	// std::cout << "minmaxAlphaBeta depth: " << depth << ", endState: " << this->gomoku.endState    				<< ", H: " << heuristicValue << std::endl;
+
+	// gomoku.printBoard();
 
 	// reset board, bestMove
 	// _boards[depth] = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
@@ -132,6 +102,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 	if (this->gomoku.endState != Gomoku::PLAYING) {
 		// Player 0 or 1 :)
+
 		if (this->gomoku.endState >= 0) {
 			if (maximizing) {
 				return Minmax::INF_MIN + (this->maxDepth - depth);
@@ -153,30 +124,24 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 	auto moves = this->gomoku.getMoves();
 	auto sortedMoves = this->getSortedMoves(moves, maximizing, depth);
 
-
 	if (maximizing) {
 		int value = Minmax::INF_MIN;
 		// _bestValue[depth] = value;
 
 		for (auto& move: sortedMoves) {
 			auto undoMoves = this->gomoku.doMove(move.second);
-			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false, false, move.first); // TODO: pass heuristic results if depth will == 0
+			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false, false, move.first);
 			this->gomoku.undoMove(undoMoves);
 			
-			// if (ret > _bestValue[depth]) {
-			// 	_bestValue[depth] = ret;
-			// 	_bestMove[depth] = move.second;
-			// }
+			if (ret > _bestValue[depth]) {
+				_bestValue[depth] = ret;
+				_bestMove[depth] = move.second;
+			}
 
 			value = std::max(ret, value);
 			alpha = std::max(alpha, value);
 
 			// _boards[depth][move.second.first][move.second.second] = ret;
-
-			if (alpha >= beta) {
-				break;
-			}
-
 
 			if (root) {
 				// for (auto lastMove : this->gomoku.lastMoves) {
@@ -188,14 +153,16 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 				// 	}
 				// }
 
-				if (ret > this->bestValue) {
+				if (ret > this->bestValue || ret <= Minmax::INF_MIN + 10) {
 					this->bestValue = ret;
 					this->bestMove = move.second;
 				}
 				this->heuristicValues[move.second.first][move.second.second] = ret;
 			}
-			
-
+// 
+			if (alpha >= beta || ret <= Minmax::INF_MIN + 10) {
+				break;
+			}
 		}
 
 		// if (shouldDisplay(this->gomoku, depth)) {
@@ -228,7 +195,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 			// _boards[depth][move.second.first][move.second.second] = ret;
 
-			if (alpha >= beta) {
+			if (alpha >= beta || ret >= Minmax::INF_MAX - 10) {
 				break;
 			}
 		}
