@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-SFMLWindow::SFMLWindow(int width, int height, const std::string& title): width(width), height(height), title(title) {
+SFMLWindow::SFMLWindow(int width, int height, const std::string& title) {
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 16;
 	
@@ -10,12 +10,6 @@ SFMLWindow::SFMLWindow(int width, int height, const std::string& title): width(w
 }
 
 SFMLWindow::~SFMLWindow() {
-
-}
-
-void SFMLWindow::setupGUI(std::vector<std::shared_ptr<Player>>& players, std::shared_ptr<Gomoku> gomoku) {
-	
-
 
 }
 

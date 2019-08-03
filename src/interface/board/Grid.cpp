@@ -48,7 +48,6 @@ bool Grid::placeStoneAt(std::pair<int, int> pos, sf::Color color) {
 	//stone->move(margin + (pos.second * cellSize), margin + (pos.first * cellSize));
 	stone->move(margin + (pos.second * cellSize) + cellSize / 2.0f, margin + (pos.first * cellSize) + cellSize / 2.0f);
 	if (color == sf::Color::Black) {
-		std::cout << "Set Texture here\n";
 		stone->setTexture(&_blackStoneTexture);
 	}
 	else {

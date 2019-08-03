@@ -3,6 +3,8 @@
 #include <iostream>
 NoDoubleFreeThree::NoDoubleFreeThree(): ARule("NO DOUBLE FREE THREE") {}
 
+std::ostream & operator << (std::ostream &out, std::pair<int, int> &c);
+
 bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move) {
 	std::vector<std::pair<int, int>> directions = {
 		std::make_pair(0,  1),
@@ -87,6 +89,6 @@ bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move
 			}
 		}
 	}
-	// std::cout << "numFreeThrees: " << numFreeThrees << std::endl;
+	// std::cout << name << ": " << move << " canPlace? numFreeThrees: " << numFreeThrees << std::endl;
 	return numFreeThrees < 2;
 }

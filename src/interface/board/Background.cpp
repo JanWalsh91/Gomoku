@@ -12,11 +12,11 @@ void Background::render(sf::RenderWindow& window) {
 }
 
 void Background::click(sf::Vector2i mousePosition) {
-
+	(void)mousePosition;
 }
 
 void Background::hover(sf::Vector2i mousePosition) {
-
+	(void)mousePosition;
 }
 
 void Background::setTexture(std::string pathToTexture) {

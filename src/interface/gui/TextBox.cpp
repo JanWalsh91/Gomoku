@@ -54,7 +54,7 @@ sf::Font TextBox::font;
 
 void TextBox::loadFont() {
 	// if (!TextBox::font.loadFromFile("../resources/Roboto-Regular.ttf")) {
-	if (!TextBox::font.loadFromFile("../resources/Catamaran-Regular.ttf")) {
+	if (!TextBox::font.loadFromFile("./resources/fonts/Catamaran-Regular.ttf")) {
 		std::cout << "Error while loading font" << std::endl;
 	}
 }

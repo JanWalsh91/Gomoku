@@ -186,7 +186,10 @@ void GUI::setup() {
 }
 
 bool GUI::place(int xPos, int yPos) {
-	bool canPlace = grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
+	bool canPlace = gomoku->canPlace(std::make_pair(xPos, yPos));
+	if (canPlace) {
+		canPlace = grid->placeStoneAt(std::make_pair(xPos, yPos), gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
+	}
 	if (canPlace) {
 		_sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
 		_sfx.play();

@@ -35,7 +35,7 @@ void Button::click(sf::Vector2i mousePosition) {
 }
 
 void Button::hover(sf::Vector2i mousePosition) {
-
+	(void)mousePosition;
 }
 
 void Button::setFontColor(sf::Color color) {

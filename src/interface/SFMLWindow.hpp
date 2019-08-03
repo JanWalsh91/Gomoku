@@ -12,7 +12,6 @@ public:
 	~SFMLWindow();
 
 	void loop(std::function<void()> f, std::function<void(sf::Event)> event);
-	void setupGUI(std::vector<std::shared_ptr<Player>>& players, std::shared_ptr<Gomoku> gomoku);
 
 	sf::RenderWindow* getWindow();
 
@@ -20,9 +19,9 @@ public:
 
 private:
 
-	int width;
-	int height;
-	const std::string& title;
+	// int width;
+	// int height;
+	// const std::string& title;
 
 
 	sf::RenderWindow window;

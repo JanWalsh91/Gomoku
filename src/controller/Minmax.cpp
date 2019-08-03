@@ -59,29 +59,29 @@ std::pair<int, int> Minmax::run() {
 	return this->bestMove;
 }
 
-// auto _boards = std::vector<std::vector<std::vector<int>>>() = {
-// 	std::vector<std::vector<int>>(9, std::vector<int>(9, 0)),
-// 	std::vector<std::vector<int>>(9, std::vector<int>(9, 0)),
-// 	std::vector<std::vector<int>>(9, std::vector<int>(9, 0)),
-// 	std::vector<std::vector<int>>(9, std::vector<int>(9, 0)),
-// 	std::vector<std::vector<int>>(9, std::vector<int>(9, 0))
-// };
+auto _boards = std::vector<std::vector<std::vector<int>>>() = {
+	std::vector<std::vector<int>>(13, std::vector<int>(13, 0)),
+	std::vector<std::vector<int>>(13, std::vector<int>(13, 0)),
+	std::vector<std::vector<int>>(13, std::vector<int>(13, 0)),
+	std::vector<std::vector<int>>(13, std::vector<int>(13, 0)),
+	std::vector<std::vector<int>>(13, std::vector<int>(13, 0))
+};
 
-// auto _bestMove = std::vector<std::pair<int, int>>() =  {
-// 	std::make_pair(-1, -1),
-// 	std::make_pair(-1, -1),
-// 	std::make_pair(-1, -1),
-// 	std::make_pair(-1, -1),
-// 	std::make_pair(-1, -1)
-// };
+auto _bestMove = std::vector<std::pair<int, int>>() =  {
+	std::make_pair(-1, -1),
+	std::make_pair(-1, -1),
+	std::make_pair(-1, -1),
+	std::make_pair(-1, -1),
+	std::make_pair(-1, -1)
+};
 
-// auto _bestValue = std::vector<int>() =  {
-// 	0,
-// 	0,
-// 	0,
-// 	0,
-// 	0
-// };
+auto _bestValue = std::vector<int>() =  {
+	0,
+	0,
+	0,
+	0,
+	0
+};
 
 // -1: don't display
 // -2: always display
@@ -90,15 +90,16 @@ auto displayAt = std::vector<std::tuple<int, int, int>>() =  {
 		std::make_tuple(-1, -1, 0),
 
 		std::make_tuple(-1, -1, 1),
+		// std::make_tuple(8, 9, 1),
 		
-		std::make_tuple(-1, -1, 0),
+		// std::make_tuple(-1, -1, 0),
 		// std::make_tuple(5, 3, 0),
 		// std::make_tuple(7, 3, 0),
 		
-		// std::make_tuple(2, 6, 1),
-		std::make_tuple(-1, -1, 1),
+		std::make_tuple(8, 9, 0),
+		// std::make_tuple(7, 8, 0),
 
-		std::make_tuple(-1, -1, 0),
+		std::make_tuple(-1, -1, 1),
 	
 	// std::make_pair(-2, -1)			// 3
 };
@@ -152,14 +153,6 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 	auto moves = this->gomoku.getMoves();
 	auto sortedMoves = this->getSortedMoves(moves, maximizing, depth);
 
-	// if (depth == 2) {
-		// this->gomoku.printBoard();
-		// std::cout << "Moves:" << std::endl;
-		// for (auto& move: moves) {
-		// 	std::cout << move << std::endl;
-		// }
-		// std::cout << "Movesded" << std::endl;
-	// }
 
 	if (maximizing) {
 		int value = Minmax::INF_MIN;
@@ -172,13 +165,13 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 			
 			// if (ret > _bestValue[depth]) {
 			// 	_bestValue[depth] = ret;
-			// 	_bestMove[depth] = move;
+			// 	_bestMove[depth] = move.second;
 			// }
 
 			value = std::max(ret, value);
 			alpha = std::max(alpha, value);
 
-			// _boards[depth][move.first][move.second] = ret;
+			// _boards[depth][move.second.first][move.second.second] = ret;
 
 			if (alpha >= beta) {
 				break;
@@ -186,14 +179,14 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 
 			if (root) {
-				//for (auto lastMove : this->gomoku.lastMoves) {
-				//	if (lastMove.first != -1) {
-				//		if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
-				//			ret += Minmax::PROXIMITY_BONUNS;
-				//			break;
-				//		}
-				//	}
-				//}
+				// for (auto lastMove : this->gomoku.lastMoves) {
+				// 	if (lastMove.first != -1) {
+				// 		if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
+				// 			ret += Minmax::PROXIMITY_BONUNS;
+				// 			break;
+				// 		}
+				// 	}
+				// }
 
 				if (ret > this->bestValue) {
 					this->bestValue = ret;
@@ -206,7 +199,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		}
 
 		// if (shouldDisplay(this->gomoku, depth)) {
-		// 	std::cout << "MAXIMIZING for player " << this->gomoku.currentPlayer->index << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
+		// 	std::cout << "MAXIMIZING for player " << this->gomoku.currentPlayer->getIndex() << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
 		// 	std::cout << "Board: " << std::endl;
 		// 	this->gomoku.printBoard();
 		// 	std::cout << "Values: " << std::endl;
@@ -227,13 +220,13 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 			// if (ret < _bestValue[depth]) {
 			// 	_bestValue[depth] = ret;
-			// 	_bestMove[depth] = move;
+			// 	_bestMove[depth] = move.second;
 			// }
 
 			value = std::min(ret, value);
 			beta = std::min(beta, value);
 
-			// _boards[depth][move.first][move.second] = ret;
+			// _boards[depth][move.second.first][move.second.second] = ret;
 
 			if (alpha >= beta) {
 				break;
@@ -241,7 +234,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		}
 
 		// if (shouldDisplay(this->gomoku, depth)) {
-		// 	std::cout << "MINIMIZING for player " << this->gomoku.currentPlayer->index << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
+		// 	std::cout << "MINIMIZING for player " << this->gomoku.currentPlayer->getIndex() << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
 		// 	std::cout << "Board: " << std::endl;
 		// 	this->gomoku.printBoard();
 		// 	std::cout << "Values: " << std::endl;

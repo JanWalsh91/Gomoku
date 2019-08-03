@@ -255,7 +255,7 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 }
 
 void resetStreak(bool &streaking, bool &frontBlocked, int &currentStreakNum, int& emptyCellCount, int& emptyCellCountPotential, bool rollOverEmptyCells) {
-	
+	(void)rollOverEmptyCells;
 	// std::cout << "  resetStreak. rollOverEmptyCells: " << std::boolalpha << rollOverEmptyCells << std::endl;
 	streaking = false;
 	frontBlocked = false;
@@ -493,6 +493,7 @@ std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
 
 bool Gomoku::canPlace(std::pair<int, int> move) const {
 	for (auto rule: this->rules) {
+		// std::cout << rule->name << std::endl;
 		if (!rule->canPlace(*this, move)) {
 			return false;
 		}
@@ -517,6 +518,10 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 			case AAction::Type::SET_END_STATE:
 				aes = dynamic_cast<ActionSetEndState*>(action);
 				this->endState = aes->state;
+				break;
+			case AAction::Type::DECREMENT_CAPTURE:
+				break;
+			case AAction::Type::INCREMENT_CAPTURE:
 				break;
 		}
 
@@ -602,7 +607,6 @@ void Gomoku::testEvalLine() {
 	std::pair<int, int> dir = std::make_pair(0, 1);
 
 	int player = 0;
-	gomoku->heuristicPlayer = gomoku->players[0];
 	
 	// Streak length tests
 	// std::cout << "Streak length tests" << std::endl;
@@ -689,14 +693,18 @@ void Gomoku::testEvalLine() {
 
 	gomoku->board = std::vector<std::vector<int>>();
 
+	gomoku->heuristicPlayer = gomoku->players[0];
+
+	gomoku->currentPlayer = gomoku->players[1];
+
 	gomoku->board.clear();
 	{
 		int lines[][7] = {
-			{ -1,  0, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1,  0, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1 },
-			{ -1, -1, -1, -1, -1, -1, -1 },
+			{  1,  0,  0,  0, -1,  0, -1 },
+			{  1,  0,  0,  0,  0, -1, -1 },
+			{ -1, -1,  0, -1, -1, -1, -1 },
+			{ -1, -1, -1,  0, -1, -1, -1 },
+			{ -1, -1, -1, -1,  0, -1, -1 },
 			{ -1, -1, -1, -1, -1, -1, -1 },
 			{ -1, -1, -1, -1, -1, -1, -1 },
 		};
@@ -1063,27 +1071,47 @@ void Gomoku::testMinmax() {
 	// 	}
 	// }
 	{
-		Gomoku* gomoku = new Gomoku(10, Player::Type::AI, Player::Type::AI);
+		Gomoku* gomoku = new Gomoku(13, Player::Type::AI, Player::Type::AI);
 		gomoku->minmax = std::make_shared<Minmax>(*gomoku, 3);
 
 		gomoku->board = std::vector<std::vector<int>>();
-		gomoku->currentPlayer = gomoku->players[1];
+		gomoku->currentPlayer = gomoku->players[0];
+		gomoku->heuristicPlayer = gomoku->players[0];
 		// gomoku->lastMoves.push_back(std::make_pair(3, 3));
 		gomoku->printState();
-		for (int i = 4; i >= 2; i--) {
+		for (int i = 2; i >= 2; i--) {
 			gomoku->minmax->maxDepth = i;
-			int lines[][10] = {
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1,  1, -1,  1,  0, -1, -1, -1 },
-				{ -1, -1, -1, -1,  1,  0,  0, -1, -1, -1 },
-				{ -1, -1, -1, -1,  1,  0, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1,  0, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			int lines[][13] = {
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  0,  0, -1,  1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1,  1, -1,  0,  0,  1,  1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  0,  0,  1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1,  0,  1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+				{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
 			};
+
+			// int lines[][13] = {
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  0,  0, -1,  1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1,  1, -1,  0,  0,  1,  1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  0,  0,  1, -1,  0, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1,  0,  1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// 	{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+			// };
 
 			for (auto& line : lines) {
 				gomoku->board.push_back(std::vector<int>(std::begin(line), std::end(line)));
