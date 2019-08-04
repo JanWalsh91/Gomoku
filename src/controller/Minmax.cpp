@@ -1,5 +1,9 @@
 #include "Minmax.hpp"
 
+#define PRUNNING true
+#define PROXIMITY_BONUS false
+#define DEBUG_POS false
+
 Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku), _running(false) {}
 std::ostream & operator << (std::ostream &out, std::pair<int, int> &c) {
     out << "[" << c.first << ", " << c.second << "]";
@@ -34,6 +38,7 @@ std::pair<int, int> Minmax::run() {
 	return this->bestMove;
 }
 
+#if DEBUG_POS
 auto _boards = std::vector<std::vector<std::vector<int>>>() = {
 	std::vector<std::vector<int>>(13, std::vector<int>(13, 0)),
 	std::vector<std::vector<int>>(13, std::vector<int>(13, 0)),
@@ -62,47 +67,49 @@ auto _bestValue = std::vector<int>() =  {
 // -2: always display
 // pos pos player
 auto displayAt = std::vector<std::tuple<int, int, int>>() =  {
-		std::make_tuple(-1, -1, 1),
-
-		// std::make_tuple(-1, -1, 1),
-		std::make_tuple(1, 7, 1),
+/* DEPTH */
 		
-		// std::make_tuple(-1, -1, 0),
-		
-		std::make_tuple(-1, -1, 0),
+/*  0  */	std::make_tuple(-1, -1, 1),
 
-		std::make_tuple(2, 5, 1),
+/*  1  */	std::make_tuple(-1, -1, 1),
+			
+/*  2  */	std::make_tuple(-1, -1, 0),
+
+// /*  3  */	std::make_tuple(1, 5, 1),
+/*  3  */	std::make_tuple(2, 3, 1),
+
+/*  4  */	std::make_tuple(-1, -1, 10),
 	
-	// std::make_pair(-2, -1)			// 3
 };
 
 bool shouldDisplay(Gomoku& gomoku, int depth) {
-	// std::cout << "shouldDisplay depth: " << depth << "maxDepth: " << gomoku.minmax->maxDepth << std::endl;  
 	for (int i = gomoku.minmax->maxDepth; i > depth; i--) {
-		// std::cout << "i: " << i << std::endl;
 		if (std::get<0>(displayAt[i]) == -1 || (std::get<0>(displayAt[i]) != -2 && gomoku.board[std::get<0>(displayAt[i])][std::get<1>(displayAt[i])] != std::get<2>(displayAt[i]))) {
-			// std::cout << "false" << std::endl;
 			return false;
 		}
 	}
-	// std::cout << "true" << std::endl;
 	return true;
 }
 
-int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue) {
-	// getchar();
+void displayDebug(Gomoku& gomoku, bool maximizing, int alpha, int beta, int depth) {
+	std::cout << "MAXIMIZING for player " << gomoku.currentPlayer->getIndex() << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
+	std::cout << "Board: " << std::endl;
+	gomoku.printBoard();
+	std::cout << "Values: " << std::endl;
+	gomoku.printBoard(_boards[depth], _bestMove[depth]);
+	std::cout << "===============================================" << std::endl;
+}
+#endif
 
+int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue) {
 	// std::cout << "minmaxAlphaBeta depth: " << depth << ", endState: " << this->gomoku.endState    				<< ", H: " << heuristicValue << std::endl;
 
-	// gomoku.printBoard();
-
-	// reset board, bestMove
-	// _boards[depth] = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
-	// _bestMove[depth] = std::make_pair(-1, -1);
+	#if DEBUG_POS
+	_boards[depth] = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
+	_bestMove[depth] = std::make_pair(-1, -1);	
+	#endif
 
 	if (this->gomoku.endState != Gomoku::PLAYING) {
-		// Player 0 or 1 :)
-
 		if (this->gomoku.endState >= 0) {
 			if (maximizing) {
 				return Minmax::INF_MIN + (this->maxDepth - depth);
@@ -110,104 +117,117 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 				return Minmax::INF_MAX - (this->maxDepth - depth);
 			}
 		} else {
-			// Draw
 			return 0;
 		}
 	}
 
 	if (depth == 0) {
-		// int h = this->gomoku.heuristic();
-		// return h;
-		return heuristicValue; // with love 🇨🇦ᔉ
+		return heuristicValue;
 	}
 
 	auto moves = this->gomoku.getMoves();
 	auto sortedMoves = this->getSortedMoves(moves, maximizing, depth);
 
 	if (maximizing) {
-		int value = Minmax::INF_MIN;
-		// _bestValue[depth] = value;
+		int value = Minmax::INF_MIN - 1;
+		
+		#if DEBUG_POS
+		_bestValue[depth] = value;
+		#endif
 
 		for (auto& move: sortedMoves) {
 			auto undoMoves = this->gomoku.doMove(move.second);
 			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false, false, move.first);
 			this->gomoku.undoMove(undoMoves);
 			
+			#if DEBUG_POS
 			if (ret > _bestValue[depth]) {
 				_bestValue[depth] = ret;
 				_bestMove[depth] = move.second;
 			}
+			#endif
 
 			value = std::max(ret, value);
 			alpha = std::max(alpha, value);
 
-			// _boards[depth][move.second.first][move.second.second] = ret;
+			#if DEBUG_POS
+			_boards[depth][move.second.first][move.second.second] = ret;
+			#endif
 
 			if (root) {
-				// for (auto lastMove : this->gomoku.lastMoves) {
-				// 	if (lastMove.first != -1) {
-				// 		if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
-				// 			ret += Minmax::PROXIMITY_BONUNS;
-				// 			break;
-				// 		}
-				// 	}
-				// }
-
-				if (ret > this->bestValue || ret <= Minmax::INF_MIN + 10) {
+				#if PROXIMITY_BONUS
+				for (auto lastMove : this->gomoku.lastMoves) {
+					if (lastMove.first != -1) {
+						if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
+							ret += Minmax::PROXIMITY_BONUNS;
+							break;
+						}
+					}
+				}
+				#endif
+				if (ret > this->bestValue || (ret > this->bestValue && ret <= Minmax::INF_MIN + 10)) {
+					if (ret > this->bestValue && ret <= Minmax::INF_MIN + 10) {
+						std::cout <<"cutting it short. ret: " << ret << std::endl; 
+					}
 					this->bestValue = ret;
 					this->bestMove = move.second;
+					
+					#if DEBUG_POS
+					_bestValue[depth] = ret;
+					_bestMove[depth] = move.second;
+					#endif
 				}
 				this->heuristicValues[move.second.first][move.second.second] = ret;
 			}
-// 
-			if (alpha >= beta || ret <= Minmax::INF_MIN + 10) {
+
+			if (alpha >= beta || (root && ret <= Minmax::INF_MIN + 10)) {
+				#if PRUNNING
 				break;
+				#endif
 			}
 		}
 
-		// if (shouldDisplay(this->gomoku, depth)) {
-		// 	std::cout << "MAXIMIZING for player " << this->gomoku.currentPlayer->getIndex() << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
-		// 	std::cout << "Board: " << std::endl;
-		// 	this->gomoku.printBoard();
-		// 	std::cout << "Values: " << std::endl;
-		// 	this->gomoku.printBoard(_boards[depth], _bestMove[depth]);
-		// 	std::cout << "===============================================" << std::endl;
-		// }
+		#if DEBUG_POS
+		if (shouldDisplay(this->gomoku, depth)) displayDebug(this->gomoku, maximizing, alpha, beta, depth);
+		#endif
 			
 		return value;
 
 	} else {
-		int value = Minmax::INF_MAX;
-		// _bestValue[depth] = value;
+		int value = Minmax::INF_MAX + 1;
+		#if DEBUG_POS
+		_bestValue[depth] = value;
+		#endif
 
 		for (auto& move: sortedMoves) {
 			auto undoMoves = this->gomoku.doMove(move.second);
 			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, true, false, move.first);
 			this->gomoku.undoMove(undoMoves);
 
-			// if (ret < _bestValue[depth]) {
-			// 	_bestValue[depth] = ret;
-			// 	_bestMove[depth] = move.second;
-			// }
+			#if DEBUG_POS
+			if (ret < _bestValue[depth]) {
+				_bestValue[depth] = ret;
+				_bestMove[depth] = move.second;
+			}
+			#endif
 
 			value = std::min(ret, value);
 			beta = std::min(beta, value);
 
-			// _boards[depth][move.second.first][move.second.second] = ret;
+			#if DEBUG_POS
+			_boards[depth][move.second.first][move.second.second] = ret;
+			#endif
 
-			if (alpha >= beta || ret >= Minmax::INF_MAX - 10) {
+			if (alpha >= beta) {
+				#if PRUNNING
 				break;
+				#endif
 			}
 		}
 
-		// if (shouldDisplay(this->gomoku, depth)) {
-		// 	std::cout << "MINIMIZING for player " << this->gomoku.currentPlayer->getIndex() << ". a: " << alpha << ", b: " << beta << " at depth " << depth << std::endl;
-		// 	std::cout << "Board: " << std::endl;
-		// 	this->gomoku.printBoard();
-		// 	std::cout << "Values: " << std::endl;
-		// 	this->gomoku.printBoard(_boards[depth], _bestMove[depth]);
-		// 	std::cout << "===============================================" << std::endl;
-		// }
+		#if DEBUG_POS
+		if (shouldDisplay(this->gomoku, depth)) displayDebug(this->gomoku, maximizing, alpha, beta, depth);
+		#endif
 
 		return value;
 	}

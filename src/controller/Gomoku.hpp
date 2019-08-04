@@ -40,7 +40,7 @@ public:
 
 	int heuristic();
 	int heuristicByPlayer(int player);
-	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length);
+	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length, int &potentialCaptures);
 	int evalStreakScore(int, int, bool, int player, int emptyCellCount);
 	bool hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer);
 	std::vector<std::pair<int, int>> getMoves();
@@ -79,6 +79,8 @@ public:
 
 	std::vector<std::function<void(std::pair<int, int>, int)>> _updateBoardCallbacks;
 	std::vector<std::function<void(int playerIndex, int value)>> _captureCallbacks;
+
+	static const int PotentialCapturePattern[][2][4];
 
 };
 
