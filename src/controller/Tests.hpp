@@ -41,7 +41,6 @@ private:
 	static void _heuristic(HeuristicParams& param);
 	static void _minmaxUnitTest(MinmaxParams& param);
 
-
 	static std::shared_ptr<Gomoku> _gomoku;
 	static std::shared_ptr<Minmax> _minmax;
 	

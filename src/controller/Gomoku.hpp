@@ -19,8 +19,6 @@ public:
 
 	std::vector<std::shared_ptr<Player>> players;
 
-	static void testMinmax();
-
 	std::vector<AAction*> place(int y, int x, int playerIndex);
 	void place(int y, int x);
 	void switchPlayer();
