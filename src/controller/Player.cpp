@@ -2,8 +2,7 @@
 #include "Player.hpp"
 
 
-Player::Player(int index, Type type): index(index), type(type), captures(0) {
-	std::cout << "New Player type: " << type << std::endl;
+Player::Player(int index, Type type): index(index), captures(0), type(type) {
 }
 
 bool Player::isAI() const {

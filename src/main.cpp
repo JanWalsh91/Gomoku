@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
 	args::ValueFlag<int> depthArgs(parser, "depth", "Depth search of MinMax", {'d'});
 	args::ValueFlag<int> maxTurnArgs(parser, "maxTurn", "Pause the game after n turns", {'q'});
 	args::ValueFlag<int> runTestArgs(parser, "test", "Run unit test set", {'t'});
+	args::ValueFlag<int> testIndexArgs(parser, "testIndex", "Test index", {'i'});
 
     try
     {
@@ -46,16 +47,27 @@ int main(int argc, char *argv[]) {
 		maxTurn = std::clamp(args::get(maxTurnArgs), 1, 100'000);
 	}
 	if (runTestArgs) {
-		switch(args::get(runTestArgs)) {
-			case 1:
-				Gomoku::testEvalLine();
-			break;
-			case 2:
-				Gomoku::testHeuristic();
-				break;
-			case 3:
-				Gomoku::testMinmax();
-				break;
+		int runTest = std::clamp(args::get(runTestArgs), 1, 3);
+		int testindex = -1;
+		
+		std::vector<std::function<void(void)>> allTestsFn = {
+			static_cast<void(*)(void)>(&Tests::runEvalLine),
+			static_cast<void(*)(void)>(&Tests::runHeuristic),
+			static_cast<void(*)(void)>(&Tests::runMinmax),
+		};
+
+		std::vector<std::function<void(int)>> testIndexFn = {
+			static_cast<void(*)(int)>(&Tests::runEvalLine),
+			static_cast<void(*)(int)>(&Tests::runHeuristic),
+			static_cast<void(*)(int)>(&Tests::runMinmax),
+		};
+
+		Tests::init();
+		if (testIndexArgs) {
+			int testIndex = args::get(testIndexArgs);
+			testIndexFn[runTest - 1](testIndex);
+		} else {
+			allTestsFn[runTest - 1]();
 		}
 		return 0;
 	}

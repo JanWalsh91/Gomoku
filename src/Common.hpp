@@ -44,5 +44,6 @@ std::ostream & operator << (std::ostream &out, std::pair<int, int> &c);
 #include "ActionIncrementCapture.hpp"
 #include "ActionSetEndState.hpp"
 
+#include "Tests.hpp"
 
 #include "GUI.hpp"

@@ -25,11 +25,12 @@ void TextBox::render(sf::RenderWindow& window) {
 }
 
 void TextBox::click(sf::Vector2i mousePosition) {
+	(void)mousePosition;
 	return;
 }
 
 void TextBox::hover(sf::Vector2i mousePosition) {
-
+	(void)mousePosition;
 }
 
 void TextBox::setFontColor(sf::Color color) {

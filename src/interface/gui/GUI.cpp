@@ -23,7 +23,6 @@ void GUI::setup() {
 	grid = std::make_shared<Grid>(gomoku->size, 800.0f, 40.0f);
 
 	grid->hoverCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
-		
 		//std::cout << "black: " << black << std::endl;
 
 		if (gomoku->playing) {
@@ -48,6 +47,7 @@ void GUI::setup() {
 	playerOneButton->setFontColor(sf::Color::Black);
 	playerOneButton->setBorder(3.f, sf::Color::Black);
 	playerOneButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+		(void)mousePosition;
 		if (gomoku->players[0]->isHuman()) {
 			playerOneButton->setText("AI");
 			playerOneButton->setBackgroundColor(Colors::AI);
@@ -65,6 +65,7 @@ void GUI::setup() {
 	playerTwoButton->setFontColor(sf::Color::White);
 	playerTwoButton->setBorder(3.f, sf::Color::White);
 	playerTwoButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+		(void)mousePosition;
 		if (gomoku->players[1]->isHuman()) {
 			playerTwoButton->setText("AI");
 			gomoku->players[1]->changeType(Player::AI);
@@ -105,6 +106,7 @@ void GUI::setup() {
 	playButton->setBorder(2.5f, sf::Color::Black);
 
 	playButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+		(void)mousePosition;
 		if (gomoku->minmax->isRunning()) {
 			std::cout << "Pause the game first" << std::endl;
 			return;
