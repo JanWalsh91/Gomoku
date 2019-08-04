@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
 	}
 	if (runTestArgs) {
 		int runTest = std::clamp(args::get(runTestArgs), 1, 3);
-		int testindex = -1;
 		
 		std::vector<std::function<void(void)>> allTestsFn = {
 			static_cast<void(*)(void)>(&Tests::runEvalLine),
@@ -74,7 +73,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
+		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::HUMAN, Player::HUMAN);
 		std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 
 		std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);

@@ -37,6 +37,7 @@ std::ostream & operator << (std::ostream &out, std::pair<int, int> &c);
 #include "ARule.hpp"
 #include "NoDoubleFreeThree.hpp"
 #include "Captures.hpp"
+#include "GameEndingCapture.hpp"
 
 #include "AAction.hpp"
 #include "ActionUpdateBoard.hpp"

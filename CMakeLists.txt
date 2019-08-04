@@ -62,6 +62,7 @@ set(
 	src/controller/Gomoku.cpp
 	src/controller/rules/NoDoubleFreeThree.cpp
 	src/controller/rules/Captures.cpp
+	src/controller/rules/GameEndingCapture.cpp
 	src/controller/actions/AAction.cpp
 	src/controller/actions/ActionUpdateBoard.cpp
 	src/controller/actions/ActionSetEndState.cpp
@@ -86,6 +87,7 @@ set(
 	src/controller/Minmax.hpp
 	src/controller/rules/NoDoubleFreeThree.hpp
 	src/controller/rules/Captures.hpp
+	src/controller/rules/GameEndingCapture.hpp
 	src/controller/actions/AAction.hpp
 	src/controller/actions/ActionUpdateBoard.hpp
 	src/controller/actions/ActionSetEndState.hpp

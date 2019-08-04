@@ -5,6 +5,7 @@
 class ARule;
 class Minmax;
 class AAction;
+class GameEndingCapture;
 
 class Gomoku {
 
@@ -33,6 +34,8 @@ public:
 	void captureCallbacks(int playerIndex);
 
 	int checkWinCondition(std::pair<int, int> pos, int playerIndex);
+	int canBreakFiveAligned(std::pair<int, int> pos, int playerIndex, int otherPlayer, std::vector<std::pair<int, int>>& line) const;
+	bool canBreakAtPos(std::pair<int, int> nextPos, int playerIndex, int otherPlayer) const;
 
 	int heuristic();
 	int heuristicByPlayer(int player);
@@ -55,7 +58,8 @@ public:
 
 // private:
 
-	std::vector<ARule*> rules;
+	std::vector<std::shared_ptr<ARule>> _rules;
+	std::shared_ptr<GameEndingCapture> _gameEndingCapture;
 
 	// std::vector<std::vector<AAction*>> stackActions;
 
