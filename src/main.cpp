@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
 	args::ValueFlag<int> maxTurnArgs(parser, "maxTurn", "Pause the game after n turns", {'q'});
 	args::ValueFlag<int> runTestArgs(parser, "test", "Run unit test set", {'t'});
 	args::ValueFlag<int> testIndexArgs(parser, "testIndex", "Test index", {'i'});
+	args::ValueFlag<int> autoStartArgs(parser, "autoStart", "Auto Start", {'a'});
 
     try
     {
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]) {
 	int boardSize = 19;
 	int depth = 4;
 	int maxTurn = -1;
+	bool autoStart = false;
 
 	if (boardSizeArgs) {
 		boardSize = std::clamp(args::get(boardSizeArgs), 5, 19);
@@ -70,10 +72,13 @@ int main(int argc, char *argv[]) {
 		}
 		return 0;
 	}
+	if (autoStartArgs) {
+		autoStart = args::get(autoStartArgs);
+	}
 
 	{
 		std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::HUMAN, Player::HUMAN);
+		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
 		std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 
 		std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
@@ -98,6 +103,11 @@ int main(int argc, char *argv[]) {
 
 		auto start = std::chrono::high_resolution_clock::now();
 		auto end = std::chrono::high_resolution_clock::now();
+
+		if (autoStart) {
+			std::cout << "Auto Start: " << autoStart << std::endl;
+			gomoku->playing = true;
+		}
 
 		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future, &start, &end]() mutable {
 
