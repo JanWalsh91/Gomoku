@@ -70,6 +70,7 @@ set(
 	src/controller/actions/ActionDecrementCapture.cpp
 	src/controller/Minmax.cpp
 	src/controller/Tests.cpp
+	src/controller/Pair.cpp
 )
 
 set(
@@ -96,6 +97,7 @@ set(
 	src/interface/gui/GUI.hpp
 	src/Common.hpp
 	src/controller/Tests.hpp
+	src/controller/Pair.hpp
 )
 
 add_executable(gomoku ${SOURCE_FILES} ${HEADER_FILES})
