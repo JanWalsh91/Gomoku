@@ -17,9 +17,12 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 	};
 
 	if (false) {
+		std::cout << "TEST" << std::endl;
 		_gameEndingCapture = std::make_shared<GameEndingCapture>();
 		_rules.push_back(_gameEndingCapture);
 	}
+
+	std::cout << (_gameEndingCapture ? "TRUE" : "FALSE") << std::endl;
 }
 
 void Gomoku::reset() {
@@ -97,6 +100,8 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 				numAligned++;
 				if (numAligned >= 5) {
 
+					std::cout << (_gameEndingCapture ? "TRUE" : "FALSE") << std::endl;
+
 					if (_gameEndingCapture) {
 						int unbrokenCount = this->canBreakFiveAligned(nextPos, playerIndex, otherPlayer, line);
 						std::cout << "[checkWinCondition] after can break 5 aligned (1) unbrokenCount: " << unbrokenCount << std::endl;
@@ -140,11 +145,11 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 		}
 	}
 
-	if (fiveAlignedWinner != -1) {
-		return fiveAlignedWinner;
-	} else {
+	// if (fiveAlignedWinner != -1) {
+	// 	return fiveAlignedWinner;
+	// } else {
 		return State::PLAYING;
-	}
+	// }
 }
 
 // returns -1 if no break possible
@@ -354,6 +359,7 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 
 	if (currentStreakNum >= 5 && emptyCellCount == 0) {
 		std::cout << "[evalStreakScore] found five aligned" << std::endl;
+		return Minmax::INF_MAX	/ 2;
 
 		// if (this->_gameEndingCapture) {
 		// 	std::cout << "[evalStreakScore] \thas game ending capture rule" << std::endl;
@@ -365,8 +371,8 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 		// 		return Minmax::INF_MAX;
 		// 	}
 		// } else {
-			std::cout << "[evalStreakScore] SHOULD NOT BE HERE" << std::endl;
-			return Minmax::INF_MAX / 2;
+			// std::cout << "[evalStreakScore] SHOULD NOT BE HERE" << std::endl;
+			// return Minmax::INF_MAX	/ 2;
 		// }
 	}
 
@@ -599,12 +605,14 @@ int Gomoku::heuristicByPlayer(int player) {
 	for (int i = 0; i < this->size; i++) {
 		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size, potentialCaptures);
 		if (this->endState != State::PLAYING) {
-			// std::cout << "BREAK 1" << std::endl;
+			std::cout << "BREAK 1" << std::endl;
+			std::exit(0);
 			return score;
 		}
 		score += this->evalLine(std::make_pair(0, i), vLine, player, this->size, potentialCaptures);
 		if (this->endState != State::PLAYING) {
-			// std::cout << "BREAK 2" << std::endl;
+			std::cout << "BREAK 2" << std::endl;
+			std::exit(0);
 			return score;
 		}
 	}
@@ -614,14 +622,16 @@ int Gomoku::heuristicByPlayer(int player) {
 	for (int i = 0; i <= this->size - this->winStreakLength; i++) {
 		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i, potentialCaptures);
 		if (this->endState != State::PLAYING) {
-			// std::cout << "BREAK 3" << std::endl;
+			std::cout << "BREAK 3" << std::endl;
+			std::exit(0);
 			return score;
 		}
 		if (i != 0) {
 			score += this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i, potentialCaptures);
 		}
 		if (this->endState != State::PLAYING) {
-			// std::cout << "BREAK 3" << std::endl;
+			std::cout << "BREAK 3" << std::endl;
+			std::exit(0);
 			return score;
 		}
 	}
@@ -629,7 +639,8 @@ int Gomoku::heuristicByPlayer(int player) {
 	for (int i = this->size - 1; i >= this->winStreakLength - 1; i--) {
 		score += this->evalLine(std::make_pair(0, i), dLine2, player, i + 1, potentialCaptures);
 		if (this->endState != State::PLAYING) {
-			// std::cout << "BREAK 4" << std::endl;
+			std::cout << "BREAK 4" << std::endl;
+			std::exit(0);
 			return score;
 		}
 	}
@@ -637,7 +648,8 @@ int Gomoku::heuristicByPlayer(int player) {
 	for (int i = 1; i <= this->size - this->winStreakLength; i++) {
 		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i, potentialCaptures);
 		if (this->endState != State::PLAYING) {
-			// std::cout << "BREAK 5" << std::endl;
+			std::cout << "BREAK 5" << std::endl;
+			std::exit(0);
 			return score;
 		}
 	}
