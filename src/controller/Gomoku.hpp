@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Gomoku.hpp"
+#include "Common.hpp"
 
 class ARule;
 class Minmax;
@@ -25,16 +25,17 @@ public:
 	void switchPlayer();
 	void reset();
 
-	void printBoard();
-	void printBoard(std::vector<std::vector<int>> board);
-	void printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos);
+	void printBoard() const;
+	void printBoard(std::vector<std::vector<int>> board) const;
+	void printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos) const;
 	void printState();
 
 	void updateBoardCallbacks(std::pair<int, int> pos, int value);
 	void captureCallbacks(int playerIndex);
 
 	int checkWinCondition(std::pair<int, int> pos, int playerIndex);
-	int canBreakFiveAligned(std::pair<int, int> pos, int playerIndex, int otherPlayer, std::vector<std::pair<int, int>>& line) const;
+	// int canBreakFiveAligned(std::pair<int, int> pos, int playerIndex, int otherPlayer, std::vector<std::pair<int, int>>& line) const;
+	int canBreakAlignment(std::pair<int, int> startPos, int playerIndex, int otherPlayer, std::pair<int, int>& dir, int numAligned) const;
 	bool canBreakAtPos(std::pair<int, int> nextPos, int playerIndex, int otherPlayer) const;
 
 	int heuristic();
@@ -49,6 +50,9 @@ public:
 	bool canPlace(std::pair<int, int>) const;
 	bool hasBeenReset() const;
 	void clearReset();
+	bool onBoard(std::pair<int, int> &pos) const;
+	bool notOnBoard(std::pair<int, int> &pos) const;
+	int getValueOnBoard(std::pair<int, int> &pos) const;
 
 	void nextTurn();
 	int getTurn() const;
@@ -58,6 +62,7 @@ public:
 
 // private:
 
+	
 	std::vector<std::shared_ptr<ARule>> _rules;
 	std::shared_ptr<GameEndingCapture> _gameEndingCapture;
 

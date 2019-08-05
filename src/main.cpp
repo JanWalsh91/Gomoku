@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
+		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::HUMAN, Player::HUMAN);
 		std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 
 		std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
@@ -103,6 +103,24 @@ int main(int argc, char *argv[]) {
 
 		auto start = std::chrono::high_resolution_clock::now();
 		auto end = std::chrono::high_resolution_clock::now();
+
+		// test 5 aligned
+		{
+			gomoku->place(2, 1, 0);
+			gomoku->place(2, 2, 0);
+			gomoku->place(2, 3, 0);
+			gomoku->place(2, 4, 0);
+			// can break at end
+			// {
+			// 	gomoku->place(1, 1, 1);
+			// 	gomoku->place(3, 1, 0);
+			// }
+			// can break in middle
+			{
+				gomoku->place(1, 3, 1);
+				gomoku->place(3, 3, 0);
+			}
+		}
 
 		if (autoStart) {
 			std::cout << "Auto Start: " << autoStart << std::endl;

@@ -67,11 +67,11 @@ auto displayAt = std::vector<std::tuple<int, int, int>>() =  {
 		
 /*  0  */	std::make_tuple(-1, -1, 1),
 
-/*  1  */	std::make_tuple(1, 0, 0),
+/*  1  */	std::make_tuple(-1, 0, 0),
 			
-/*  2  */	std::make_tuple(1, 0, 0),
+/*  2  */	std::make_tuple(-1, 0, 0),
 
-/*  3  */	std::make_tuple(1, 0, 0),
+/*  3  */	std::make_tuple(-1, 0, 0),
 // /*  3  */	std::make_tuple(2, 3, 1),
 
 /*  4  */	std::make_tuple(-1, -1, 1),

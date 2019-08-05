@@ -1,4 +1,4 @@
-#include "Common.hpp"
+#include "Gomoku.hpp"
 
 Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5), turn(0) {
 	this->players.push_back(std::make_shared<Player>(0, player0Type));
@@ -16,7 +16,7 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 		std::make_shared<Captures>()
 	};
 
-	if (false) {
+	if (true) {
 		_gameEndingCapture = std::make_shared<GameEndingCapture>();
 		_rules.push_back(_gameEndingCapture);
 	}
@@ -55,6 +55,24 @@ void Gomoku::clearReset() {
 	this->_hasBeenReset = false;
 }
 
+bool Gomoku::onBoard(std::pair<int, int> &pos) const {
+	return pos.first >= 0 &&
+		pos.second >= 0 &&
+		pos.first < this->size &&
+		pos.second < this->size;
+}
+
+bool Gomoku::notOnBoard(std::pair<int, int> &pos) const {
+	return pos.first < 0 ||
+		pos.second < 0 ||
+		pos.first >= this->size ||
+		pos.second >= this->size;
+}
+
+int Gomoku::getValueOnBoard(std::pair<int, int> &pos) const {
+	return this->board[pos.first][pos.second];
+}
+
 std::vector<std::vector<std::pair<int, int>>> fourDirections = {
 	{ std::make_pair( 0, 1 ), std::make_pair( 0, -1 ) },
 	{ std::make_pair( 1, 0 ), std::make_pair(-1,  0 ) },
@@ -62,8 +80,8 @@ std::vector<std::vector<std::pair<int, int>>> fourDirections = {
 	{ std::make_pair(-1, 1 ), std::make_pair( 1, -1 ) },
 };
 
-int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
-
+int Gomoku::checkWinCondition(std::pair<int, int> pos, int currentPlayer) {
+	std::cout << "[checkWinCondition]" << std::endl;
 	if (this->remainingStones <= 0) {
 		return State::DRAW;
 	}
@@ -75,7 +93,7 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 		}
 	}
 
-	int otherPlayer = playerIndex == 0 ? 1 : 0;
+	int otherPlayer = currentPlayer == 0 ? 1 : 0;
 	int otherPlayerCaptures = this->players[otherPlayer]->getCaptures();
 
 	if (_gameEndingCapture && otherPlayerCaptures == 4) {
@@ -84,58 +102,106 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 		
 	int fiveAlignedWinner = -1;
 
+	// for each line
+		// go in one dir until not currentPlayer
+		// store last position which was currentPlayer (can be pos)
+		// go in other dir until not currentPlayer
 	for (std::vector<std::pair<int, int>>& line: fourDirections) {
-		int numAligned = 1;
+		std::cout << "== line: " << line[0] << line[1] << std::endl;
+		int numAligned = 1; // skip position where stone was just placed
+		std::pair<int, int> endPos = pos;
 
-		for (int i = 1; i < 5; i++) {
-			std::pair<int, int> nextPos = std::make_pair(pos.first + line[0].first * i, pos.second + line[0].second * i);
-			if (nextPos.first >= this->size || nextPos.first < 0 ||
-				nextPos.second >= this->size || nextPos.second < 0 ||
-				this->board[nextPos.first][nextPos.second] != playerIndex) {
-					break ;
-			} else {
+		for (int i = 1; i < 5; ++i) {
+			std::pair<int, int> nextPos = pos + line[0] * i;
+			std::cout << "\tnextPos (1): " << nextPos << std::endl;
+			if (this->onBoard(nextPos) && this->getValueOnBoard(nextPos) == currentPlayer) {
 				numAligned++;
+				std::cout << "\tnumAligned: " << numAligned << std::endl;
+			} else {
+				endPos = nextPos - line[0]; // set end of aligned stones
+				std::cout << "\t set endPos: " << endPos << std::endl;
+				break ;
+			}
+		}
+		for (int i = 1; i < 6; ++i) {
+			std::pair<int, int> nextPos = pos + line[1] * i;
+			std::cout << "\tnextPos (2): " << nextPos << std::endl;
+			if (this->onBoard(nextPos) && this->getValueOnBoard(nextPos) == currentPlayer) {
+				numAligned++;
+				std::cout << "\tnumAligned: " << numAligned << std::endl;
+			} else {
 				if (numAligned >= 5) {
-
-					if (_gameEndingCapture) {
-						int unbrokenCount = this->canBreakFiveAligned(nextPos, playerIndex, otherPlayer, line);
-						if (unbrokenCount != 0) {
-							break ;
-						}
-						numAligned = unbrokenCount; // ????
-						fiveAlignedWinner = playerIndex;
+					if (this->canBreakAlignment(nextPos - line[1], currentPlayer, otherPlayer, line[1], numAligned)) {
+						// 5 aligned doesn t count! => can break
+						std::cout << "Can break alignment ..." << std::endl;
+						break ; // look for other five aligned in another direction (go to outer for loop)
 					} else {
-						return playerIndex;
+						// current player aligned 5 unbreakable
+						std::cout << "Found 5 unbreakable" << std::endl;
+						return currentPlayer;
 					}
-
 				}
+				std::cout << "Not enough aligned: " << numAligned << std::endl;
+				break ;
 			}
 		}
 
-		for (int i = 1; i < 5; i++) {
-			std::pair<int, int> nextPos = std::make_pair(pos.first + line[1].first * i, pos.second + line[1].second * i);
-			if (nextPos.first >= this->size || nextPos.first < 0 ||
-				nextPos.second >= this->size || nextPos.second < 0 ||
-				this->board[nextPos.first][nextPos.second] != playerIndex) {
-					break ;
-			} else {
+		{
 
-				numAligned++;
-				if (numAligned >= 5) {
-					
-					if (_gameEndingCapture) {
-						int unbrokenCount = this->canBreakFiveAligned(nextPos, playerIndex, otherPlayer, line);
-						if (unbrokenCount != 0) {
-							break ;
-						}
-						numAligned = unbrokenCount; // ????
-						fiveAlignedWinner = playerIndex;
-					} else {
-						return playerIndex;
-					}
+				// OLD
+				// int numAligned = 1;
+				// for (int i = 1; i < 5; i++) {
+				// 	std::pair<int, int> nextPos = std::make_pair(pos.first + line[0].first * i, pos.second + line[0].second * i);
+				// 	if (nextPos.first >= this->size || nextPos.first < 0 ||
+				// 		nextPos.second >= this->size || nextPos.second < 0 ||
+				// 		this->board[nextPos.first][nextPos.second] != playerIndex) {
+				// 			break ;
+				// 	} else {
+				// 		numAligned++;
+				// 		if (numAligned >= 5) {
 
-				}
-			}
+				// 			if (_gameEndingCapture) {
+				// 				int unbrokenCount = this->canBreakFiveAligned(nextPos, playerIndex, otherPlayer, line);
+				// 				std::cout << "unbrokenCount (1): " << unbrokenCount << std::endl;
+				// 				if (unbrokenCount != -1) {
+				// 					break ;
+				// 				}
+				// 				numAligned = unbrokenCount; // ????
+				// 				fiveAlignedWinner = playerIndex;
+				// 			} else {
+				// 				return playerIndex;
+				// 			}
+
+				// 		}
+				// 	}
+				// }
+
+				// for (int i = 1; i < 5; i++) {
+				// 	std::pair<int, int> nextPos = std::make_pair(pos.first + line[1].first * i, pos.second + line[1].second * i);
+				// 	if (nextPos.first >= this->size || nextPos.first < 0 ||
+				// 		nextPos.second >= this->size || nextPos.second < 0 ||
+				// 		this->board[nextPos.first][nextPos.second] != playerIndex) {
+				// 			break ;
+				// 	} else {
+
+				// 		numAligned++;
+				// 		if (numAligned >= 5) {
+							
+				// 			if (_gameEndingCapture) {
+				// 				int unbrokenCount = this->canBreakFiveAligned(nextPos, playerIndex, otherPlayer, line);
+				// 				std::cout << "unbrokenCount (2): " << unbrokenCount << std::endl;
+				// 				if (unbrokenCount != -1) {
+				// 					break ;
+				// 				}
+				// 				numAligned = unbrokenCount; // ????
+				// 				fiveAlignedWinner = playerIndex;
+				// 			} else {
+				// 				return playerIndex;
+				// 			}
+
+				// 		}
+				// 	}
+				// }
 		}
 	}
 
@@ -146,67 +212,104 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int playerIndex) {
 	}
 }
 
-// returns 0 if no break possible
-// returns number of stones not broken by break
-int Gomoku::canBreakFiveAligned(std::pair<int, int> pos, int playerIndex, int otherPlayer, std::vector<std::pair<int, int>>& line) const {
-	std::cout << "canBreakFiveAligned " << pos << std::endl;
-	for (int i = 0; i < 5; i++) {
-		std::pair<int, int> nextPos = std::make_pair(pos.first + line[0].first * i, pos.second + line[0].second * i);
-		if (nextPos.first >= this->size || nextPos.first < 0 ||
-			nextPos.second >= this->size || nextPos.second < 0 ||
-			this->board[nextPos.first][nextPos.second] != playerIndex) {
-				break ;
+// NEW
+int Gomoku::canBreakAlignment(std::pair<int, int> startPos, int currentPlayer, int otherPlayer, std::pair<int, int>& dir, int numAligned) const {
+	std::cout << "[canBreakAlignment] at startPos: " << startPos << ", numAigned: " << numAligned << std::endl;
+	std::pair<int, int> nextPos = startPos;
+	int unbreakableAligned = 0;
+
+	// check first one
+	if (this->canBreakAtPos(nextPos, currentPlayer, otherPlayer)) {
+		unbreakableAligned = 0;
+	} else {
+		++unbreakableAligned;
+	}
+
+	// check the rest
+	for (int i = 1; i < numAligned; ++i) {
+		nextPos += dir;
+		if (this->canBreakAtPos(nextPos, currentPlayer, otherPlayer)) {
+			unbreakableAligned = 0; // reset number of uncapturable stones in a row, look for next 5 in a row in the same line
 		} else {
-			if (this->canBreakAtPos(nextPos, playerIndex, otherPlayer)) {
-				std::cout << "canBreakFiveAligned (1) returns " << i + 1 << std::endl;
-				return i;
+			++unbreakableAligned;
+			if (unbreakableAligned >= 5) {
+				return false;
 			}
 		}
 	}
-	for (int i = 1; i < 5; i++) {
-		std::pair<int, int> nextPos = std::make_pair(pos.first + line[1].first * i, pos.second + line[1].second * i);
-		if (nextPos.first >= this->size || nextPos.first < 0 ||
-			nextPos.second >= this->size || nextPos.second < 0 ||
-			this->board[nextPos.first][nextPos.second] != playerIndex) {
-				break ;
-		} else {
-			if (this->canBreakAtPos(nextPos, playerIndex, otherPlayer)) {
-				std::cout << "canBreakFiveAligned (2) returns " << i + 1 << std::endl;
-				return i;
-			}
-		}
-	}
-	return 0;
+	return true;
 }
 
-bool Gomoku::canBreakAtPos(std::pair<int, int> pos, int playerIndex, int otherPlayer) const {
-	std::cout << "canBreakAtPos " << pos << std::endl;
+
+// OLD
+// returns 0 if no break possible
+// returns number of stones not broken by break
+// int Gomoku::canBreakFiveAligned(std::pair<int, int> pos, int playerIndex, int otherPlayer, std::vector<std::pair<int, int>>& line) const {
+// 	std::cout << "[canBreakFiveAligned] " << pos << std::endl;
+// 	this->printBoard();
+// 	// In line, check all positions within 5 steps from pos
+// 	for (int i = 0; i < 5; i++) {
+// 		std::pair<int, int> nextPos = std::make_pair(pos.first + line[0].first * i, pos.second + line[0].second * i);
+// 		if (nextPos.first >= this->size || nextPos.first < 0 ||
+// 			nextPos.second >= this->size || nextPos.second < 0 ||
+// 			this->board[nextPos.first][nextPos.second] != playerIndex) {
+// 				break ;
+// 		} else {
+// 			if (this->canBreakAtPos(nextPos, playerIndex, otherPlayer)) {
+// 				std::cout << "\tcanBreakFiveAligned (1) returns " << i << std::endl;
+// 				return i;
+// 			}
+// 		}
+// 	}
+// 	for (int i = 1; i < 5; i++) {
+// 		std::pair<int, int> nextPos = std::make_pair(pos.first + line[1].first * i, pos.second + line[1].second * i);
+// 		if (nextPos.first >= this->size || nextPos.first < 0 ||
+// 			nextPos.second >= this->size || nextPos.second < 0 ||
+// 			this->board[nextPos.first][nextPos.second] != playerIndex) {
+// 				break ;
+// 		} else {
+// 			if (this->canBreakAtPos(nextPos, playerIndex, otherPlayer)) {
+// 				std::cout << "\tcanBreakFiveAligned (2) returns " << i << std::endl;
+// 				return i;
+// 			}
+// 		}
+// 	}
+// 	return 0;
+// }
+
+bool Gomoku::canBreakAtPos(std::pair<int, int> pos, int currentPlayer, int otherPlayer) const {
+	std::cout << "[canBreakAtPos] " << pos << " ?" << std::endl;
 	for (std::vector<std::pair<int, int>>& line: fourDirections) {
 		for (std::pair<int, int>& dir : line) {
-			if (pos.first + dir.first < 0 || pos.first + dir.first >= this->size ||
-				pos.second + dir.second < 0 || pos.second + dir.second >= this->size ||
-				this->board[pos.first + dir.first][pos.second + dir.second] == playerIndex) {
-				
-				if (pos.first - dir.first < 0 || pos.first - dir.first >= this->size ||
-					pos.second - dir.second < 0 || pos.second - dir.second >= this->size ||
-					pos.first + dir.first * 2 < 0 || pos.first + dir.first * 2 >= this->size ||
-					pos.second + dir.second * 2 < 0 || pos.second + dir.second * 2 >= this->size) {
-						continue;
-				}
+			std::cout << "\tfor dir: " << dir << ", pos: " << pos << std::endl;
+			std::pair<int, int> nextPos = pos + dir;
 
-				if ((this->board[pos.first - dir.first][pos.second - dir.second] == -1 && 
-					this->board[pos.first + dir.first * 2][pos.second + dir.second * 2] == otherPlayer) ||
-					(this->board[pos.first - dir.first][pos.second - dir.second] == otherPlayer && 
-					this->board[pos.first + dir.first * 2][pos.second + dir.second * 2] == -1)) {
-						std::cout << "Can Break" << std::endl;
-						return true;
+
+			if (this->onBoard(nextPos) && this->getValueOnBoard(nextPos) == currentPlayer) {
+				std::cout << "\t\tnextPos: " << nextPos << ": " << this->getValueOnBoard(nextPos) << std::endl;
+ 				nextPos = pos + dir * 2;
+				std::pair<int, int> nextPos2 = pos - dir;
+				std::cout << "\t\tnextPos : " << nextPos << ": " << this->getValueOnBoard(nextPos) << std::endl;
+				std::cout << "\t\tnextPos2: " << nextPos2 << ": " << this->getValueOnBoard(nextPos2) << std::endl;
+				if (this->notOnBoard(nextPos) || this->notOnBoard(nextPos2)) {
+					std::cout << nextPos << " or " << nextPos2 << " is not on board" << std::endl;
+					continue;
 				}
+				if ((this->getValueOnBoard(nextPos) == otherPlayer && this->getValueOnBoard(nextPos2) == -1) ||
+					(this->getValueOnBoard(nextPos) == -1 && this->getValueOnBoard(nextPos2) == otherPlayer)) {
+					std::cout << "\t\tCan Break at " << pos << std::endl;
+						return true;
+				} else {
+					std::cout << "\t\tCannot break at " << pos << std::endl;
+				}
+			} else {
+				break;
 			}
+
 		}
 	}
 	return false;
 }
-
 
 void Gomoku::updateBoardCallbacks(std::pair<int, int> pos, int value) {
 	if (minmax->isRunning()) {
@@ -719,7 +822,7 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	}
 }
 
-void Gomoku::printBoard() {
+void Gomoku::printBoard() const {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
 			std::cout << std::setw(6) << (this->board[j][i] == -1 ? "." : std::to_string(this->board[j][i])) << " ";
@@ -728,7 +831,7 @@ void Gomoku::printBoard() {
 	}
 }
 
-void Gomoku::printBoard(std::vector<std::vector<int>> board) {
+void Gomoku::printBoard(std::vector<std::vector<int>> board) const {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
 			if (board[j][i] < Minmax::INF_MIN + 20) {
@@ -743,7 +846,7 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board) {
 	}
 }
 
-void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos) {
+void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos) const {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
 			std::string value;
