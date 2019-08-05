@@ -11,8 +11,6 @@
 #include <chrono>
 #include <future>
 
-std::ostream & operator << (std::ostream &out, std::pair<int, int> &c);
-
 #include <args.hxx>
 
 #include <SFML/Graphics/Shape.hpp>
@@ -28,6 +26,8 @@ std::ostream & operator << (std::ostream &out, std::pair<int, int> &c);
 #include "Grid.hpp"
 #include "Button.hpp"
 #include "TextBox.hpp"
+
+#include "Pair.hpp"
 
 #include "Player.hpp"
 #include "Gomoku.hpp"

@@ -1,4 +1,4 @@
-#include "Gomoku.hpp"
+#include "Common.hpp"
 
 Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5), turn(0) {
 	this->players.push_back(std::make_shared<Player>(0, player0Type));
@@ -16,7 +16,7 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 		std::make_shared<Captures>()
 	};
 
-	if (true) {
+	if (false) {
 		_gameEndingCapture = std::make_shared<GameEndingCapture>();
 		_rules.push_back(_gameEndingCapture);
 	}

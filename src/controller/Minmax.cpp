@@ -5,10 +5,6 @@
 #define DEBUG_POS false
 
 Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku), _running(false) {}
-std::ostream & operator << (std::ostream &out, std::pair<int, int> &c) {
-    out << "[" << c.first << ", " << c.second << "]";
-    return out;
-}
 
 bool Minmax::isRunning() const {
 	return this->_running;

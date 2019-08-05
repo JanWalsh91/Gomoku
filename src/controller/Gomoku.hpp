@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.hpp"
+#include "Gomoku.hpp"
 
 class ARule;
 class Minmax;
