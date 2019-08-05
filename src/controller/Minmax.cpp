@@ -15,7 +15,7 @@ std::pair<int, int> Minmax::run() {
 	this->_running = true;
 
 	this->gomoku.heuristicPlayer = this->gomoku.currentPlayer;
-	// std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->getIndex() << std::endl;
+	std::cout << "Minmax run " << maxDepth << " Heuritic player: " << this->gomoku.heuristicPlayer->getIndex() << std::endl;
 	
 	this->bestMove = std::make_pair(-1, -1);
 	this->bestValue = Minmax::INF_MIN;
@@ -67,14 +67,14 @@ auto displayAt = std::vector<std::tuple<int, int, int>>() =  {
 		
 /*  0  */	std::make_tuple(-1, -1, 1),
 
-/*  1  */	std::make_tuple(-1, -1, 1),
+/*  1  */	std::make_tuple(1, 0, 0),
 			
-/*  2  */	std::make_tuple(-1, -1, 0),
+/*  2  */	std::make_tuple(1, 0, 0),
 
-// /*  3  */	std::make_tuple(1, 5, 1),
-/*  3  */	std::make_tuple(2, 3, 1),
+/*  3  */	std::make_tuple(1, 0, 0),
+// /*  3  */	std::make_tuple(2, 3, 1),
 
-/*  4  */	std::make_tuple(-1, -1, 10),
+/*  4  */	std::make_tuple(-1, -1, 1),
 	
 };
 
@@ -131,6 +131,16 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		_bestValue[depth] = value;
 		#endif
 
+		// Return early if Heuristic found end state (can't find anything better!)
+		if (sortedMoves[0].first <= Minmax::INF_MIN + 10) {
+			std::cout << "Heuristic found end state: " << sortedMoves[0].first << std::endl;
+			#if DEBUG_POS
+			_bestMove[depth] = sortedMoves[0].second;
+			_boards[depth][sortedMoves[0].second.first][sortedMoves[0].second.second] = sortedMoves[0].first;
+			#endif
+			return sortedMoves[0].first;
+		}
+
 		for (auto& move: sortedMoves) {
 			auto undoMoves = this->gomoku.doMove(move.second);
 			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false, false, move.first);
@@ -161,10 +171,8 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 					}
 				}
 				#endif
-				if (ret > this->bestValue || (ret > this->bestValue && ret <= Minmax::INF_MIN + 10)) {
-					if (ret > this->bestValue && ret <= Minmax::INF_MIN + 10) {
-						std::cout <<"cutting it short. ret: " << ret << std::endl; 
-					}
+
+				if (ret > this->bestValue) {
 					this->bestValue = ret;
 					this->bestMove = move.second;
 					
@@ -176,7 +184,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 				this->heuristicValues[move.second.first][move.second.second] = ret;
 			}
 
-			if (alpha >= beta || (root && ret <= Minmax::INF_MIN + 10)) {
+			if (alpha >= beta) {
 				#if PRUNNING
 				break;
 				#endif
@@ -191,9 +199,20 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 	} else {
 		int value = Minmax::INF_MAX + 1;
+
 		#if DEBUG_POS
 		_bestValue[depth] = value;
 		#endif
+
+		// Return early if Heuristic found end state (can't find anything worse!)
+		if (sortedMoves[0].first >= Minmax::INF_MAX - 10) {
+			std::cout << "Heuristic found end state: " << sortedMoves[0].first << std::endl;
+			#if DEBUG_POS
+			_bestMove[depth] = sortedMoves[0].second;
+			_boards[depth][sortedMoves[0].second.first][sortedMoves[0].second.second] = sortedMoves[0].first;
+			#endif
+			return sortedMoves[0].first;
+		}		
 
 		for (auto& move: sortedMoves) {
 			auto undoMoves = this->gomoku.doMove(move.second);

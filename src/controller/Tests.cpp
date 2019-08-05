@@ -123,7 +123,6 @@ void Tests::_heuristic(HeuristicParams& param) {
 // === MINMAX === //
 
 void Tests::runMinmax(int index) {
-
 	std::cout << "runMinmax " << index << std::endl;
 	if (index == -1) {
 		Tests::runMinmax(static_cast<int>(Tests::_minmaxTestCases.size() - 1));
@@ -144,7 +143,7 @@ void Tests::runMinmax() {
 }
 
 void Tests::_minmaxUnitTest(MinmaxParams& param) {
-	std::cout << " === Unit Test: Minmax " << std::endl;
+	std::cout << " === Unit Test: Minmax. Current Player: " << Tests::_gomoku->players[param.currentPlayer] << std::endl;
 
 	Tests::_gomoku->size = param.board.size();
 	Tests::_gomoku->reset();
@@ -157,6 +156,7 @@ void Tests::_minmaxUnitTest(MinmaxParams& param) {
 	
 	std::vector<std::pair<int, int>> moves;
 
+	// TODO : remove (useless)
 	if (param.moves.size()) {
 		moves = param.moves;
 	} else {
