@@ -7,10 +7,17 @@ void Tests::init() {
 // === EVAL LINE === //
 
 void Tests::runEvalLine(int index) {
+	std::cout << "runEvalLine " << index << std::endl;
 	if (index == -1) {
 		Tests::runEvalLine(static_cast<int>(Tests::_evalLineTestCases.size() - 1));
-	} 
-	Tests::_evalLine(Tests::_evalLineTestCases[index]);
+		return ;
+	}
+	if (0 < index && index < (int)_evalLineTestCases.size()) {
+		Tests::_evalLine(Tests::_evalLineTestCases[index]);
+	} else {
+		std::cout << "Test case " << index << " does not exist"  << std::endl;
+		return ;
+	}
 
 }
 
@@ -43,10 +50,17 @@ void Tests::_evalLine(EvalLineParams& param) {
 // === HEURISTIC === //
 
 void Tests::runHeuristic(int index) {
+	std::cout << "runHeuristic " << index << std::endl;
 	if (index == -1) {
 		Tests::runHeuristic(static_cast<int>(Tests::_heuristicTestCases.size() - 1));
+		return ;
 	} 
-	Tests::_heuristic(Tests::_heuristicTestCases[index]);
+	if (0 < index && index < (int)_heuristicTestCases.size()) {
+		Tests::_heuristic(Tests::_heuristicTestCases[index]);
+	} else {
+		std::cout << "Test case " << index << " does not exist"  << std::endl;
+		return ;
+	}
 }
 
 void Tests::runHeuristic() {
@@ -109,10 +123,18 @@ void Tests::_heuristic(HeuristicParams& param) {
 // === MINMAX === //
 
 void Tests::runMinmax(int index) {
+
+	std::cout << "runMinmax " << index << std::endl;
 	if (index == -1) {
 		Tests::runMinmax(static_cast<int>(Tests::_minmaxTestCases.size() - 1));
+		return ;
 	} 
-	Tests::_minmaxUnitTest(Tests::_minmaxTestCases[index]);
+	if (0 < index && index < (int)_minmaxTestCases.size()) {
+		Tests::_minmaxUnitTest(Tests::_minmaxTestCases[index]);
+	} else {
+		std::cout << "Test case " << index << " does not exist"  << std::endl;
+		return ;
+	}
 }
 
 void Tests::runMinmax() {
@@ -347,6 +369,20 @@ std::vector<Tests::HeuristicParams> Tests::_heuristicTestCases = {
 		{0, 0},
 		{}
 	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1,  0,  0,  0,  0, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1,  1,  1,  1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		},
+		0,
+		{0, 0},
+		{}
+	},
 };
 
 std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
@@ -451,5 +487,20 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		{ 0, 0 },
 		{},
 		{},
+	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1,  0,  0,  0,  0, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1,  1,  1,  1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		},
+		0,
+		{0, 0},
+		{},
+		{ 2 },
 	},
 };
