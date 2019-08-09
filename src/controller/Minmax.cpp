@@ -1,6 +1,6 @@
 #include "Minmax.hpp"
 
-#define PRUNNING true
+#define PRUNNING false
 #define PROXIMITY_BONUS false
 #define DEBUG_POS false
 

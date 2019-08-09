@@ -166,7 +166,7 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int currentPlayer) {
 
 // NEW
 int Gomoku::canBreakAlignment(std::pair<int, int> startPos, int currentPlayer, int otherPlayer, std::pair<int, int>& dir, int numAligned) const {
-	std::cout << "[canBreakAlignment] at startPos: " << startPos << ", dir: " << dir << ", numAligned: " << numAligned << std::endl;
+	// std::cout << "[canBreakAlignment] at startPos: " << startPos << ", dir: " << dir << ", numAligned: " << numAligned << std::endl;
 	std::pair<int, int> nextPos = startPos;
 	int unbreakableAligned;
 
@@ -183,7 +183,7 @@ int Gomoku::canBreakAlignment(std::pair<int, int> startPos, int currentPlayer, i
 		if (this->canBreakAtPos(nextPos, currentPlayer, otherPlayer)) {
 			// std::cout << "[canBreakAlignment] can break at " << nextPos << ", numAligned - i: " << (numAligned - i) << std::endl;
 			if (numAligned - i < 5) { // if remaining stones less than 5, break
-				std::cout << "[canBreakAlignment] return true because not enough left to align" << std::endl;
+				// std::cout << "[canBreakAlignment] return true because not enough left to align" << std::endl;
 				return true;
 			}
 			unbreakableAligned = 0; // reset number of uncapturable stones in a row, look for next 5 in a row in the same line
@@ -197,7 +197,7 @@ int Gomoku::canBreakAlignment(std::pair<int, int> startPos, int currentPlayer, i
 			return false;
 		}
 	}
-	std::cout << "[canBreakAlignment] return true because found none to break" << std::endl;
+	// std::cout << "[canBreakAlignment] return true because found none to break" << std::endl;
 	return true;
 }
 
@@ -450,7 +450,9 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 	}
 
 	if (currentStreakNum >= 5 && emptyCellCount == 0) {
-		std::cout << "SHOULD NO BE HERE" << std::endl;
+		if (this->endState != -1) {
+			std::cout << "SHOULD NOT BE HERE" << std::endl;
+		}
 		// don't returrrun, update player statusues
 		// return Minmax::INF_MAX / 2;
 	}
