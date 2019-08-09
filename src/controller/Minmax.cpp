@@ -277,28 +277,14 @@ std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pai
 		} else {
 			Minmax::HeuristicByMove hbm;
 
-			gomoku.players[currentPlayer->getIndex()]->setFiveInARow(false);
 			gomoku.players[currentPlayer->getIndex()]->setPotentialCaptures(0);
 			
-			gomoku.players[otherPlayer->getIndex()]->setFiveInARow(false);
 			gomoku.players[otherPlayer->getIndex()]->setPotentialCaptures(0);
 			
 			hbm.move = move;
 			hbm.heuristic = this->gomoku.heuristic();
-			hbm.state = this->gomoku.endState;
+			hbm.state = this->gomoku.endState; // TODO: remove state from struct
 			
-			// handle 5 in a row win state and oppponent cannot capture and win
-			if (currentPlayer->hasFiveInARow() &&
-				(otherPlayer->getCaptures() != 4 ||
-				otherPlayer->getPotentialCaptures() == 0)) {
-
-				hbm.state = currentPlayer->getIndex();
-				if (maximizing) {
-					hbm.heuristic = Minmax::INF_MIN + (this->maxDepth - depth);
-				} else {
-					hbm.heuristic = Minmax::INF_MAX - (this->maxDepth - depth);
-				}
-			}
 			heuristicsByMove.push_back(hbm);
 		}
 		

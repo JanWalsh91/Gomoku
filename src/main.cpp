@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
+		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::HUMAN, Player::HUMAN);
 		std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 
 		std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
@@ -357,8 +357,10 @@ int main(int argc, char *argv[]) {
 		gomoku->place(9, 6, 1);
 		gomoku->place(9, 5, 0);
 		gomoku->place(9, 3, 1);
+		gomoku->place(9, 4, 0);
 		gomoku->place(9, 5, 0);
 		gomoku->place(6, 11, 1);
+		gomoku->place(7, 7, 1);
 
 		// gomoku->place(6, 5, 0);
 		// gomoku->place(2, 7, 1);

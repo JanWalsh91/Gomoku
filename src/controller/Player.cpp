@@ -44,11 +44,3 @@ int Player::getPotentialCaptures() const {
 void Player::setPotentialCaptures(int captures) {
 	_potentialCaptures = captures;
 }
-
-bool Player::hasFiveInARow() const {
-	return _fiveInARow;
-}
-
-void Player::setFiveInARow(bool fiveInARow) {
-	_fiveInARow = fiveInARow;
-}

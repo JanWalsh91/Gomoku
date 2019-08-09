@@ -34,8 +34,7 @@ void Tests::_evalLine(EvalLineParams& param) {
 	Tests::_gomoku->reset();
 	Tests::_gomoku->board[0] = param.line;
 
-	int potentialCaptures = 0;
-	int score = Tests::_gomoku->evalLine(std::make_pair(0, 0), std::make_pair(0, 1), 0, Tests::_gomoku->size, potentialCaptures);
+	int score = Tests::_gomoku->evalLine(std::make_pair(0, 0), std::make_pair(0, 1), 0, Tests::_gomoku->size);
 
 	for (int i = 0; i < Tests::_gomoku->size; i ++) {
 		if (i == Tests::_gomoku->size - 1) {
@@ -44,7 +43,8 @@ void Tests::_evalLine(EvalLineParams& param) {
 			std::cout << Tests::_gomoku->board[0][i] << ", ";
 		}
 	}
-	std::cout << "\t => score: " << score << ", potentialCaptures: " << potentialCaptures << std::endl;
+	// std::cout << "\t => score: " << score << ", potentialCaptures: " << potentialCaptures << std::endl;
+	std::cout << "\t => score: " << score << std::endl;
 }
 
 // === HEURISTIC === //

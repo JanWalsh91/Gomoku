@@ -37,9 +37,13 @@ public:
 	int canBreakAlignment(std::pair<int, int> startPos, int playerIndex, int otherPlayer, std::pair<int, int>& dir, int numAligned) const;
 	bool canBreakAtPos(std::pair<int, int> nextPos, int playerIndex, int otherPlayer) const;
 
+	void updatePotentialCaptures();
+	void updatePotentialCapturesByLine(std::pair<int, int> startPos, std::pair<int, int> dir, int length);
+
+
 	int heuristic();
 	int heuristicByPlayer(int player);
-	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length, int &potentialCaptures);
+	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length);
 	int evalStreakScore(int, int, bool, int player, int emptyCellCount);
 	bool hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer);
 	std::vector<std::pair<int, int>> getMoves();
@@ -52,7 +56,7 @@ public:
 	void clearReset();
 	bool onBoard(std::pair<int, int> &pos) const;
 	bool notOnBoard(std::pair<int, int> &pos) const;
-	int getValueOnBoard(std::pair<int, int> &pos) const;
+	int getValueOnBoard(std::pair<int, int> pos) const;
 
 	void nextTurn();
 	int getTurn() const;

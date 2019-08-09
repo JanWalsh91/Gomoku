@@ -21,14 +21,12 @@ public:
 	int getIndex() const;
 	int getPotentialCaptures() const;
 	void setPotentialCaptures(int captures);
-	bool hasFiveInARow() const;
-	void setFiveInARow(bool);
 private:
 
 	int _index;
 	int _captures;
 	int _potentialCaptures;
-	bool _fiveInARow;
+	
 
 	Type _type;
 };
