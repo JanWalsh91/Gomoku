@@ -12,6 +12,7 @@ class GUI {
 
 public:
 	GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window);
+	~GUI();
 
 	void setup();
 

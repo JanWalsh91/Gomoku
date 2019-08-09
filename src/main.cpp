@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::HUMAN, Player::HUMAN);
+		std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
 		std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 
 		std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
@@ -104,29 +104,279 @@ int main(int argc, char *argv[]) {
 		auto start = std::chrono::high_resolution_clock::now();
 		auto end = std::chrono::high_resolution_clock::now();
 
-		// test 5 aligned
+		// ============ Tests for 5 aligned ================
+
+		#if 0
+		{
+			// x x x x
+			gomoku->place(2, 1, 0);
+			gomoku->place(2, 2, 0);
+			gomoku->place(2, 3, 0);
+			gomoku->place(2, 4, 0);
+			#if 1
+			// x! x x x
+			{
+				gomoku->place(1, 1, 1);
+				gomoku->place(3, 1, 0);
+			}
+			#endif
+			#if 0
+			// x x !x x
+			{
+				gomoku->place(1, 3, 1);
+				gomoku->place(3, 3, 0);
+			}
+			#endif
+		}
+		#endif
+		#if 0
+		{
+			// x x x x . x x x
+			gomoku->place(2, 1, 0);
+			gomoku->place(2, 2, 0);
+			gomoku->place(2, 3, 0);
+			gomoku->place(2, 4, 0);
+			gomoku->place(2, 6, 0);
+			gomoku->place(2, 7, 0);
+			gomoku->place(2, 8, 0);
+			#if 0
+			// x x x x . !x x x
+			{
+				gomoku->place(1, 6, 1);
+				gomoku->place(3, 6, 0);	
+			}
+			#endif
+			#if 0
+			// x x x !x . x x x
+			{
+				gomoku->place(1, 4, 1);
+				gomoku->place(3, 4, 0);	
+			}
+			#endif
+			#if 0
+			// x x x !x . x x x x
+			{
+				gomoku->place(2, 9, 0);
+				gomoku->place(1, 4, 1);
+				gomoku->place(3, 4, 0);
+			}
+			#endif
+			#if 0
+			// x x !x x . x x x x x x
+			{
+				gomoku->place(2, 9, 0);
+				gomoku->place(2, 10, 0);
+				gomoku->place(2, 11, 0);
+				gomoku->place(1, 3, 1);
+				gomoku->place(3, 3, 0);
+			}
+			#endif
+		}
+		#endif
+		#if 0
+		// currentPlayer cannot place and break
+		// x x !x x . x x x
 		{
 			gomoku->place(2, 1, 0);
 			gomoku->place(2, 2, 0);
 			gomoku->place(2, 3, 0);
 			gomoku->place(2, 4, 0);
-			// can break at end
-			// {
-			// 	gomoku->place(1, 1, 1);
-			// 	gomoku->place(3, 1, 0);
-			// }
-			// can break in middle
-			{
-				gomoku->place(1, 3, 1);
-				gomoku->place(3, 3, 0);
-			}
+			
+			gomoku->place(1, 4, 1);
+			gomoku->place(3, 4, 0);
+			gomoku->place(4, 2, 1);
+			gomoku->place(4, 3, 1);
+			gomoku->place(2, 6, 1);
+			gomoku->place(3, 5, 1);
+
 		}
+		#endif
+		#if 0
+		// x x !x x . x x x            HORIZONTAL
+		{
+			gomoku->place(2, 1, 0);
+			gomoku->place(2, 2, 0);
+			gomoku->place(2, 3, 0);
+			gomoku->place(2, 5, 0);
+			
+			#if 0
+			gomoku->place(1, 3, 1);
+			gomoku->place(3, 5, 0);
+			#endif
+			#if 0
+			gomoku->place(1, 3, 0);
+			gomoku->place(3, 5, 1);
+			#endif
+
+			#if 0
+			gomoku->place(1, 5, 1);
+			gomoku->place(3, 3, 0);
+			#endif
+			#if 0
+			gomoku->place(1, 5, 0);
+			gomoku->place(3, 3, 1);
+			#endif
+
+			#if 0
+			gomoku->place(1, 4, 1);
+			gomoku->place(3, 4, 0);
+			#endif
+			#if 0
+			gomoku->place(1, 4, 0);
+			gomoku->place(3, 4, 1);
+			#endif
+		}
+		#endif
+		
+		#if 0
+		//           VeRTICAL
+		gomoku->place(1, 2, 0);
+		gomoku->place(2, 2, 0);
+		gomoku->place(3, 2, 0);
+		gomoku->place(5, 2, 0);
+		
+		#if 0
+		gomoku->place(4, 3, 0);
+		gomoku->place(6, 1, 1);
+		#endif
+		#if 0
+		gomoku->place(4, 3, 1);
+		gomoku->place(6, 1, 0);
+		#endif
+
+		#if 0
+		gomoku->place(5, 3, 0);
+		gomoku->place(5, 1, 1);
+		#endif
+		#if 0
+		gomoku->place(5, 3, 1);
+		gomoku->place(5, 1, 0);
+		#endif
+
+		#if 0
+		gomoku->place(4, 1, 1);
+		gomoku->place(6, 3, 0);
+		#endif
+		#if 0
+		gomoku->place(4, 1, 0);
+		gomoku->place(6, 3, 1);
+		#endif
+		#endif
+
+		#if 0
+		// DIAGONAL 1
+		gomoku->place(1, 1, 0);
+		gomoku->place(2, 2, 0);
+		gomoku->place(4, 4, 0);
+		gomoku->place(5, 5, 0);
+
+		#if 0
+		gomoku->place(2, 3, 0);
+		gomoku->place(4, 3, 1);
+		#endif
+		#if 0
+		gomoku->place(2, 3, 1);
+		gomoku->place(4, 3, 0);
+		#endif
+		
+		#if 0
+		gomoku->place(2, 4, 1);
+		gomoku->place(4, 2, 0);
+		#endif
+		#if 0
+		gomoku->place(2, 4, 0);
+		gomoku->place(4, 2, 1);
+		#endif
+
+		#if 0
+		gomoku->place(3, 4, 0);
+		gomoku->place(3, 2, 1);
+		#endif
+		#if 1
+		gomoku->place(3, 4, 0);
+		gomoku->place(3, 2, 1);
+		#endif
+
+		#endif
+
+		#if 0
+		// DIAGONAL 2
+		gomoku->place(1, 5, 0);
+		gomoku->place(2, 4, 0);
+		gomoku->place(4, 2, 0);
+		gomoku->place(5, 1, 0);
+
+		#if 0
+		gomoku->place(2, 3, 0);
+		gomoku->place(4, 3, 1);
+		#endif
+		#if 0
+		gomoku->place(2, 3, 1);
+		gomoku->place(4, 3, 0);
+		#endif
+		
+		#if 0
+		gomoku->place(2, 2, 1);
+		gomoku->place(4, 4, 0);
+		#else
+		gomoku->place(2, 2, 0);
+		gomoku->place(4, 4, 1);
+		#endif
+
+		#if 0
+		gomoku->place(3, 4, 0);
+		gomoku->place(3, 2, 1);
+		#endif
+		#if 0
+		gomoku->place(3, 4, 0);
+		gomoku->place(3, 2, 1);
+		#endif
+
+
+		#endif
+
+		#if 1
+		gomoku->place(7, 8, 0);
+		gomoku->place(9, 8, 1);
+		gomoku->place(8, 7, 0);
+		gomoku->place(8, 10, 1);
+		gomoku->place(6, 8, 1);
+		gomoku->place(7, 8, 0);
+		gomoku->place(8, 9, 1);
+		gomoku->place(6, 9, 0);
+		gomoku->place(5, 10, 1);
+		gomoku->place(6, 8, 1);
+		gomoku->place(7, 5, 0);
+		gomoku->place(3, 8, 1);
+		gomoku->place(10, 5, 0);
+		gomoku->place(9, 6, 1);
+		gomoku->place(8, 5, 0);
+		gomoku->place(9, 5, 1);
+		gomoku->place(4, 9, 1);
+		gomoku->place(9, 7, 0);
+		gomoku->place(9, 6, 1);
+		gomoku->place(9, 5, 0);
+		gomoku->place(9, 3, 1);
+		gomoku->place(9, 5, 0);
+		gomoku->place(6, 11, 1);
+
+		// gomoku->place(6, 5, 0);
+		// gomoku->place(2, 7, 1);
+
+		gomoku->players[0]->incrementCaptures();
+		gomoku->players[0]->incrementCaptures();
+		gomoku->players[0]->incrementCaptures();
+
+		gomoku->players[1]->incrementCaptures();
+		gomoku->players[1]->incrementCaptures();
+		gomoku->players[1]->incrementCaptures();
+		gomoku->players[1]->incrementCaptures();
+		#endif
 
 		if (autoStart) {
 			std::cout << "Auto Start: " << autoStart << std::endl;
 			gomoku->playing = true;
 		}
-
 		window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future, &start, &end]() mutable {
 
 			if (future.valid() && future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {

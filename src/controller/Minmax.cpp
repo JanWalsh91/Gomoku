@@ -122,7 +122,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 	}
 
 	auto moves = this->gomoku.getMoves();
-	auto sortedMoves = this->getSortedMoves(moves, maximizing, depth);
+	auto heuristicsByMove = this->getSortedMoves(moves, maximizing, depth);
 
 	if (maximizing) {
 		int value = Minmax::INF_MIN - 1;
@@ -132,24 +132,24 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		#endif
 
 		// Return early if Heuristic found end state (can't find anything better!)
-		if (sortedMoves[0].first <= Minmax::INF_MIN + 10) {
-			std::cout << "Heuristic found end state: " << sortedMoves[0].first << std::endl;
+		if (heuristicsByMove[0].heuristic <= Minmax::INF_MIN + 10) {
+			std::cout << "Heuristic found end state: " << heuristicsByMove[0].heuristic << std::endl;
 			#if DEBUG_POS
-			_bestMove[depth] = sortedMoves[0].second;
-			_boards[depth][sortedMoves[0].second.first][sortedMoves[0].second.second] = sortedMoves[0].first;
+			_bestMove[depth] = heuristicsByMove[0].move;
+			_boards[depth][heuristicsByMove[0].move.first][heuristicsByMove[0].move.second] = heuristicsByMove[0].heuristic;
 			#endif
-			return sortedMoves[0].first;
+			return heuristicsByMove[0].heuristic;
 		}
 
-		for (auto& move: sortedMoves) {
-			auto undoMoves = this->gomoku.doMove(move.second);
-			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false, false, move.first);
+		for (auto& heuristicByMove: heuristicsByMove) {
+			auto undoMoves = this->gomoku.doMove(heuristicByMove.move);
+			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, false, false, heuristicByMove.heuristic);
 			this->gomoku.undoMove(undoMoves);
 			
 			#if DEBUG_POS
 			if (ret > _bestValue[depth]) {
 				_bestValue[depth] = ret;
-				_bestMove[depth] = move.second;
+				_bestMove[depth] = heuristicByMove.move;
 			}
 			#endif
 
@@ -157,14 +157,14 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 			alpha = std::max(alpha, value);
 
 			#if DEBUG_POS
-			_boards[depth][move.second.first][move.second.second] = ret;
+			_boards[depth][heuristicByMove.move.first][heuristicByMove.move.second] = ret;
 			#endif
 
 			if (root) {
 				#if PROXIMITY_BONUS
 				for (auto lastMove : this->gomoku.lastMoves) {
 					if (lastMove.first != -1) {
-						if (std::abs(move.second.first - lastMove.first) == 1 && std::abs(move.second.second - lastMove.second) == 1) {
+						if (std::abs(heuristicByMove.move.first - lastMove.first) == 1 && std::abs(heuristicByMove.move.second - lastMove.second) == 1) {
 							ret += Minmax::PROXIMITY_BONUNS;
 							break;
 						}
@@ -174,14 +174,14 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 				if (ret > this->bestValue) {
 					this->bestValue = ret;
-					this->bestMove = move.second;
+					this->bestMove = heuristicByMove.move;
 					
 					#if DEBUG_POS
 					_bestValue[depth] = ret;
-					_bestMove[depth] = move.second;
+					_bestMove[depth] = heuristicByMove.move;
 					#endif
 				}
-				this->heuristicValues[move.second.first][move.second.second] = ret;
+				this->heuristicValues[heuristicByMove.move.first][heuristicByMove.move.second] = ret;
 			}
 
 			if (alpha >= beta) {
@@ -205,24 +205,24 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		#endif
 
 		// Return early if Heuristic found end state (can't find anything worse!)
-		if (sortedMoves[0].first >= Minmax::INF_MAX - 10) {
-			std::cout << "Heuristic found end state: " << sortedMoves[0].first << std::endl;
+		if (heuristicsByMove[0].heuristic >= Minmax::INF_MAX - 10) {
+			std::cout << "Heuristic found end state: " << heuristicsByMove[0].heuristic << std::endl;
 			#if DEBUG_POS
-			_bestMove[depth] = sortedMoves[0].second;
-			_boards[depth][sortedMoves[0].second.first][sortedMoves[0].second.second] = sortedMoves[0].first;
+			_bestMove[depth] = heuristicsByMove[0].move;
+			_boards[depth][heuristicsByMove[0].move.first][heuristicsByMove[0].move.second] = heuristicsByMove[0].heuristic;
 			#endif
-			return sortedMoves[0].first;
+			return heuristicsByMove[0].heuristic;
 		}		
 
-		for (auto& move: sortedMoves) {
-			auto undoMoves = this->gomoku.doMove(move.second);
-			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, true, false, move.first);
+		for (auto& heuristicByMove: heuristicsByMove) {
+			auto undoMoves = this->gomoku.doMove(heuristicByMove.move);
+			int ret = this->minmaxAlphaBeta(depth - 1, alpha, beta, true, false, heuristicByMove.heuristic);
 			this->gomoku.undoMove(undoMoves);
 
 			#if DEBUG_POS
 			if (ret < _bestValue[depth]) {
 				_bestValue[depth] = ret;
-				_bestMove[depth] = move.second;
+				_bestMove[depth] = heuristicByMove.move;
 			}
 			#endif
 
@@ -230,7 +230,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 			beta = std::min(beta, value);
 
 			#if DEBUG_POS
-			_boards[depth][move.second.first][move.second.second] = ret;
+			_boards[depth][heuristicByMove.move.first][heuristicByMove.move.second] = ret;
 			#endif
 
 			if (alpha >= beta) {
@@ -249,56 +249,92 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 
 }
 
-std::vector<std::pair<int, std::pair<int, int>>> Minmax::getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const {
-	auto sortedMoves = std::vector<std::pair<int, std::pair<int, int>>>();
-	
-	std::vector<int> movesHeuristicValues;
+std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const {
+	std::vector<Minmax::HeuristicByMove> heuristicsByMove;
+
+	std::shared_ptr<Player> currentPlayer = this->gomoku.currentPlayer;
+	std::shared_ptr<Player> otherPlayer = this->gomoku.players[this->gomoku.currentPlayer->getIndex() == 0 ? 1 : 0];
+
 	for (auto& move: moves) {
 		auto undoMoves = this->gomoku.doMove(move);
 
 		if (this->gomoku.endState >= 0) {
 			if (maximizing) {
-				movesHeuristicValues.push_back(Minmax::INF_MIN + (this->maxDepth - depth));
+				heuristicsByMove.push_back( {
+					move,
+					Minmax::INF_MIN + (this->maxDepth - depth),
+					this->gomoku.endState
+				});
 			} else {
-				movesHeuristicValues.push_back(Minmax::INF_MAX - (this->maxDepth - depth));
+				heuristicsByMove.push_back({
+					move,
+					Minmax::INF_MAX - (this->maxDepth - depth),
+					this->gomoku.endState
+				});
 			}
 		} else if (this->gomoku.endState == Gomoku::State::DRAW) {
-			movesHeuristicValues.push_back(0);
+			heuristicsByMove.push_back({move, 0, this->gomoku.endState});
 		} else {
-			movesHeuristicValues.push_back(this->gomoku.heuristic());
+			Minmax::HeuristicByMove hbm;
+
+			gomoku.players[currentPlayer->getIndex()]->setFiveInARow(false);
+			gomoku.players[currentPlayer->getIndex()]->setPotentialCaptures(0);
+			
+			gomoku.players[otherPlayer->getIndex()]->setFiveInARow(false);
+			gomoku.players[otherPlayer->getIndex()]->setPotentialCaptures(0);
+			
+			hbm.move = move;
+			hbm.heuristic = this->gomoku.heuristic();
+			hbm.state = this->gomoku.endState;
+			
+			// handle 5 in a row win state and oppponent cannot capture and win
+			if (currentPlayer->hasFiveInARow() &&
+				(otherPlayer->getCaptures() != 4 ||
+				otherPlayer->getPotentialCaptures() == 0)) {
+
+				hbm.state = currentPlayer->getIndex();
+				if (maximizing) {
+					hbm.heuristic = Minmax::INF_MIN + (this->maxDepth - depth);
+				} else {
+					hbm.heuristic = Minmax::INF_MAX - (this->maxDepth - depth);
+				}
+			}
+			heuristicsByMove.push_back(hbm);
 		}
 		
 		this->gomoku.undoMove(undoMoves);
 	}
+
+	std::vector<Minmax::HeuristicByMove> sortedHeuristicByMove;
 	if (maximizing) {
-		while (movesHeuristicValues.size()/* && sortedMoves.size() < 10*/) {
+		while (heuristicsByMove.size()/* && sortedMoves.size() < 10*/) {
 			int maxValue = std::numeric_limits<int>::min();
 			int maxValueIndex = -1;
 			for (unsigned i = 0; i < moves.size(); i++) {
-				if (movesHeuristicValues[i] > maxValue) {
+				if (heuristicsByMove[i].heuristic > maxValue) {
 					maxValueIndex = i;
-					maxValue = movesHeuristicValues[i];
+					maxValue = heuristicsByMove[i].heuristic;
 				}
 			}
-			sortedMoves.push_back(std::make_pair(maxValue, moves[maxValueIndex]));
-			movesHeuristicValues.erase(movesHeuristicValues.begin() + maxValueIndex);
+			sortedHeuristicByMove.push_back(heuristicsByMove[maxValueIndex]);
+			heuristicsByMove.erase(heuristicsByMove.begin() + maxValueIndex);
 			moves.erase(moves.begin() + maxValueIndex);
 		}
 	}
 	else {
-		while (movesHeuristicValues.size()/* && sortedMoves.size() < 10*/) {
+		while (heuristicsByMove.size()/* && sortedMoves.size() < 10*/) {
 			int minValue = std::numeric_limits<int>::max();
 			int minValueIndex = -1;
 			for (unsigned i = 0; i < moves.size(); i++) {
-				if (movesHeuristicValues[i] < minValue) {
+				if (heuristicsByMove[i].heuristic < minValue) {
 					minValueIndex = i;
-					minValue = movesHeuristicValues[i];
+					minValue = heuristicsByMove[i].heuristic;
 				}
 			}
-			sortedMoves.push_back(std::make_pair(minValue, moves[minValueIndex]));
-			movesHeuristicValues.erase(movesHeuristicValues.begin() + minValueIndex);
+			sortedHeuristicByMove.push_back(heuristicsByMove[minValueIndex]);
+			heuristicsByMove.erase(heuristicsByMove.begin() + minValueIndex);
 			moves.erase(moves.begin() + minValueIndex);
 		}
 	}
-	return sortedMoves;
+	return sortedHeuristicByMove;
 }

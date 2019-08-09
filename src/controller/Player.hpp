@@ -19,9 +19,16 @@ public:
 	void decrementCaptures();
 	int getCaptures() const;
 	int getIndex() const;
+	int getPotentialCaptures() const;
+	void setPotentialCaptures(int captures);
+	bool hasFiveInARow() const;
+	void setFiveInARow(bool);
 private:
 
-	int index;
-	int captures;
-	Type type;
+	int _index;
+	int _captures;
+	int _potentialCaptures;
+	bool _fiveInARow;
+
+	Type _type;
 };

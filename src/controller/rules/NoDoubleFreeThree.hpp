@@ -8,4 +8,5 @@ class NoDoubleFreeThree: public ARule {
 public:
 	NoDoubleFreeThree();
 	virtual bool canPlace(const Gomoku& gomoku, std::pair<int, int>& move);
+	virtual bool canPlace(const Gomoku& gomoku, std::pair<int, int>& move, int playerIndex);
 };

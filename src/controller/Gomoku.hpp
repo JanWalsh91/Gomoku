@@ -34,7 +34,6 @@ public:
 	void captureCallbacks(int playerIndex);
 
 	int checkWinCondition(std::pair<int, int> pos, int playerIndex);
-	// int canBreakFiveAligned(std::pair<int, int> pos, int playerIndex, int otherPlayer, std::vector<std::pair<int, int>>& line) const;
 	int canBreakAlignment(std::pair<int, int> startPos, int playerIndex, int otherPlayer, std::pair<int, int>& dir, int numAligned) const;
 	bool canBreakAtPos(std::pair<int, int> nextPos, int playerIndex, int otherPlayer) const;
 
@@ -48,6 +47,7 @@ public:
 	void undoMove(std::vector<AAction*>& actions);
 
 	bool canPlace(std::pair<int, int>) const;
+	bool canPlace(std::pair<int, int>, int playerIndex) const;
 	bool hasBeenReset() const;
 	void clearReset();
 	bool onBoard(std::pair<int, int> &pos) const;

@@ -4,6 +4,10 @@
 NoDoubleFreeThree::NoDoubleFreeThree(): ARule("NO DOUBLE FREE THREE") {}
 
 bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move) {
+	return this->canPlace(gomoku, move, gomoku.currentPlayer->getIndex());
+}
+
+bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move, int currentPlayer) {
 	std::vector<std::pair<int, int>> directions = {
 		std::make_pair(0,  1),
 		std::make_pair(1,  0),
@@ -13,7 +17,6 @@ bool NoDoubleFreeThree::canPlace(const Gomoku& gomoku, std::pair<int, int>& move
 	int numFreeThrees = 0;
 	std::vector<int> line(9);
 	std::vector<int> subLine(4);
-	int currentPlayer = gomoku.currentPlayer->getIndex();
 	int otherPlayer = currentPlayer == 0 ? 1 : 0;
 	int lineIndex;
 	std::pair<int, int> pos;

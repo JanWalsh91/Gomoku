@@ -26,13 +26,19 @@ public:
 
 	static const int CERTAIN_VICTORY = 10'000;
 
+	typedef struct {
+		std::pair<int, int> move;
+		int heuristic;
+		int state;
+	} HeuristicByMove;
+
 private:
 
 	Gomoku& gomoku;
 
 	int minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue);
 
-	std::vector<std::pair<int, std::pair<int, int>>> getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const;
+	std::vector<HeuristicByMove> getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const;
 	
 	bool _running;
 

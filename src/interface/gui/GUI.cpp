@@ -14,6 +14,13 @@ GUI::GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window): go
 	}
 }
 
+GUI::~GUI() {
+	// for (auto soundBuffer: _stoneSoundEffects) {
+	// 	soundBuffer.clear();
+	// }
+
+}
+
 void GUI::setup() {
 	background = std::make_shared<Background>(790.0f, 790.0f, 5.0f, 5.0f, Colors::ForestGreen);
 	background->setBorder(5.0f, Colors::Grey);

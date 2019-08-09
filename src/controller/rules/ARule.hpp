@@ -16,6 +16,12 @@ public:
 		(void)pos;
 		return true;
 	}
+	virtual bool canPlace(const Gomoku& gomoku, std::pair<int, int>& pos, int playerIndex) {
+		(void)gomoku;
+		(void)pos;
+		(void)playerIndex;
+		return true;
+	}
 	virtual std::vector<AAction*> triggerEffects(Gomoku& gomoku, std::pair<int, int>& pos) {
 		(void)gomoku;
 		(void)pos;
