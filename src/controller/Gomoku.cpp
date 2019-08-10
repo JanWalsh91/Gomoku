@@ -221,7 +221,7 @@ bool Gomoku::canBreakAtPos(std::pair<int, int> pos, int currentPlayer, int other
 				// std::cout << "\t\tnextPos : " << nextPos << ": " << this->getValueOnBoard(nextPos) << std::endl;
 				// std::cout << "\t\tnextPos2: " << nextPos2 << ": " << this->getValueOnBoard(nextPos2) << std::endl;
 				if (this->notOnBoard(nextPos) || this->notOnBoard(nextPos2)) {
-					std::cout << nextPos << " or " << nextPos2 << " is not on board" << std::endl;
+					// std::cout << nextPos << " or " << nextPos2 << " is not on board" << std::endl;
 					continue;
 				}
 				if ((this->getValueOnBoard(nextPos) == otherPlayer && this->getValueOnBoard(nextPos2) == -1 && this->canPlace(nextPos2, otherPlayer)) ||
@@ -460,7 +460,7 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
 		// you win moar
 		if (currentStreakNum == 4) {
-			return Minmax::CERTAIN_VICTORY;
+			return Minmax::CERTAIN_VICTORY; //TODO: exit heuristic
 		}
 		if (currentStreakNum == 3 && currentStreakPotential > 5 && !halfOpen && emptyCellCount < 2) {
 			return Minmax::CERTAIN_VICTORY / 3;
@@ -699,9 +699,16 @@ int Gomoku::heuristicByPlayer(int player) {
 		std::cout << "LOL MDR SHOULD NOT DU TOUT BE HERE" << std::endl;
 		return Minmax::INF_MAX / 2;
 	}
+	// if (this->players[0]->getPotentialCaptures() > 0 || this->players[1]->getPotentialCaptures() > 0) {
+	// 	std::cout << "pot capteures: " << this->players[0]->getPotentialCaptures() << " and " << this->players[1]->getPotentialCaptures() << std::endl;
+	// }
 	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
 		// you win moar
 		if (captures == 4 && this->players[player]->getPotentialCaptures() > 0) {
+			return Minmax::CERTAIN_VICTORY;
+		}
+	} else {
+		if (captures == 4 && this->players[player]->getPotentialCaptures() > 1) {
 			return Minmax::CERTAIN_VICTORY;
 		}
 	}

@@ -29,7 +29,6 @@ public:
 	typedef struct {
 		std::pair<int, int> move;
 		int heuristic;
-		int state;
 	} HeuristicByMove;
 
 private:

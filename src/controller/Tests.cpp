@@ -1,5 +1,9 @@
 #include "Common.hpp"
 
+// #include <ctime>
+// #include <ratio>
+// #include <chrono>
+
 void Tests::init() {
 	Tests::_gomoku->minmax = Tests::_minmax;
 }
@@ -27,7 +31,7 @@ void Tests::runEvalLine() {
 	}
 }
 
-void Tests::_evalLine(EvalLineParams& param) {
+void Tests::_evalLine(Tests::EvalLineParams& param) {
 	std::cout << " === Unit Test: Eval Line " << std::endl;
 
 	Tests::_gomoku->size = param.line.size();
@@ -69,7 +73,7 @@ void Tests::runHeuristic() {
 	}
 }
 
-void Tests::_heuristic(HeuristicParams& param) {
+void Tests::_heuristic(Tests::HeuristicParams& param) {
 	std::cout << " === Unit Test: Heuristic " << std::endl;
 
 	Tests::_gomoku->size = param.board.size();
@@ -142,8 +146,9 @@ void Tests::runMinmax() {
 	}
 }
 
-void Tests::_minmaxUnitTest(MinmaxParams& param) {
-	std::cout << " === Unit Test: Minmax. Current Player: " << Tests::_gomoku->players[param.currentPlayer] << std::endl;
+void Tests::_minmaxUnitTest(Tests::MinmaxParams& param) {
+	std::cout << " === Unit Test: Minmax. Current Player: " << Tests::_gomoku->players[param.currentPlayer]->getIndex() << std::endl;
+
 
 	Tests::_gomoku->size = param.board.size();
 	Tests::_gomoku->reset();
@@ -165,17 +170,27 @@ void Tests::_minmaxUnitTest(MinmaxParams& param) {
 
 	std::vector<int> depths;
 
+	for (int i = 0; i < param.capturesPerPlayer[0]; i++) {
+		Tests::_gomoku->players[0]->incrementCaptures();
+	}
+	for (int i = 0; i < param.capturesPerPlayer[1]; i++) {
+		Tests::_gomoku->players[1]->incrementCaptures();
+	}
+
 	if (param.depths.size() > 0) {
 		depths = param.depths;
 	} else {
 		depths = { Tests::_DefaultDepth };
 	}
 
-	for (int& depth : depths ) {
+	for (int& depth : depths) {
 		Tests::_minmax->maxDepth = depth;
 		Tests::_gomoku->printBoard();
 		std::cout << "===== DEPTH " << depth << " =====" << std::endl;
+		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 		Tests::_minmax->run();
+		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+		std::cout << "time: " << std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count() << std::endl;
 	}
 }
 
@@ -414,7 +429,7 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		0,
 		{ 0, 0 },
 		{},
-		{},
+		{ 3 },
 	},
 	{
 		{
@@ -502,5 +517,62 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		{0, 0},
 		{},
 		{ 2 },
+	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1,  0,  0,  0, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1,  1,  1,  1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		},
+		0,
+		{0, 0},
+		{},
+		{ 4 },
+	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1,  0,  0,  0, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1,  1,  1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		},
+		0,
+		{0, 0},
+		{},
+		{ 4 },
+	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1,  0, -1,  0, -1,  0, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1,  1,  0, -1, -1,  0,  0,  1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1,  1, -1, -1,  1, -1,  0,  1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1,  1,  1,  0, -1,  0, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1,  1,  0,  0,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1,  1,  0, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+			{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		},
+		1,
+		{4, 2},
+		{},
+		{ 3 },
 	},
 };
