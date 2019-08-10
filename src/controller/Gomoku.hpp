@@ -41,10 +41,10 @@ public:
 	void updatePotentialCapturesByLine(std::pair<int, int> startPos, std::pair<int, int> dir, int length);
 
 
-	int heuristic();
-	int heuristicByPlayer(int player);
-	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length);
-	int evalStreakScore(int, int, bool, int player, int emptyCellCount);
+	int heuristic(int depth);
+	int heuristicByPlayer(int player, int *certainVictory);
+	int evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length, int* certainVictory);
+	int evalStreakScore(int, int, bool, int player, int emptyCellCount, int* certainVictory);
 	bool hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer);
 	std::vector<std::pair<int, int>> getMoves();
 	std::vector<AAction*> doMove(std::pair<int, int>& pos);

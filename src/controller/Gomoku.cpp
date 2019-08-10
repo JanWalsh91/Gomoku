@@ -437,7 +437,7 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
-int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, int emptyCellCount) {
+int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, int emptyCellCount, int* certainVictory) {
 	// if (logg) {
 	// 	std::cout <<
 	// 		" currentStreakNum: " << currentStreakNum << 
@@ -452,7 +452,10 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 	if (currentStreakNum >= 5 && emptyCellCount == 0) {
 		if (this->endState != -1) {
 			std::cout << "SHOULD NOT BE HERE" << std::endl;
+			certainVictory[0]++;
+			return 0;
 		}
+
 		// don't returrrun, update player statusues
 		// return Minmax::INF_MAX / 2;
 	}
@@ -460,14 +463,20 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
 		// you win moar
 		if (currentStreakNum == 4) {
-			return Minmax::CERTAIN_VICTORY; //TODO: exit heuristic
+			// std::cout << "HERE fror player " << this->currentPlayer->getIndex() << std::endl;
+			// this->printBoard();
+			certainVictory[1]++;
+			return 0;
+			// return Minmax::CERTAIN_VICTORY; //TODO: exit heuristic
 		}
 		if (currentStreakNum == 3 && currentStreakPotential > 5 && !halfOpen && emptyCellCount < 2) {
+			certainVictory[3]++;
 			return Minmax::CERTAIN_VICTORY / 3;
 		}
 
 	} else {
 		if (currentStreakNum == 4 && !halfOpen && emptyCellCount == 0) {
+			certainVictory[2]++;
 			return Minmax::CERTAIN_VICTORY / 2;
 		}
 	}
@@ -502,7 +511,7 @@ bool Gomoku::hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> l
 	return true;
 }
 
-int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length) {
+int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length, int* certainVictory) {
 	// logg = start.first == 1 && line.second == 1;
 	// if (logg) {
 	// 	std::cout << "Eval line: start: " << start << std::endl;
@@ -539,10 +548,10 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 					// std::cout << "evalStreakScore0: " << std::endl;
 					if (currentStreakPotential < 5) {
 						if (this->hasEnoughPotential(pos, line, 5 - currentStreakPotential, otherPlayer)) {
-							score += this->evalStreakScore(currentStreakNum, 100, frontBlocked, player, emptyCellCount);
+							score += this->evalStreakScore(currentStreakNum, 100, frontBlocked, player, emptyCellCount, certainVictory);
 						}
 					} else {
-						score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount);
+						score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount, certainVictory);
 					}
 					resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, i > 0 && this->getValueOnBoard(pos - line) == -1);
 					currentStreakNum = 1;
@@ -574,7 +583,7 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 				// 	" emptyCellCount: " << emptyCellCount << 
 				// 	" frontBlocked: " << frontBlocked << std::endl;
 				// std::cout << "evalStreakScore1: " << std::endl;
-				// score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount);
+				// score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount, certainVictory);
 				// std::cout << "\tscore => " << score << std::endl;
 				// resetStreak(streaking, frontBlocked, currentStreakNum, currentStreakPotential, emptyCellCount, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
 				// frontBlocked = i == 0 || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] == otherPlayer);
@@ -606,10 +615,10 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 		if (this->board[pos.first][pos.second] == otherPlayer) {
 			if (streaking) {
 				// std::cout << "evalStreakScore2: " << std::endl;
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] != -1), player, emptyCellCount);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] != -1), player, emptyCellCount, certainVictory);
 			} else {
 				// std::cout << "evalStreakScore3: " << std::endl;
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount, certainVictory);
 			}
 			resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
 			currentStreakPotential = 0;
@@ -625,7 +634,7 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 		// 	" emptyCellCount: " << emptyCellCount << 
 		// 	" frontBlocked: " << frontBlocked << std::endl;
 		// std::cout << "evalStreakScore4: " << std::endl;
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount);
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount, certainVictory);
 		// std::cout << "\tscore => " << score << std::endl;
 	} else {
 		// std::cout <<
@@ -636,14 +645,41 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 		// 	" frontBlocked: " << frontBlocked << std::endl;
 		// std::cout << "evalStreakScore5: " << std::endl;
 																				// frontBlocked useful?
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount);
+		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount, certainVictory);
 	}
 
 	return score;
 }
 
-int Gomoku::heuristicByPlayer(int player) {
+int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 	// TODO: possible to iterate only ONCE over board and calc both players at once?
+	int otherPlayer = player == 0 ? 1 : 0;
+
+
+	int captures = this->players[player]->getCaptures();
+	if (captures >= 5) {
+		std::cout << "LOL MDR SHOULD NOT DU TOUT BE HERE" << std::endl;
+		certainVictory[0]++;
+		return 0;
+	}
+	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
+		// you win moar
+		if (captures == 4 && this->players[player]->getPotentialCaptures() > 0) {
+			// std::cout << "win by pot capters(0)" << std::endl;
+			certainVictory[1]++;
+			return 0;
+			// return Minmax::CERTAIN_VICTORY;
+		}
+	} else {
+		if (captures == 4 && this->players[player]->getPotentialCaptures() > 1) {
+			// std::cout << "win by pot capters(1)" << std::endl;
+			certainVictory[3]++;
+			return 0;
+			// return Minmax::CERTAIN_VICTORY;
+		}
+	}
+	
+	
 	int score = 0;
 	std::pair<int, int> hLine = std::make_pair<int, int>(0, 1);
 	std::pair<int, int> vLine = std::make_pair<int, int>(1, 0);
@@ -658,11 +694,17 @@ int Gomoku::heuristicByPlayer(int player) {
 	for (int i = 0; i < this->size; i++) {
 		
 		//scores.push_back(std::async(&Gomoku::evalLine, this, std::make_pair(i, 0), hLine, player, this->size));
-		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size);
+		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size, certainVictory);
+		// if (certainVictory[1] > 0) {
+		// 	return 0;
+		// }
 		// std::cout << "score1: => " << score << std::endl;
 		
 		// if (i == 3) {
-			score += this->evalLine(std::make_pair(0, i), vLine, player, this->size);
+			score += this->evalLine(std::make_pair(0, i), vLine, player, this->size, certainVictory);
+			// if (certainVictory[1] > 0) {
+			// 	return 0;
+			// }
 			// std::cout << "score2: => " << score << std::endl;
 		// }
 	}
@@ -674,44 +716,40 @@ int Gomoku::heuristicByPlayer(int player) {
 	//}
 
 	for (int i = 0; i <= this->size - this->winStreakLength; i++) {
-		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i);
+		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i, certainVictory);
+		// if (certainVictory[1] > 0) {
+		// 	return 0;
+		// }
 		// std::cout << "score3: => " << score << std::endl;
 		if (i != 0) {
-			score += this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i);
+			score += this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i, certainVictory);
+			if (certainVictory[1] > 0) {
+				return 0;
+			}
 			// std::cout << "score4: => " << score << std::endl;
 		}
 	}
 
 	for (int i = this->size - 1; i >= this->winStreakLength - 1; i--) {
-		score += this->evalLine(std::make_pair(0, i), dLine2, player, i + 1);
+		score += this->evalLine(std::make_pair(0, i), dLine2, player, i + 1, certainVictory);
+		// if (certainVictory[1] > 0) {
+		// 	return 0;
+		// }
 		// std::cout << "score5: => " << score << std::endl;
 	}
 
 	for (int i = 1; i <= this->size - this->winStreakLength; i++) {
-		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i);
+		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i, certainVictory);
+		// if (certainVictory[1] > 0) {
+		// 	return 0;
+		// }
 		// std::cout << "score6: => " << score << std::endl;
 	}
-	int otherPlayer = player == 0 ? 1 : 0;
-
-
-	int captures = this->players[player]->getCaptures();
-	if (captures >= 5) {
-		std::cout << "LOL MDR SHOULD NOT DU TOUT BE HERE" << std::endl;
-		return Minmax::INF_MAX / 2;
-	}
+	
 	// if (this->players[0]->getPotentialCaptures() > 0 || this->players[1]->getPotentialCaptures() > 0) {
 	// 	std::cout << "pot capteures: " << this->players[0]->getPotentialCaptures() << " and " << this->players[1]->getPotentialCaptures() << std::endl;
 	// }
-	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
-		// you win moar
-		if (captures == 4 && this->players[player]->getPotentialCaptures() > 0) {
-			return Minmax::CERTAIN_VICTORY;
-		}
-	} else {
-		if (captures == 4 && this->players[player]->getPotentialCaptures() > 1) {
-			return Minmax::CERTAIN_VICTORY;
-		}
-	}
+	
 	// else {
 	// 	if (captures == 4 && potentialCaptures > 0) {
 	// 		return Minmax::CERTAIN_VICTORY / 2;
@@ -729,10 +767,62 @@ int Gomoku::heuristicByPlayer(int player) {
 
 //float hPlayerMultiplier = 1;
 
-int Gomoku::heuristic() {
+int getThresholdValue(int i) {
+	switch (i) {
+		case 0:
+			return Minmax::INF_MAX;
+		case 1:
+			return 100'000;
+		case 2:
+			return 50'000;
+		case 3:
+			return 20'000;
+	}
+}
 
-	int score0 = this->heuristicByPlayer(0);
-	int score1 = this->heuristicByPlayer(1);
+
+int Gomoku::heuristic(int depth) {
+
+	// if (this->board[1][1] == 0) {
+	// 	std::cout << "============ heru d = " << depth  << std::endl;
+	// this->printBoard();
+	// }
+
+
+
+	int certainVictories[][5] = {{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}};
+
+	int score0 = this->heuristicByPlayer(0, certainVictories[0]);
+	int score1 = this->heuristicByPlayer(1, certainVictories[1]);
+
+	// if (this->board[1][1] == 0) {
+
+	// 	std::cout << "h player: " << this->heuristicPlayer->getIndex() << std::endl;
+	// 	for (auto& cv: certainVictories) {
+	// 		std::cout << "----: ";
+	// 		for (auto i: cv) {
+	// 			std::cout << i << ", ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// }
+	for (int i = 0; i < 5; i++) {
+		if (certainVictories[0][i] > 0) {
+			score0 += getThresholdValue(i) - (this->minmax->maxDepth - depth);
+			// score1 = 0;
+			break;
+		}
+		if (certainVictories[1][i] > 0) {
+			score1 += getThresholdValue(i) - (this->minmax->maxDepth - depth);
+			// score0 = 0;
+			break;
+		}
+	}
+	// if (depth == 3) {
+	// 	std::cout << "score0: " << score0 << ", score1: " << score1 << std::endl;	
+	// }
+
+	// return score1;
 
 	//return this->heuristicPlayer->getIndex() == 0 ? hPlayerMultiplier * score0 - score1 : hPlayerMultiplier * score1 - score0;
 	return this->heuristicPlayer->getIndex() == 0 ? score0 - score1 : score1 - score0;

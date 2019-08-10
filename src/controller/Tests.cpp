@@ -38,7 +38,15 @@ void Tests::_evalLine(Tests::EvalLineParams& param) {
 	Tests::_gomoku->reset();
 	Tests::_gomoku->board[0] = param.line;
 
-	int score = Tests::_gomoku->evalLine(std::make_pair(0, 0), std::make_pair(0, 1), 0, Tests::_gomoku->size);
+	int certainVictories[5] = {0, 0, 0, 0, 0};
+
+	int score = Tests::_gomoku->evalLine(std::make_pair(0, 0), std::make_pair(0, 1), 0, Tests::_gomoku->size, certainVictories);
+
+	std::cout << "certainVictories: ";
+	for (int& i: certainVictories) {
+		std::cout << i << ", " << std::endl;
+	}
+	std::cout << std::endl;
 
 	for (int i = 0; i < Tests::_gomoku->size; i ++) {
 		if (i == Tests::_gomoku->size - 1) {
@@ -107,7 +115,7 @@ void Tests::_heuristic(Tests::HeuristicParams& param) {
 		auto undoMoves = Tests::_gomoku->doMove(move);
 		// std::cout << "move: [" << move.first << ", " << move.second << "]" << std::endl << std::endl;   
 
-		int ret = Tests::_gomoku->heuristic();
+		int ret = Tests::_gomoku->heuristic(0);
 		
 		heuristicValues[move.first][move.second] = ret;
 
@@ -398,6 +406,20 @@ std::vector<Tests::HeuristicParams> Tests::_heuristicTestCases = {
 		{0, 0},
 		{}
 	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1, -1,  0,  0,  0, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		},
+		0,
+		{0, 0},
+		{}
+	},
 };
 
 std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
@@ -572,6 +594,21 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		1,
 		{4, 2},
+		{},
+		{ 4 },
+	},
+	{
+		{
+			{ -1, -1, -1, -1, -1, -1, -1 },
+			{ -1,  0,  0,  0,  0, -1, -1 },
+			{ -1,  1,  1,  1,  1, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1,  1, -1, -1 },
+			{ -1, -1, -1, -1, -1, -1, -1 },
+		},
+		0,
+		{0, 0},
 		{},
 		{ 3 },
 	},

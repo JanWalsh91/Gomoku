@@ -11,31 +11,27 @@ int main(int argc, char *argv[]) {
 	args::ValueFlag<int> maxTurnArgs(parser, "maxTurn", "Pause the game after n turns", {'q'});
 	args::ValueFlag<int> runTestArgs(parser, "test", "Run unit test set", {'t'});
 	args::ValueFlag<int> testIndexArgs(parser, "testIndex", "Test index", {'i'});
-	args::ValueFlag<int> autoStartArgs(parser, "autoStart", "Auto Start", {'a'});
+	args::Flag autoStartArgs(parser, "autoStart", "Auto Start", {'a'});
 
-    try
-    {
+    try {
         parser.ParseCLI(argc, argv);
     }
-    catch (const args::Completion& e)
-    {
+    catch (const args::Completion& e) {
         std::cout << e.what();
         return 0;
     }
-    catch (const args::Help&)
-    {
+	catch (const args::Help&) {
         std::cout << parser;
         return 0;
     }
-    catch (const args::ParseError& e)
-    {
+	catch (const args::ParseError& e) {
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return 1;
     }
 
 	int boardSize = 19;
-	int depth = 4;
+	int depth = 3;
 	int maxTurn = -1;
 	bool autoStart = false;
 
