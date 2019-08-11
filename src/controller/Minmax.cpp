@@ -4,7 +4,7 @@
 #define PROXIMITY_BONUS false
 #define DEBUG_POS false
 #define RANDOM_POS false
-#define USE_TRANSPOSITION_TABLES true
+#define USE_TRANSPOSITION_TABLES false
 
 Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku), _running(false) {}
 
@@ -25,7 +25,7 @@ std::pair<int, int> Minmax::run() {
 	
 	this->heuristicValues = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
 	
-	#ifdef USEUSE_TRANSPOSITION_TABLES
+	#if USEUSE_TRANSPOSITION_TABLES
 	_TT.clear();
 	#endif
 
@@ -35,9 +35,6 @@ std::pair<int, int> Minmax::run() {
 	// this->gomoku.printBoard(this->heuristicValues, this->bestMove);
 	// this->gomoku.printBoard(this->gomoku.board, this->bestMove);
 	// std::cout << std::endl;
-
-	std::cout << "TTCount: " << TTCount << std::endl;	
-
 
 	this->_running = false;
 	return this->bestMove;
@@ -108,6 +105,37 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 	_bestMove[depth] = std::make_pair(-1, -1);	
 	#endif
 
+	#if USE_TRANSPOSITION_TABLES
+	int alphaOrig = alpha;
+	Minmax::TableEntry* entry = this->getTTEntry(this->gomoku.hashState());
+	// if (entry) {
+	// }
+	if (entry && entry->depth >= depth) {
+		std::cout << "FOUND Entry Depth: " << entry->depth << " vs " << depth << std::endl;
+		TTCount++;
+		if (entry->flag == Minmax::EntryFlag::Exact) {
+			std::cout << "Minmax::EntryFlag::Exact" << std::endl;
+			if (root && entry->value > this->bestValue) {
+				this->bestValue = entry->value;
+				this->bestMove = this->gomoku.lastMoves[this->gomoku.currentPlayer->getIndex()];
+			}
+			return entry->value;
+		} else if (entry->flag == Minmax::EntryFlag::Lowerbound) {
+			std::cout << "Minmax::EntryFlag::Lowerbound" << std::endl;
+			alpha = std::max(alpha, entry->value); 
+		} else if (entry->flag == Minmax::EntryFlag::Upperbound) {
+			std::cout << "Minmax::EntryFlag::Upperbound" << std::endl;
+			beta = std::min(beta, entry->value); 
+		}
+
+		if (alpha >= beta) {
+			std::cout << "Breaking thanks to transpositionTables" << std::endl;
+			return entry->value;
+		}
+	}
+	#endif
+
+
 	if (this->gomoku.getEndState() != Gomoku::PLAYING) {
 		if (this->gomoku.getEndState() >= 0) {
 			if (maximizing) {
@@ -124,11 +152,14 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		return heuristicValue;
 	}
 
+
+
 	auto moves = this->gomoku.getMoves();
 	auto heuristicsByMove = this->getSortedMoves(moves, maximizing, depth);
 
+	int value;
 	if (maximizing) {
-		int value = Minmax::INF_MIN - 1;
+		value = Minmax::INF_MIN - 1;
 		
 		#if DEBUG_POS
 		_bestValue[depth] = value;
@@ -195,10 +226,8 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		if (shouldDisplay(this->gomoku, depth)) displayDebug(this->gomoku, maximizing, alpha, beta, depth);
 		#endif
 			
-		return value;
-
 	} else {
-		int value = Minmax::INF_MAX + 1;
+		value = Minmax::INF_MAX + 1;
 
 		#if DEBUG_POS
 		_bestValue[depth] = value;
@@ -234,8 +263,21 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 		if (shouldDisplay(this->gomoku, depth)) displayDebug(this->gomoku, maximizing, alpha, beta, depth);
 		#endif
 
-		return value;
 	}
+
+	#if USE_TRANSPOSITION_TABLES
+	if (value <= alphaOrig) {
+		// std::cout << "Adding entry Upperbound at depth " << depth << std::endl;
+		this->addTTEntry(gomoku.hashState(), value, Minmax::EntryFlag::Upperbound, depth);
+	} else if (value >= beta) {
+		// std::cout << "Adding entry Lowerbound at depth " << depth << std::endl;
+		this->addTTEntry(gomoku.hashState(), value, Minmax::EntryFlag::Lowerbound, depth);
+	} else {
+		// std::cout << "Adding entry exactbound at depth " << depth << std::endl;
+		this->addTTEntry(gomoku.hashState(), value, Minmax::EntryFlag::Exact, depth);
+	}
+	#endif
+	return value;
 }
 
 std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) {
@@ -263,21 +305,7 @@ std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pai
 			heuristicsByMove.push_back({move, 0});
 		} else {
 			Minmax::HeuristicByMove hbm;
-
-			#ifdef USE_TRANSPOSITION_TABLES
-			std::vector<int> hash = this->gomoku.hashState();
-			Minmax::TableEntry* entry = this->getTTEntry(hash);
-			if (entry) {
-				TTCount++;
-				hbm.heuristic = entry->heuristic;
-			} else {
-				hbm.heuristic = this->gomoku.heuristic(depth);
-				this->addTTEntry(hash, hbm.heuristic);
-			}
-			#else
 			hbm.heuristic = this->gomoku.heuristic(depth);
-			#endif
-
 			hbm.move = move;
 			heuristicsByMove.push_back(hbm);
 		}
@@ -329,8 +357,10 @@ Minmax::TableEntry*	Minmax::getTTEntry(std::vector<int> hash) {
 	}
 }
 
-void		Minmax::addTTEntry(std::vector<int> hash, int heuristic) {
+void		Minmax::addTTEntry(std::vector<int> hash, int value, EntryFlag flag, int depth) {
 	_TT[hash] = {
-		heuristic
+		value,
+		flag,
+		depth
 	};
 }

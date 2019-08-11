@@ -13,8 +13,16 @@ public:
 		int heuristic;
 	} HeuristicByMove;
 
+	enum EntryFlag {
+		Upperbound,
+		Lowerbound,
+		Exact
+	};
+
 	typedef struct {
-		int heuristic;
+		int value;
+		EntryFlag flag;
+		int depth;
 	} TableEntry;
 
 	Minmax(Gomoku& gomoku, int maxDepth);
@@ -33,7 +41,7 @@ public:
 	// Transposition Tables
 
 	TableEntry*	getTTEntry(std::vector<int> hash);
-	void		addTTEntry(std::vector<int> hash, int heurisitc);
+	void		addTTEntry(std::vector<int> hash, int value, EntryFlag flag, int depth);
 
 	static const int INF_MIN = -100'000'000;
 	static const int INF_MAX = 100'000'000;
