@@ -1,15 +1,12 @@
 #include "Gomoku.hpp"
 
-Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), endState(State::PLAYING), winStreakLength(5), turn(0) {
+Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), winStreakLength(5), turn(0), _board(std::vector<int>(size * size, -1)), _endState(State::PLAYING) {
 	this->players.push_back(std::make_shared<Player>(0, player0Type));
 	this->players.push_back(std::make_shared<Player>(1, player1Type));
-
-	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
 
 	this->currentPlayer = this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
-
 
 	_rules = {
 		std::make_shared<NoDoubleFreeThree>(),
@@ -23,11 +20,12 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 }
 
 void Gomoku::reset() {
-	this->board = std::vector<std::vector<int>>(size, std::vector<int>(size, -1));
+	this->_board = std::vector<int>(size * size, -1);
+	this->_endState = State::PLAYING;
+	
 	this->currentPlayer = this->players[0];
 	this->heuristicPlayer = nullptr;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
-	this->endState = State::PLAYING;
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
 	this->turn = 0;
@@ -70,11 +68,19 @@ bool Gomoku::notOnBoard(std::pair<int, int> &pos) const {
 }
 
 int Gomoku::getValueOnBoard(std::pair<int, int> pos) const {
-	return this->board[pos.first][pos.second];
+	return this->_board[pos.first * size + pos.second];
+}
+
+int Gomoku::getValueOnBoard(int y, int x) const {
+	return this->_board[y * size + x];
 }
 
 void Gomoku::setValueOnBoard(std::pair<int, int> pos, int value) {
-	this->board[pos.first][pos.second] = value;
+	this->_board[pos.first * size + pos.second] = value;
+}
+
+void Gomoku::setValueOnBoard(int y, int x, int value) {
+	this->_board[y * size + x] = value;
 }
 
 int Gomoku::getRemainingStones() {
@@ -83,6 +89,18 @@ int Gomoku::getRemainingStones() {
 
 void Gomoku::setRemainingStones(int i) {
 	this->remainingStones = i;
+}
+
+void Gomoku::setEndState(int i) {
+	_endState = (Gomoku::State)i;
+}
+
+void Gomoku::setEndState(Gomoku::State i) {
+	_endState = i;
+}
+
+Gomoku::State Gomoku::getEndState() {
+	return _endState;
 }
 
 std::vector<std::vector<std::pair<int, int>>> fourDirections = {
@@ -230,7 +248,7 @@ std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 
 	std::pair<int, int> pos = std::make_pair(y, x);
 
-	this->board[y][x] = playerIndex;
+	this->setValueOnBoard(y, x, playerIndex);
 
 	actions.push_back(new ActionUpdateBoard(pos, -1));
 
@@ -248,8 +266,8 @@ std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 	int state = this->checkWinCondition(pos, playerIndex);
 	
 	if (state != State::PLAYING) {
-		actions.push_back(new ActionSetEndState(this->endState));
-		this->endState = state;
+		actions.push_back(new ActionSetEndState(this->getEndState()));
+		this->setEndState(state);
 	}
 	return actions;
 }
@@ -323,10 +341,10 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 
 	for (int i = 0; i < this->size; i++) {
 		for (int j = 0; j < this->size; j++) {
-			if (this->board[i][j] != -1) {
+			if (this->getValueOnBoard(i, j)  != -1) {
 				for (int k = -dist; k <= dist; k++) {
 					for (int l = -dist; l <= dist; l++) {
-						if (i + k >= 0 && i + k < this->size && j + l >= 0 && j + l < this->size && this->board[i + k][j + l] == -1) {
+						if (i + k >= 0 && i + k < this->size && j + l >= 0 && j + l < this->size && this->getValueOnBoard(i + k, j + l) == -1) {
 							auto child = std::make_pair(i + k, j + l);
 							if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
 								moves.push_back(child);
@@ -357,13 +375,20 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
+std::vector<int> Gomoku::hashState() {
+	auto hash = _board;
+	hash.push_back(this->players[0]->getCaptures());
+	hash.push_back(this->players[1]->getCaptures());
+	return hash;
+}
+
 int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, int emptyCellCount, int* certainVictory) {
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
 
 	if (currentStreakNum >= 5 && emptyCellCount == 0) {
-		if (this->endState != -1) {
+		if (this->getEndState() != -1) {
 			std::cout << "SHOULD NOT BE HERE" << std::endl;
 			certainVictory[0]++;
 			return 0;
@@ -620,7 +645,7 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 void Gomoku::printBoard() const {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
-			std::cout << std::setw(6) << (this->board[j][i] == -1 ? "." : std::to_string(this->board[j][i])) << " ";
+			std::cout << std::setw(6) << (this->getValueOnBoard(j, i) == -1 ? "." : std::to_string(this->getValueOnBoard(j, i))) << " ";
 		}
 		std::cout << std::endl;
 	}

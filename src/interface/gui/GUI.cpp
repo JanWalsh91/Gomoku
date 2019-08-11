@@ -118,7 +118,7 @@ void GUI::setup() {
 			std::cout << "Pause the game first" << std::endl;
 			return;
 		}
-		if (gomoku->playing || gomoku->endState != -1) {
+		if (gomoku->playing || gomoku->getEndState() != -1) {
 			playButton->setText("START !");
 			gomoku->playing = false;
 			gomoku->reset();
@@ -158,7 +158,7 @@ void GUI::setup() {
 				return;
 			}
 			auto pos = grid->windowToGridCoord(mousePosition);
-			if (pos.first != -1 && pos.second != -1 && gomoku->board[pos.first][pos.second] == -1 && gomoku->canPlace(pos)) {
+			if (pos.first != -1 && pos.second != -1 && gomoku->getValueOnBoard(pos) == -1 && gomoku->canPlace(pos)) {
 				gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
 				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
 				gomoku->switchPlayer();
@@ -214,10 +214,10 @@ void GUI::updateCaptures(int playerIndex, int value) {
 
 
 void GUI::nextTurn() {
-	if (gomoku->endState != -1) {
+	if (gomoku->getEndState() != -1) {
 		gomoku->playing = false;
-		if (gomoku->endState >= 0) {
-			messageValue->setText((gomoku->endState == 0 ? "Black" : "White") + std::string(" win! ") + std::to_string(gomoku->turn));
+		if (gomoku->getEndState() >= 0) {
+			messageValue->setText((gomoku->getEndState() == 0 ? "Black" : "White") + std::string(" win! ") + std::to_string(gomoku->turn));
 		}
 		else {
 			messageValue->setText("DRAW");

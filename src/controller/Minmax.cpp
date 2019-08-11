@@ -3,9 +3,12 @@
 #define PRUNNING true
 #define PROXIMITY_BONUS false
 #define DEBUG_POS false
-#define RANDOM_POS true
+#define RANDOM_POS false
+#define USE_TRANSPOSITION_TABLES true
 
 Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku), _running(false) {}
+
+int TTCount = 0;
 
 bool Minmax::isRunning() const {
 	return this->_running;
@@ -22,12 +25,20 @@ std::pair<int, int> Minmax::run() {
 	
 	this->heuristicValues = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
 	
+	#ifdef USEUSE_TRANSPOSITION_TABLES
+	_TT.clear();
+	#endif
+
 	this->minmaxAlphaBeta(this->maxDepth, Minmax::INF_MIN, Minmax::INF_MAX, true, true, 0);
 
 	// std::cout << "heuristicValues for player " << this->gomoku.currentPlayer->getIndex() << std::endl;
 	// this->gomoku.printBoard(this->heuristicValues, this->bestMove);
 	// this->gomoku.printBoard(this->gomoku.board, this->bestMove);
 	// std::cout << std::endl;
+
+	std::cout << "TTCount: " << TTCount << std::endl;	
+
+
 	this->_running = false;
 	return this->bestMove;
 }
@@ -97,8 +108,8 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 	_bestMove[depth] = std::make_pair(-1, -1);	
 	#endif
 
-	if (this->gomoku.endState != Gomoku::PLAYING) {
-		if (this->gomoku.endState >= 0) {
+	if (this->gomoku.getEndState() != Gomoku::PLAYING) {
+		if (this->gomoku.getEndState() >= 0) {
 			if (maximizing) {
 				return Minmax::INF_MIN + (this->maxDepth - depth);
 			} else {
@@ -227,7 +238,7 @@ int Minmax::minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, boo
 	}
 }
 
-std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const {
+std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) {
 	std::vector<Minmax::HeuristicByMove> heuristicsByMove;
 
 	std::shared_ptr<Player> currentPlayer = this->gomoku.currentPlayer;
@@ -236,7 +247,7 @@ std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pai
 	for (auto& move: moves) {
 		auto undoMoves = this->gomoku.doMove(move);
 
-		if (this->gomoku.endState >= 0) {
+		if (this->gomoku.getEndState() >= 0) {
 			if (maximizing) {
 				heuristicsByMove.push_back( {
 					move,
@@ -248,14 +259,26 @@ std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pai
 					Minmax::INF_MIN + (this->maxDepth - depth),
 				});
 			}
-		} else if (this->gomoku.endState == Gomoku::State::DRAW) {
+		} else if (this->gomoku.getEndState() == Gomoku::State::DRAW) {
 			heuristicsByMove.push_back({move, 0});
 		} else {
 			Minmax::HeuristicByMove hbm;
 
-			hbm.move = move;
+			#ifdef USE_TRANSPOSITION_TABLES
+			std::vector<int> hash = this->gomoku.hashState();
+			Minmax::TableEntry* entry = this->getTTEntry(hash);
+			if (entry) {
+				TTCount++;
+				hbm.heuristic = entry->heuristic;
+			} else {
+				hbm.heuristic = this->gomoku.heuristic(depth);
+				this->addTTEntry(hash, hbm.heuristic);
+			}
+			#else
 			hbm.heuristic = this->gomoku.heuristic(depth);
-			
+			#endif
+
+			hbm.move = move;
 			heuristicsByMove.push_back(hbm);
 		}
 		
@@ -294,4 +317,20 @@ std::vector<Minmax::HeuristicByMove> Minmax::getSortedMoves(std::vector<std::pai
 		}
 	}
 	return sortedHeuristicByMove;
+}
+
+// Getter and Setters
+Minmax::TableEntry*	Minmax::getTTEntry(std::vector<int> hash) {
+	auto ret = _TT.find(hash);
+	if (ret != _TT.end()) {
+		return &(ret->second);
+	} else {
+		return nullptr;
+	}
+}
+
+void		Minmax::addTTEntry(std::vector<int> hash, int heuristic) {
+	_TT[hash] = {
+		heuristic
+	};
 }

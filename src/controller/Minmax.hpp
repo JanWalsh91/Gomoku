@@ -8,7 +8,17 @@ class Minmax {
 
 public:
 
+	typedef struct {
+		std::pair<int, int> move;
+		int heuristic;
+	} HeuristicByMove;
+
+	typedef struct {
+		int heuristic;
+	} TableEntry;
+
 	Minmax(Gomoku& gomoku, int maxDepth);
+	
 	std::pair<int, int> run();
 	
 	std::pair<int, int> bestMove;
@@ -20,26 +30,28 @@ public:
 
 	bool isRunning() const;
 
+	// Transposition Tables
+
+	TableEntry*	getTTEntry(std::vector<int> hash);
+	void		addTTEntry(std::vector<int> hash, int heurisitc);
+
 	static const int INF_MIN = -100'000'000;
 	static const int INF_MAX = 100'000'000;
 	static const int PROXIMITY_BONUNS = 10;
-
 	static const int CERTAIN_VICTORY = 10'000;
 
-	typedef struct {
-		std::pair<int, int> move;
-		int heuristic;
-	} HeuristicByMove;
-
 private:
+
+	std::map<std::vector<int>, TableEntry> _TT;
 
 	Gomoku& gomoku;
 
 	int minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue);
 
-	std::vector<HeuristicByMove> getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth) const;
+	std::vector<HeuristicByMove> getSortedMoves(std::vector<std::pair<int, int>>& moves, bool maximizing, int depth);
 	
 	bool _running;
+
 
 };
 

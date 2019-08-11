@@ -36,7 +36,9 @@ void Tests::_evalLine(Tests::EvalLineParams& param) {
 
 	Tests::_gomoku->size = param.line.size();
 	Tests::_gomoku->reset();
-	Tests::_gomoku->board[0] = param.line;
+	for (int i = 0; i < _gomoku->size; i++) {
+		Tests::_gomoku->setValueOnBoard(0, i, param.line[i]);
+	}
 
 	int certainVictories[5] = {0, 0, 0, 0, 0};
 
@@ -50,9 +52,9 @@ void Tests::_evalLine(Tests::EvalLineParams& param) {
 
 	for (int i = 0; i < Tests::_gomoku->size; i ++) {
 		if (i == Tests::_gomoku->size - 1) {
-			std::cout << Tests::_gomoku->board[0][i];
+			std::cout << Tests::_gomoku->getValueOnBoard(0, i);
 		} else {
-			std::cout << Tests::_gomoku->board[0][i] << ", ";
+			std::cout << Tests::_gomoku->getValueOnBoard(0, i) << ", ";
 		}
 	}
 	std::cout << "\t => score: " << score << std::endl;
@@ -85,7 +87,11 @@ void Tests::_heuristic(Tests::HeuristicParams& param) {
 
 	Tests::_gomoku->size = param.board.size();
 	Tests::_gomoku->reset();
-	Tests::_gomoku->board = param.board;
+	for (int y = 0; y < _gomoku->size; y++) {
+		for (int i = 0; i < _gomoku->size; i++) {
+			Tests::_gomoku->setValueOnBoard(y, i, param.board[y][i]);
+		}
+	}
 
 
 	Tests::_gomoku->currentPlayer = Tests::_gomoku->heuristicPlayer = Tests::_gomoku->players[param.currentPlayer];
@@ -157,8 +163,11 @@ void Tests::_minmaxUnitTest(Tests::MinmaxParams& param) {
 
 	Tests::_gomoku->size = param.board.size();
 	Tests::_gomoku->reset();
-	Tests::_gomoku->board = param.board;
-
+	for (int y = 0; y < _gomoku->size; y++) {
+		for (int i = 0; i < _gomoku->size; i++) {
+			Tests::_gomoku->setValueOnBoard(y, i, param.board[y][i]);
+		}
+	}
 
 	Tests::_gomoku->currentPlayer = Tests::_gomoku->heuristicPlayer = Tests::_gomoku->players[param.currentPlayer];
 
