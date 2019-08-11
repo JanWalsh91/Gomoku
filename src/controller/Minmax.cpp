@@ -4,7 +4,7 @@
 #define PROXIMITY_BONUS false
 #define DEBUG_POS false
 #define RANDOM_POS false
-#define USE_TRANSPOSITION_TABLES false
+#define USE_TRANSPOSITION_TABLES true
 
 Minmax::Minmax(Gomoku& gomoku, int maxDepth): maxDepth(maxDepth), gomoku(gomoku), _running(false) {}
 
@@ -25,7 +25,7 @@ std::pair<int, int> Minmax::run() {
 	
 	this->heuristicValues = std::vector<std::vector<int>>(this->gomoku.size, std::vector<int>(this->gomoku.size, 0));
 	
-	#if USEUSE_TRANSPOSITION_TABLES
+	#if USE_TRANSPOSITION_TABLES
 	_TT.clear();
 	#endif
 
