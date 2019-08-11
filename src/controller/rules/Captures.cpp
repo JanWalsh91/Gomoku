@@ -19,25 +19,25 @@ std::vector<AAction*> Captures::triggerEffects(Gomoku& gomoku, std::pair<int, in
 	};
 
 	for (auto& direction : directions) {
-		std::pair<int, int> pos1 = std::make_pair(move.first + direction.first, move.second + direction.second);
-		if (pos1.first < 0 || pos1.first >= gomoku.size || pos1.second < 0 || pos1.second >= gomoku.size || gomoku.board[pos1.first][pos1.second] != otherPlayer) {
+		std::pair<int, int> pos1 = move + direction;
+		if (gomoku.notOnBoard(pos1) || gomoku.getValueOnBoard(pos1) != otherPlayer) {
 			continue ;
 		}
-		std::pair<int, int> pos2 = std::make_pair(pos1.first + direction.first, pos1.second + direction.second);
-		if (pos2.first < 0 || pos2.first >= gomoku.size || pos2.second < 0 || pos2.second >= gomoku.size || gomoku.board[pos2.first][pos2.second] != otherPlayer) {
+		std::pair<int, int> pos2 = pos1 + direction;
+		if (gomoku.notOnBoard(pos2) || gomoku.getValueOnBoard(pos2) != otherPlayer) {
 			continue ;
 		}
-		std::pair<int, int> pos3 = std::make_pair(pos2.first + direction.first, pos2.second + direction.second);
-		if (pos3.first < 0 || pos3.first >= gomoku.size || pos3.second < 0 || pos3.second >= gomoku.size || gomoku.board[pos3.first][pos3.second] != gomoku.currentPlayer->getIndex()) {
+		std::pair<int, int> pos3 = pos2 + direction;
+		if (gomoku.notOnBoard(pos3) || gomoku.getValueOnBoard(pos3) != gomoku.currentPlayer->getIndex()) {
 			continue ;
 		}
 
 		// udpate board
-		gomoku.board[pos1.first][pos1.second] = -1;
-		gomoku.board[pos2.first][pos2.second] = -1;
+		gomoku.setValueOnBoard(pos1, -1);
+		gomoku.setValueOnBoard(pos2, -1);
 		gomoku.updateBoardCallbacks(pos1, -1);
 		gomoku.updateBoardCallbacks(pos2, -1);
-		gomoku.remainingStones += 2;
+		gomoku.setRemainingStones(gomoku.getRemainingStones() + 2);
 
 		// give points
 		gomoku.currentPlayer->incrementCaptures();

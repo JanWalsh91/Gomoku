@@ -21,6 +21,7 @@ public:
 	int getIndex() const;
 	int getPotentialCaptures() const;
 	void setPotentialCaptures(int captures);
+	
 private:
 
 	int _index;

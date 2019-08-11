@@ -18,7 +18,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
-
 #include "Colors.hpp"
 
 #include "IRenderable.hpp"

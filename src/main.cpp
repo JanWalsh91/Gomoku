@@ -399,18 +399,15 @@ int main(int argc, char *argv[]) {
 			if (gomoku->playing && gomoku->currentPlayer->isAI() && (nextStep || !pause) && !gomoku->minmax->isRunning()) {
 				std::cout << "AI turn" << std::endl;
 				start = std::chrono::high_resolution_clock::now();
-
 				future = std::async(std::launch::async, &Minmax::run, gomoku->minmax);
 			}
 		}), [&pause, &nextStep](sf::Event event) mutable {
 			if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Space) {
 					pause = !pause;
-					// std::cout << "pause: " << pause << std::endl;
 				}
 				if (event.key.code == sf::Keyboard::Period) {
 					nextStep = true;
-					// std::cout << "pause: " << pause << std::endl;
 				}
 			}
 		});

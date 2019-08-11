@@ -32,7 +32,6 @@ private:
 		std::vector<std::vector<int>> board;
 		int currentPlayer;
 		int capturesPerPlayer[2];
-		std::vector<std::pair<int, int>> moves;
 		std::vector<int> depths;
 	} MinmaxParams;
 

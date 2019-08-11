@@ -55,7 +55,6 @@ void Tests::_evalLine(Tests::EvalLineParams& param) {
 			std::cout << Tests::_gomoku->board[0][i] << ", ";
 		}
 	}
-	// std::cout << "\t => score: " << score << ", potentialCaptures: " << potentialCaptures << std::endl;
 	std::cout << "\t => score: " << score << std::endl;
 }
 
@@ -101,7 +100,7 @@ void Tests::_heuristic(Tests::HeuristicParams& param) {
 		moves = Tests::_gomoku->getMoves();
 	}
 
-	int bestValue = Minmax::INF_MIN; // TODO -1 ?
+	int bestValue = Minmax::INF_MIN;
 	std::pair<int, int> bestMove;
 
 	for (int i = 0; i < param.capturesPerPlayer[0]; i++) {
@@ -113,7 +112,6 @@ void Tests::_heuristic(Tests::HeuristicParams& param) {
 
 	for (auto &move: moves) {
 		auto undoMoves = Tests::_gomoku->doMove(move);
-		// std::cout << "move: [" << move.first << ", " << move.second << "]" << std::endl << std::endl;   
 
 		int ret = Tests::_gomoku->heuristic(0);
 		
@@ -157,7 +155,6 @@ void Tests::runMinmax() {
 void Tests::_minmaxUnitTest(Tests::MinmaxParams& param) {
 	std::cout << " === Unit Test: Minmax. Current Player: " << Tests::_gomoku->players[param.currentPlayer]->getIndex() << std::endl;
 
-
 	Tests::_gomoku->size = param.board.size();
 	Tests::_gomoku->reset();
 	Tests::_gomoku->board = param.board;
@@ -168,13 +165,6 @@ void Tests::_minmaxUnitTest(Tests::MinmaxParams& param) {
 	auto heuristicValues = std::vector<std::vector<int>>(Tests::_gomoku->size, std::vector<int>(Tests::_gomoku->size, 0));
 	
 	std::vector<std::pair<int, int>> moves;
-
-	// TODO : remove (useless)
-	if (param.moves.size()) {
-		moves = param.moves;
-	} else {
-		moves = Tests::_gomoku->getMoves();
-	}
 
 	std::vector<int> depths;
 
@@ -436,7 +426,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		0,
 		{ 0, 0 },
 		{},
-		{},
 	},
 	{
 		{
@@ -450,7 +439,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		0,
 		{ 0, 0 },
-		{},
 		{ 3 },
 	},
 	{
@@ -466,7 +454,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		0,
 		{ 0, 0 },
 		{},
-		{},
 	},
 	{
 		{
@@ -480,7 +467,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		0,
 		{ 0, 0 },
-		{},
 		{},
 	},
 	{
@@ -502,7 +488,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		0,
 		{ 0, 0 },
 		{},
-		{},
 	},
 	{
 		{
@@ -523,7 +508,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		0,
 		{ 0, 0 },
 		{},
-		{},
 	},
 	{
 		{
@@ -537,7 +521,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		0,
 		{0, 0},
-		{},
 		{ 2 },
 	},
 	{
@@ -552,7 +535,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		0,
 		{0, 0},
-		{},
 		{ 4 },
 	},
 	{
@@ -567,7 +549,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		0,
 		{0, 0},
-		{},
 		{ 4 },
 	},
 	{
@@ -594,7 +575,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		1,
 		{4, 2},
-		{},
 		{ 4 },
 	},
 	{
@@ -609,7 +589,6 @@ std::vector<Tests::MinmaxParams> Tests::_minmaxTestCases = {
 		},
 		0,
 		{0, 0},
-		{},
 		{ 3 },
 	},
 };

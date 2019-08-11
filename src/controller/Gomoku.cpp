@@ -73,6 +73,18 @@ int Gomoku::getValueOnBoard(std::pair<int, int> pos) const {
 	return this->board[pos.first][pos.second];
 }
 
+void Gomoku::setValueOnBoard(std::pair<int, int> pos, int value) {
+	this->board[pos.first][pos.second] = value;
+}
+
+int Gomoku::getRemainingStones() {
+	return this->remainingStones;
+}
+
+void Gomoku::setRemainingStones(int i) {
+	this->remainingStones = i;
+}
+
 std::vector<std::vector<std::pair<int, int>>> fourDirections = {
 	{ std::make_pair( 0, 1 ), std::make_pair( 0, -1 ) },
 	{ std::make_pair( 1, 0 ), std::make_pair(-1,  0 ) },
@@ -81,11 +93,9 @@ std::vector<std::vector<std::pair<int, int>>> fourDirections = {
 };
 
 int Gomoku::checkWinCondition(std::pair<int, int> pos, int currentPlayer) {
-	// std::cout << "[checkWinCondition] at pos " << pos << std::endl;
 	if (this->remainingStones <= 0) {
 		return State::DRAW;
 	}
-
 
 	for (auto rule: _rules) {
 		if (rule == _gameEndingCapture) {
@@ -97,96 +107,64 @@ int Gomoku::checkWinCondition(std::pair<int, int> pos, int currentPlayer) {
 		}
 	}
 
-	int otherPlayer = currentPlayer == 0 ? 1 : 0;
-	int otherPlayerCaptures = this->players[otherPlayer]->getCaptures();
-
-	// if (_gameEndingCapture && otherPlayerCaptures == 4) {
-	// 	std::cout << "on rentre la dedans\n";
-	// 	return State::PLAYING;
-	// }
-		
-	// for each line
-		// go in one dir until not currentPlayer or visited 4 in that dir
-		// store last position which was currentPlayer (can be pos)
-		// go in other dir until not currentPlayer or visited 4 in that dir
 	for (std::vector<std::pair<int, int>>& line: fourDirections) {
-		// std::cout << "[checkWinCondition] line: " << line[0] << line[1] << std::endl;
-		int numAligned = 1; // skip position where stone was just placed
+		int numAligned = 1;
 		std::pair<int, int> endPos = pos;
 
-		// std::cout << "[checkWinCondition] starting wtih direction " << line[0] << std::endl;
-		for (int i = 1; i < 5; ++i) { // check up to 4 away from placed stone
+		for (int i = 1; i < 5; ++i) {
 			std::pair<int, int> nextPos = pos + line[0] * i;
 
 			if (this->onBoard(nextPos) && this->getValueOnBoard(nextPos) == currentPlayer) {
 				numAligned++;
-				// std::cout << "\tnumAligned: " << numAligned << std::endl;
 				if (numAligned == 5) {
 					endPos = nextPos;
-					// std::cout << "\t=> set endPos (1): " << endPos << std::endl;
 				}
 			} else {
-				endPos = nextPos - line[0]; // set end of aligned stones
-				// std::cout << "\t=> set endPos (2): " << endPos << std::endl;
+				endPos = nextPos - line[0];
 				break ;
 			}
 		}
 
-		// std::cout << "[checkWinCondition] changing direction to " << line[1] << std::endl;
-		for (int i = 1; i < 5; ++i) { // check up to 4 away from placed stone
+		for (int i = 1; i < 5; ++i) {
 			std::pair<int, int> nextPos = pos + line[1] * i;
 			if (this->onBoard(nextPos) && this->getValueOnBoard(nextPos) == currentPlayer) {
 				numAligned++;
-				// std::cout << "\tnumAligned: " << numAligned << std::endl;
 			} else {
 				break ;
 			}
 		}
-		// std::cout << "[checkWinCondition] numAligned: " <<numAligned << std::endl;
 
 		if (numAligned >= 5) {
-			if (this->canBreakAlignment(endPos, currentPlayer, otherPlayer, line[1], numAligned)) {
-				// 5 aligned doesn t count! => can break
-				// std::cout << "[checkWinCondition] Can break alignment ..." << std::endl;
-				break ; // look for other five aligned in another direction (go to outer for loop)
+			if (this->canBreakAlignment(endPos, currentPlayer, currentPlayer == 0 ? 1 : 0, line[1], numAligned)) {
+				break ;
 			} else {
-				// current player aligned 5 unbreakable
 				int ret = _gameEndingCapture->checkEndGame(*this);
 				if (ret > -1) {
 					return ret;
 				}
 			}
-		} else {
-			// std::cout << "[checkWinCondition] Not enough aligned: " << numAligned << std::endl;
 		}
 	}
-
 	return State::PLAYING;
 }
 
-// NEW
 int Gomoku::canBreakAlignment(std::pair<int, int> startPos, int currentPlayer, int otherPlayer, std::pair<int, int>& dir, int numAligned) const {
-	// std::cout << "[canBreakAlignment] at startPos: " << startPos << ", dir: " << dir << ", numAligned: " << numAligned << std::endl;
 	std::pair<int, int> nextPos = startPos;
 	int unbreakableAligned;
 
-	// check first one
 	if (this->canBreakAtPos(nextPos, currentPlayer, otherPlayer)) {
 		unbreakableAligned = 0;
 	} else {
 		unbreakableAligned = 1;
 	}
 
-	// check the rest
 	for (int i = 1; i < numAligned; ++i) {
 		nextPos += dir;
 		if (this->canBreakAtPos(nextPos, currentPlayer, otherPlayer)) {
-			// std::cout << "[canBreakAlignment] can break at " << nextPos << ", numAligned - i: " << (numAligned - i) << std::endl;
-			if (numAligned - i < 5) { // if remaining stones less than 5, break
-				// std::cout << "[canBreakAlignment] return true because not enough left to align" << std::endl;
+			if (numAligned - i < 5) {
 				return true;
 			}
-			unbreakableAligned = 0; // reset number of uncapturable stones in a row, look for next 5 in a row in the same line
+			unbreakableAligned = 0;
 		} else {
 			++unbreakableAligned;
 			if (unbreakableAligned >= 5) {
@@ -197,47 +175,27 @@ int Gomoku::canBreakAlignment(std::pair<int, int> startPos, int currentPlayer, i
 			return false;
 		}
 	}
-	// std::cout << "[canBreakAlignment] return true because found none to break" << std::endl;
 	return true;
 }
 
 bool Gomoku::canBreakAtPos(std::pair<int, int> pos, int currentPlayer, int otherPlayer) const {
-	// std::cout << "[canBreakAtPos] " << pos << " ?" << std::endl;
 	for (std::vector<std::pair<int, int>>& line: fourDirections) {
 		for (std::pair<int, int>& dir : line) {
-			// std::cout << "\tfor dir: " << dir << ", pos: " << pos << std::endl;
 			std::pair<int, int> nextPos = pos + dir;
-
-			// std::cout << "\t\tnextPos (3): " << nextPos << ": ";
-			// if (this->onBoard(nextPos)) {
-			// 	std::cout << this->getValueOnBoard(nextPos) << std::endl;
-			// } else {
-			// 	std::cout << "\t\tnot on board." << std::endl;
-			// }
 
 			if (this->onBoard(nextPos) && this->getValueOnBoard(nextPos) == currentPlayer) {
  				nextPos = pos + dir * 2;
 				std::pair<int, int> nextPos2 = pos - dir;
-				// std::cout << "\t\tnextPos : " << nextPos << ": " << this->getValueOnBoard(nextPos) << std::endl;
-				// std::cout << "\t\tnextPos2: " << nextPos2 << ": " << this->getValueOnBoard(nextPos2) << std::endl;
 				if (this->notOnBoard(nextPos) || this->notOnBoard(nextPos2)) {
-					// std::cout << nextPos << " or " << nextPos2 << " is not on board" << std::endl;
 					continue;
 				}
 				if ((this->getValueOnBoard(nextPos) == otherPlayer && this->getValueOnBoard(nextPos2) == -1 && this->canPlace(nextPos2, otherPlayer)) ||
 					(this->getValueOnBoard(nextPos) == -1 && this->getValueOnBoard(nextPos2) == otherPlayer && this->canPlace(nextPos, otherPlayer))) {
-					// std::cout << "currentPlayer: " << currentPlayer << std::endl;
-					// std::cout << "canPlace nextPos: " << this->canPlace(nextPos, otherPlayer) << std::endl;
-					// std::cout << "canPlace nextPos2: " << this->canPlace(nextPos2, otherPlayer) << std::endl;
-					// std::cout << "\t\t=================Can Break at " << pos << std::endl;
 						return true;
-				} else {
-					// std::cout << "\t\tCannot break at " << pos << std::endl;
 				}
 			}
 		}
 	}
-	// std::cout << "\t\tCannot break at " << pos << std::endl;
 	return false;
 }
 
@@ -280,13 +238,10 @@ std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 
 	this->remainingStones--;
 
-	// trigger rule effects
 	for (auto rule : _rules) {
 		std::vector<AAction*> ruleActions = rule->triggerEffects(*this, pos);
 		actions.insert(actions.end(), ruleActions.begin(), ruleActions.end());
 	}
-
-	// TODO: calc potentialCaptures per player
 
 	this->updatePotentialCaptures();
 
@@ -296,7 +251,6 @@ std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 		actions.push_back(new ActionSetEndState(this->endState));
 		this->endState = state;
 	}
-	// TODO: Captures, rules, etc...
 	return actions;
 }
 
@@ -309,37 +263,29 @@ void Gomoku::switchPlayer() {
 }
 
 void Gomoku::updatePotentialCaptures() {
-	std::pair<int, int> hLine = std::make_pair<int, int>(0, 1);
-	std::pair<int, int> vLine = std::make_pair<int, int>(1, 0);
-	std::pair<int, int> dLine1 = std::make_pair<int, int>(1, 1);
-	std::pair<int, int> dLine2 = std::make_pair<int, int>(1, -1);
-
 	for (std::shared_ptr<Player> player: this->players) {
 		player->setPotentialCaptures(0);
 	}
 
 	for (int i = 0; i < this->size; i++) {
-		this->updatePotentialCapturesByLine(std::make_pair(i, 0), hLine, this->size);
-		this->updatePotentialCapturesByLine(std::make_pair(0, i), vLine, this->size);
+		this->updatePotentialCapturesByLine(std::make_pair(i, 0), Gomoku::hLine, this->size);
+		this->updatePotentialCapturesByLine(std::make_pair(0, i), Gomoku::vLine, this->size);
 	}
 
 	for (int i = 0; i <= this->size - 4; i++) {
-		this->updatePotentialCapturesByLine(std::make_pair(0, i), dLine1, this->size - i);
+		this->updatePotentialCapturesByLine(std::make_pair(0, i), Gomoku::dLine1, this->size - i);
 		if (i != 0) {
-			this->updatePotentialCapturesByLine(std::make_pair(i, 0), dLine1, this->size - i);
+			this->updatePotentialCapturesByLine(std::make_pair(i, 0), Gomoku::dLine1, this->size - i);
 		}
 	}
 
 	for (int i = this->size - 1; i >= 3; i--) {
-		this->updatePotentialCapturesByLine(std::make_pair(0, i), dLine2, i + 1);
+		this->updatePotentialCapturesByLine(std::make_pair(0, i), Gomoku::dLine2, i + 1);
 	}
 
 	for (int i = 1; i <= this->size - 4; i++) {
-		this->updatePotentialCapturesByLine(std::make_pair(i, this->size - 1), dLine2, size - i);
+		this->updatePotentialCapturesByLine(std::make_pair(i, this->size - 1), Gomoku::dLine2, size - i);
 	}
-
-	// std::cout << "p0: " << this->players[0]->getPotentialCaptures() << std::endl;
-	// std::cout << "p1: " << this->players[1]->getPotentialCaptures() << std::endl;
 }
 
 void Gomoku::updatePotentialCapturesByLine(std::pair<int, int> startPos, std::pair<int, int> dir, int length) {
@@ -372,34 +318,9 @@ void Gomoku::updatePotentialCapturesByLine(std::pair<int, int> startPos, std::pa
 
 std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	std::vector<std::pair<int, int>> moves;
-
-	// int distAroundLastMoves = 1;
-
-	// int currentPlayer = this->currentPlayer->index;
-
 	bool empty = true; 
-
-	// for (int i = (currentPlayer == 0 ? 0 : 1); i != (currentPlayer == 0 ? 2 : -1); i += (currentPlayer == 0 ? 1 : -1)) {
-	// 	auto move = this->lastMoves[i];
-		
-	// 	if (move.first != -1) {
-	// 		for (int i = -distAroundLastMoves; i <= distAroundLastMoves; i++) {
-	// 			int i2 = i + move.first;
-	// 			for (int j = -distAroundLastMoves; j <= distAroundLastMoves; j++) {
-	// 				int j2 = j + move.second;
-	// 				if (i2 >= 0 && i2 < this->size && j2 >= 0 && j2 < this->size && this->board[i2][j2] == -1) {
-	// 					auto child = std::make_pair(i2, j2);
-	// 					if (std::find(moves.begin(), moves.end(), child) == moves.end()) {
-	// 						moves.push_back(child);
-	// 						empty = false;
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	int dist = 2;
+
 	for (int i = 0; i < this->size; i++) {
 		for (int j = 0; j < this->size; j++) {
 			if (this->board[i][j] != -1) {
@@ -426,7 +347,6 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	while (it != moves.end()) {
 		bool erased = false;
 		if (!this->canPlace(*it)) {
-			// std::cout << "Removed " << it->first << ", " << it->second << std::endl;
 			erased = true;
 			it = moves.erase(it);
 		}
@@ -438,13 +358,6 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 }
 
 int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bool halfOpen, int player, int emptyCellCount, int* certainVictory) {
-	// if (logg) {
-	// 	std::cout <<
-	// 		" currentStreakNum: " << currentStreakNum << 
-	// 		" currentStreakPotential: " << currentStreakPotential << 
-	// 		" halfOpen: " << halfOpen << 
-	// 		" emptyCellCount: " << emptyCellCount << std::endl;
-	// }
 	if (currentStreakPotential < 5) {
 		return 0;
 	}
@@ -455,19 +368,12 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 			certainVictory[0]++;
 			return 0;
 		}
-
-		// don't returrrun, update player statusues
-		// return Minmax::INF_MAX / 2;
 	}
 
-	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
-		// you win moar
+	if (player == this->currentPlayer->getIndex()) {
 		if (currentStreakNum == 4) {
-			// std::cout << "HERE fror player " << this->currentPlayer->getIndex() << std::endl;
-			// this->printBoard();
 			certainVictory[1]++;
 			return 0;
-			// return Minmax::CERTAIN_VICTORY; //TODO: exit heuristic
 		}
 		if (currentStreakNum == 3 && currentStreakPotential > 5 && !halfOpen && emptyCellCount < 2) {
 			certainVictory[3]++;
@@ -481,30 +387,23 @@ int Gomoku::evalStreakScore(int currentStreakNum, int currentStreakPotential, bo
 		}
 	}
 
-	int ret = static_cast<int>(pow((currentStreakNum - emptyCellCount), 3) * (halfOpen ? 1 : 2)) + currentStreakNum;  // give pat medal
-	// std::cout << "evalStreakScore: " << ret << std::endl;
-	return ret;
+	return static_cast<int>(pow((currentStreakNum - emptyCellCount), 3) * (halfOpen ? 1 : 2)) + currentStreakNum;
 }
 
-void resetStreak(bool &streaking, bool &frontBlocked, int &currentStreakNum, int& emptyCellCount, int& emptyCellCountPotential, bool rollOverEmptyCells) {
-	(void)rollOverEmptyCells;
-	// std::cout << "  resetStreak. rollOverEmptyCells: " << std::boolalpha << rollOverEmptyCells << std::endl;
+void resetStreak(bool &streaking, bool &frontBlocked, int &currentStreakNum, int& emptyCellCount, int& emptyCellCountPotential) {
 	streaking = false;
 	frontBlocked = false;
 	currentStreakNum = 0;
-	// currentStreakPotential = rollOverEmptyCells ? emptyCellCount : 0;
 	emptyCellCountPotential = 0;
 	emptyCellCount = currentStreakNum;
-	// std::cout << "frontBlocked: " << frontBlocked << std::endl;
 }
 
 
 bool Gomoku::hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer) {
 	auto pos = start;
 	while (countToCheck--) {
-		pos = std::make_pair<int, int>(pos.first + line.first, pos.second + line.second);
-
-		if (pos.first < 0 || pos.second < 0 || pos.first >= this->size || pos.second >= this->size || this->board[pos.first][pos.second] == otherPlayer) {
+		pos += line;
+		if (this->notOnBoard(pos) || this->getValueOnBoard(pos) == otherPlayer) {
 			return false;
 		}
 	}
@@ -512,22 +411,15 @@ bool Gomoku::hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> l
 }
 
 int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int player, int length, int* certainVictory) {
-	// logg = start.first == 1 && line.second == 1;
-	// if (logg) {
-	// 	std::cout << "Eval line: start: " << start << std::endl;
-	// }
-
-	// std::cout << "Start: " << start << ", line: " << line << ", size: " << length << ", player: " << player << std::endl;
-
 	int score = 0;
 	bool streaking;
 	bool frontBlocked;
 	int currentStreakNum;
 	int currentStreakPotential = 0;
-	int emptyCellCount; // number of empty cells in a streak in between player's stones
+	int emptyCellCount;
 	int emptyCellCountPotential;
 
-	resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, false);
+	resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential);
 
 	int otherPlayer = player == 0 ? 1 : 0;
 
@@ -535,17 +427,10 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 
 	for (int i = 0; i < length; i++) {
 		pos = start + line * i;
-		// if (logg) {
-			// std::cout << "pos: " << pos << " is " << this->board[pos.first][pos.second] << std::endl;
-		// }
 
-		// if player
-		if (this->board[pos.first][pos.second] == player) {
-			// if not streaking
+		if (this->getValueOnBoard(pos) == player) {
 			if (!streaking) {
-				// if currentStreakNum is not 0
 				if (currentStreakNum) {
-					// std::cout << "evalStreakScore0: " << std::endl;
 					if (currentStreakPotential < 5) {
 						if (this->hasEnoughPotential(pos, line, 5 - currentStreakPotential, otherPlayer)) {
 							score += this->evalStreakScore(currentStreakNum, 100, frontBlocked, player, emptyCellCount, certainVictory);
@@ -553,108 +438,51 @@ int Gomoku::evalLine(std::pair<int, int> start, std::pair<int, int> line, int pl
 					} else {
 						score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount, certainVictory);
 					}
-					resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, i > 0 && this->getValueOnBoard(pos - line) == -1);
+					resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential);
 					currentStreakNum = 1;
-					// currentStreakPotential = 1;
-					// std::cout << "  Reset currentStreakNum: " << currentStreakNum << std::endl;
-					// std::cout << "  Reset currentStreakPotential: " << currentStreakPotential << std::endl;
 				} else {
-					// if currentStreakNum is 0
 					currentStreakNum++;
 					currentStreakPotential++;
-					// std::cout << "  Increase currentStreakNum: " << currentStreakNum << std::endl;
-					// std::cout << "  Increase currentStreakPotential: " << currentStreakPotential << std::endl;
 				}
-
 				frontBlocked = i == 0 || (i > 0 && this->getValueOnBoard(pos - line) == otherPlayer);
-				// std::cout << "frontBlocked: " << frontBlocked << std::endl;
-				
 				streaking = true;
-			} else { // if streaking
-
+			} else {
 				emptyCellCount += emptyCellCountPotential;
-				// std::cout << "  Increase emptyCellCount: " << emptyCellCount << std::endl;
 				emptyCellCountPotential = 0;
-
-				// std::cout <<
-				// 	" streaking: " << streaking << 
-				// 	" currentStreakNum: " << currentStreakNum << 
-				// 	" currentStreakPotential: " << currentStreakPotential << 
-				// 	" emptyCellCount: " << emptyCellCount << 
-				// 	" frontBlocked: " << frontBlocked << std::endl;
-				// std::cout << "evalStreakScore1: " << std::endl;
-				// score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount, certainVictory);
-				// std::cout << "\tscore => " << score << std::endl;
-				// resetStreak(streaking, frontBlocked, currentStreakNum, currentStreakPotential, emptyCellCount, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
-				// frontBlocked = i == 0 || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] == otherPlayer);
-				// std::cout << "frontBlocked: " << frontBlocked << std::endl;
-				
 				streaking = true;
-
 				currentStreakPotential++;
 				currentStreakNum++;
-				// std::cout << "  Increase currentStreakNum: " << currentStreakNum << std::endl;
-				// std::cout << "  Increase currentStreakPotential: " << currentStreakPotential << std::endl;
 			}
 		}
-		if (this->board[pos.first][pos.second] == -1) {
+		if (this->getValueOnBoard(pos) == -1) {
 			currentStreakPotential++;
-			// std::cout << "  Increase currentStreakPotential: " << currentStreakPotential << std::endl;
 
 			if (streaking) {
 				emptyCellCountPotential++;
-				// std::cout << "  Increase emptyCellCountPotential: " << emptyCellCountPotential << std::endl;
-
-				if (i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1) {
+				if (i > 0 && this->getValueOnBoard(pos - line) == -1) {
 					streaking = false;
 				}
 			}
 		}
 
-		// if other player
-		if (this->board[pos.first][pos.second] == otherPlayer) {
+		if (this->getValueOnBoard(pos) == otherPlayer) {
 			if (streaking) {
-				// std::cout << "evalStreakScore2: " << std::endl;
-				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || (i > 0 && this->board[pos.first - line.first][pos.second - line.second] != -1), player, emptyCellCount, certainVictory);
+				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || (i > 0 && this->getValueOnBoard(pos - line) != -1), player, emptyCellCount, certainVictory);
 			} else {
-				// std::cout << "evalStreakScore3: " << std::endl;
 				score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked, player, emptyCellCount, certainVictory);
 			}
-			resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential, i > 0 && this->board[pos.first - line.first][pos.second - line.second] == -1);
+			resetStreak(streaking, frontBlocked, currentStreakNum, emptyCellCount, emptyCellCountPotential);
 			currentStreakPotential = 0;
-			// std::cout << "  Reset currentStreakPotential: " << currentStreakPotential << std::endl;
 		}
 	}
 
-	if (streaking) {
-		// std::cout <<
-		// 	" streaking: " << streaking << 
-		// 	" currentStreakNum: " << currentStreakNum << 
-		// 	" currentStreakPotential: " << currentStreakPotential << 
-		// 	" emptyCellCount: " << emptyCellCount << 
-		// 	" frontBlocked: " << frontBlocked << std::endl;
-		// std::cout << "evalStreakScore4: " << std::endl;
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount, certainVictory);
-		// std::cout << "\tscore => " << score << std::endl;
-	} else {
-		// std::cout <<
-		// 	" streaking: " << streaking << 
-		// 	" currentStreakNum: " << currentStreakNum << 
-		// 	" currentStreakPotential: " << currentStreakPotential << 
-		// 	" emptyCellCount: " << emptyCellCount << 
-		// 	" frontBlocked: " << frontBlocked << std::endl;
-		// std::cout << "evalStreakScore5: " << std::endl;
-																				// frontBlocked useful?
-		score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->board[pos.first][pos.second] != -1, player, emptyCellCount, certainVictory);
-	}
+	score += this->evalStreakScore(currentStreakNum, currentStreakPotential, frontBlocked || this->getValueOnBoard(pos) != -1, player, emptyCellCount, certainVictory);
 
 	return score;
 }
 
 int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 	// TODO: possible to iterate only ONCE over board and calc both players at once?
-	int otherPlayer = player == 0 ? 1 : 0;
-
 
 	int captures = this->players[player]->getCaptures();
 	if (captures >= 5) {
@@ -662,90 +490,45 @@ int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 		certainVictory[0]++;
 		return 0;
 	}
-	if (player == this->currentPlayer->getIndex()) { // YOUR TURN
-		// you win moar
+	if (player == this->currentPlayer->getIndex()) {
 		if (captures == 4 && this->players[player]->getPotentialCaptures() > 0) {
-			// std::cout << "win by pot capters(0)" << std::endl;
 			certainVictory[1]++;
 			return 0;
-			// return Minmax::CERTAIN_VICTORY;
 		}
 	} else {
 		if (captures == 4 && this->players[player]->getPotentialCaptures() > 1) {
-			// std::cout << "win by pot capters(1)" << std::endl;
 			certainVictory[3]++;
 			return 0;
-			// return Minmax::CERTAIN_VICTORY;
 		}
 	}
 	
-	
 	int score = 0;
-	std::pair<int, int> hLine = std::make_pair<int, int>(0, 1);
-	std::pair<int, int> vLine = std::make_pair<int, int>(1, 0);
 
-	std::pair<int, int> dLine1 = std::make_pair<int, int>(1, 1);
-	std::pair<int, int> dLine2 = std::make_pair<int, int>(1, -1);
-
-	// this->printBoard();
-
-	//std::vector<std::future<int>> scores;
-	//auto start = std::chrono::steady_clock::now();
 	for (int i = 0; i < this->size; i++) {
-		
-		//scores.push_back(std::async(&Gomoku::evalLine, this, std::make_pair(i, 0), hLine, player, this->size));
-		score += this->evalLine(std::make_pair(i, 0), hLine, player, this->size, certainVictory);
-		// if (certainVictory[1] > 0) {
-		// 	return 0;
-		// }
-		// std::cout << "score1: => " << score << std::endl;
-		
-		// if (i == 3) {
-			score += this->evalLine(std::make_pair(0, i), vLine, player, this->size, certainVictory);
-			// if (certainVictory[1] > 0) {
-			// 	return 0;
-			// }
-			// std::cout << "score2: => " << score << std::endl;
-		// }
+		score += this->evalLine(std::make_pair(i, 0), Gomoku::hLine, player, this->size, certainVictory);
+		score += this->evalLine(std::make_pair(0, i), Gomoku::vLine, player, this->size, certainVictory);
 	}
-	//auto end = std::chrono::steady_clock::now();
-	//std::cout << std::chrono::duration <double, std::milli>(end - start).count() << " ms" << std::endl;
-
-	//for (auto it = scores.begin(); it != scores.end(); ++it) {
-	//	score += it->get();
-	//}
 
 	for (int i = 0; i <= this->size - this->winStreakLength; i++) {
-		score += this->evalLine(std::make_pair(0, i), dLine1, player, this->size - i, certainVictory);
-		// if (certainVictory[1] > 0) {
-		// 	return 0;
-		// }
-		// std::cout << "score3: => " << score << std::endl;
+		score += this->evalLine(std::make_pair(0, i), Gomoku::dLine1, player, this->size - i, certainVictory);
 		if (i != 0) {
-			score += this->evalLine(std::make_pair(i, 0), dLine1, player, this->size - i, certainVictory);
+			score += this->evalLine(std::make_pair(i, 0), Gomoku::dLine1, player, this->size - i, certainVictory);
 			if (certainVictory[1] > 0) {
 				return 0;
 			}
-			// std::cout << "score4: => " << score << std::endl;
 		}
 	}
 
 	for (int i = this->size - 1; i >= this->winStreakLength - 1; i--) {
-		score += this->evalLine(std::make_pair(0, i), dLine2, player, i + 1, certainVictory);
-		// if (certainVictory[1] > 0) {
-		// 	return 0;
-		// }
-		// std::cout << "score5: => " << score << std::endl;
+		score += this->evalLine(std::make_pair(0, i), Gomoku::dLine2, player, i + 1, certainVictory);
 	}
 
 	for (int i = 1; i <= this->size - this->winStreakLength; i++) {
-		score += this->evalLine(std::make_pair(i, this->size - 1), dLine2, player, this->size - i, certainVictory);
-		// if (certainVictory[1] > 0) {
-		// 	return 0;
-		// }
-		// std::cout << "score6: => " << score << std::endl;
+		score += this->evalLine(std::make_pair(i, this->size - 1), Gomoku::dLine2, player, this->size - i, certainVictory);
 	}
-	
+
+	// TODO:
+
 	// if (this->players[0]->getPotentialCaptures() > 0 || this->players[1]->getPotentialCaptures() > 0) {
 	// 	std::cout << "pot capteures: " << this->players[0]->getPotentialCaptures() << " and " << this->players[1]->getPotentialCaptures() << std::endl;
 	// }
@@ -765,7 +548,6 @@ int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 	return score;// + capturesValue + potentialCapturesValue;
 }
 
-//float hPlayerMultiplier = 1;
 
 int getThresholdValue(int i) {
 	switch (i) {
@@ -777,58 +559,28 @@ int getThresholdValue(int i) {
 			return 50'000;
 		case 3:
 			return 20'000;
+		default:
+			return 0;
 	}
 }
 
 
 int Gomoku::heuristic(int depth) {
-
-	// if (this->board[1][1] == 0) {
-	// 	std::cout << "============ heru d = " << depth  << std::endl;
-	// this->printBoard();
-	// }
-
-
-
 	int certainVictories[][5] = {{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}};
-
 	int score0 = this->heuristicByPlayer(0, certainVictories[0]);
 	int score1 = this->heuristicByPlayer(1, certainVictories[1]);
 
-	// if (this->board[1][1] == 0) {
-
-	// 	std::cout << "h player: " << this->heuristicPlayer->getIndex() << std::endl;
-	// 	for (auto& cv: certainVictories) {
-	// 		std::cout << "----: ";
-	// 		for (auto i: cv) {
-	// 			std::cout << i << ", ";
-	// 		}
-	// 		std::cout << std::endl;
-	// 	}
-	// }
 	for (int i = 0; i < 5; i++) {
 		if (certainVictories[0][i] > 0) {
 			score0 += getThresholdValue(i) - (this->minmax->maxDepth - depth);
-			// score1 = 0;
 			break;
 		}
 		if (certainVictories[1][i] > 0) {
 			score1 += getThresholdValue(i) - (this->minmax->maxDepth - depth);
-			// score0 = 0;
 			break;
 		}
 	}
-	// if (depth == 3) {
-	// 	std::cout << "score0: " << score0 << ", score1: " << score1 << std::endl;	
-	// }
-
-	// return score1;
-
-	//return this->heuristicPlayer->getIndex() == 0 ? hPlayerMultiplier * score0 - score1 : hPlayerMultiplier * score1 - score0;
 	return this->heuristicPlayer->getIndex() == 0 ? score0 - score1 : score1 - score0;
-
-	// return this->heuristicPlayer->index == 0 ? score0 : score1;
-	// return finalScore;
 }
 
 
@@ -840,7 +592,6 @@ std::vector<AAction*> Gomoku::doMove(std::pair<int, int>& pos) {
 
 bool Gomoku::canPlace(std::pair<int, int> move) const {
 	for (auto rule: _rules) {
-		// std::cout << rule->name << std::endl;
 		if (!rule->canPlace(*this, move)) {
 			return false;
 		}
@@ -850,7 +601,6 @@ bool Gomoku::canPlace(std::pair<int, int> move) const {
 
 bool Gomoku::canPlace(std::pair<int, int> move, int playerIndex) const {
 	for (auto rule: _rules) {
-		// std::cout << rule->name << std::endl;
 		if (!rule->canPlace(*this, move, playerIndex)) {
 			return false;
 		}
@@ -914,18 +664,7 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int>
 	}
 }
 
-void Gomoku::printState() {
-	std::cout << "====================== STATE ====================== " << std::endl;
-	std::cout << "Size: " << this->size << std::endl;
-	std::cout << "Current Player Index: " << this->currentPlayer->getIndex() << std::endl;
-	// std::cout << "Heuristic Player Index: " << this->heuristicPlayer->index << std::endl;
-	// std::cout << "Last Moves: " << this->lastMoves[this->lastMoves.size() - 1].first << ", " << this->lastMoves[this->lastMoves.size() - 1].second << std::endl;
-	std::cout << "EndState: " << this->endState << std::endl;
-	std::cout << "=================================================== " << std::endl;
-}
-
 void printLineScore(std::vector<int> line, int size, int score, int potentialCaptures) {
-	// std::cout << "==============";
 	for (int i = 0; i < size; i ++) {
 		if (i == size - 1) {
 			std::cout << line[i];
@@ -940,3 +679,8 @@ const int Gomoku::PotentialCapturePattern[][2][4] = {
 	{ {0, 1, 1, -1}, {-1, 1, 1, 0} },
 	{ {1, 0, 0, -1}, { -1, 0, 0, 1} },
 };
+
+const std::pair<int, int> Gomoku::hLine = std::make_pair<int, int>(0, 1);
+const std::pair<int, int> Gomoku::vLine = std::make_pair<int, int>(1, 0);
+const std::pair<int, int> Gomoku::dLine1 = std::make_pair<int, int>(1, 1);
+const std::pair<int, int> Gomoku::dLine2 = std::make_pair<int, int>(1, -1);

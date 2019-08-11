@@ -28,7 +28,6 @@ public:
 	void printBoard() const;
 	void printBoard(std::vector<std::vector<int>> board) const;
 	void printBoard(std::vector<std::vector<int>> board, std::pair<int, int> pos) const;
-	void printState();
 
 	void updateBoardCallbacks(std::pair<int, int> pos, int value);
 	void captureCallbacks(int playerIndex);
@@ -57,6 +56,7 @@ public:
 	bool onBoard(std::pair<int, int> &pos) const;
 	bool notOnBoard(std::pair<int, int> &pos) const;
 	int getValueOnBoard(std::pair<int, int> pos) const;
+	void setValueOnBoard(std::pair<int, int> pos, int value);
 
 	void nextTurn();
 	int getTurn() const;
@@ -64,13 +64,15 @@ public:
 	void onUpdateBoard(std::function<void(std::pair<int, int>, int)> f);
 	void onCapture(std::function<void(int playerIndex, int value)> f);
 
+	int getRemainingStones();
+	void setRemainingStones(int i);
+
+
 // private:
 
 	
 	std::vector<std::shared_ptr<ARule>> _rules;
 	std::shared_ptr<GameEndingCapture> _gameEndingCapture;
-
-	// std::vector<std::vector<AAction*>> stackActions;
 
 	int size;
 	std::vector<std::vector<int>> board;
@@ -90,6 +92,12 @@ public:
 	std::vector<std::function<void(int playerIndex, int value)>> _captureCallbacks;
 
 	static const int PotentialCapturePattern[][2][4];
+
+private:
+	static const std::pair<int, int> hLine;
+	static const std::pair<int, int> vLine;
+	static const std::pair<int, int> dLine1;
+	static const std::pair<int, int> dLine2;
 
 };
 
