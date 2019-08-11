@@ -106,7 +106,7 @@ void Tests::_heuristic(Tests::HeuristicParams& param) {
 		moves = Tests::_gomoku->getMoves();
 	}
 
-	int bestValue = Minmax::INF_MIN;
+	int bestValue = Minmax::LOSS;
 	std::pair<int, int> bestMove;
 
 	for (int i = 0; i < param.capturesPerPlayer[0]; i++) {
@@ -191,7 +191,7 @@ void Tests::_minmaxUnitTest(Tests::MinmaxParams& param) {
 	}
 
 	for (int& depth : depths) {
-		Tests::_minmax->maxDepth = depth;
+		Tests::_minmax->setMaxDepth(depth);
 		Tests::_gomoku->printBoard();
 		std::cout << "===== DEPTH " << depth << " =====" << std::endl;
 		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();

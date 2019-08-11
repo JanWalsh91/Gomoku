@@ -53,6 +53,8 @@ public:
 	void updatePotentialCaptures();
 	void updatePotentialCapturesByLine(std::pair<int, int> startPos, std::pair<int, int> dir, int length);
 
+	void setUpStartConfiguration(int i);
+
 	// Heuristic
 	int heuristic(int depth);
 	int heuristicByPlayer(int player, int *certainVictory);
@@ -60,7 +62,7 @@ public:
 	int evalStreakScore(int, int, bool, int player, int emptyCellCount, int* certainVictory);
 	bool hasEnoughPotential(std::pair<int, int> start, std::pair<int, int> line, int countToCheck, int otherPlayer);
 	std::vector<std::pair<int, int>> getMoves();
-	std::vector<int> hashState();
+	std::vector<char> hashState();
 
 	// Getters and Setters
 	int getTurn() const;
@@ -70,9 +72,9 @@ public:
 	State getEndState();
 
 	int getValueOnBoard(std::pair<int, int> pos) const;
-	int getValueOnBoard(int y, int x) const;
-	void setValueOnBoard(std::pair<int, int> pos, int value);
-	void setValueOnBoard(int y, int x, int value);
+	char getValueOnBoard(int y, int x) const;
+	void setValueOnBoard(std::pair<int, int> pos, char value);
+	void setValueOnBoard(int y, int x, char value);
 
 	int getRemainingStones();
 	void setRemainingStones(int i);
@@ -103,13 +105,13 @@ public:
 	static const int PotentialCapturePattern[][2][4];
 
 private:
-	std::vector<int>	_board;
+	std::vector<char>	_board;
 	State				_endState;
 
 	static const std::pair<int, int> hLine;
 	static const std::pair<int, int> vLine;
 	static const std::pair<int, int> dLine1;
 	static const std::pair<int, int> dLine2;
-
+	static const std::vector<std::vector<std::pair<std::pair<int, int>, int>>> startConfigurations;
 };
 

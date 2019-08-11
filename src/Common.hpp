@@ -19,6 +19,7 @@
 #include <SFML/Audio.hpp>
 
 #include "Colors.hpp"
+#include "Timer.hpp"
 
 #include "IRenderable.hpp"
 #include "Background.hpp"

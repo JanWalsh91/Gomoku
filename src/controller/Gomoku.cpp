@@ -1,6 +1,6 @@
 #include "Gomoku.hpp"
 
-Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), winStreakLength(5), turn(0), _board(std::vector<int>(size * size, -1)), _endState(State::PLAYING) {
+Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): size(size), playing(false), remainingStones(size * size), winStreakLength(5), turn(0), _board(std::vector<char>(size * size, -1)), _endState(State::PLAYING) {
 	this->players.push_back(std::make_shared<Player>(0, player0Type));
 	this->players.push_back(std::make_shared<Player>(1, player1Type));
 
@@ -20,7 +20,7 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 }
 
 void Gomoku::reset() {
-	this->_board = std::vector<int>(size * size, -1);
+	this->_board = std::vector<char>(size * size, -1);
 	this->_endState = State::PLAYING;
 	
 	this->currentPlayer = this->players[0];
@@ -71,15 +71,15 @@ int Gomoku::getValueOnBoard(std::pair<int, int> pos) const {
 	return this->_board[pos.first * size + pos.second];
 }
 
-int Gomoku::getValueOnBoard(int y, int x) const {
+char Gomoku::getValueOnBoard(int y, int x) const {
 	return this->_board[y * size + x];
 }
 
-void Gomoku::setValueOnBoard(std::pair<int, int> pos, int value) {
+void Gomoku::setValueOnBoard(std::pair<int, int> pos, char value) {
 	this->_board[pos.first * size + pos.second] = value;
 }
 
-void Gomoku::setValueOnBoard(int y, int x, int value) {
+void Gomoku::setValueOnBoard(int y, int x, char value) {
 	this->_board[y * size + x] = value;
 }
 
@@ -253,17 +253,25 @@ std::vector<AAction*> Gomoku::place(int y, int x, int playerIndex) {
 	actions.push_back(new ActionUpdateBoard(pos, -1));
 
 	this->updateBoardCallbacks(pos, playerIndex);
-
 	this->remainingStones--;
 
+	// Timer::Start("triggerEffects");
 	for (auto rule : _rules) {
+		// Timer::Start("triggerEffects " + rule->name);
 		std::vector<AAction*> ruleActions = rule->triggerEffects(*this, pos);
 		actions.insert(actions.end(), ruleActions.begin(), ruleActions.end());
+		// Timer::Stop("triggerEffects " + rule->name);
 	}
+	// Timer::Stop("triggerEffects");
 
+	Timer::Start("updatePotentialCaptures");
 	this->updatePotentialCaptures();
+	Timer::Stop("updatePotentialCaptures");
 
+
+	Timer::Start("checkWinCondition");
 	int state = this->checkWinCondition(pos, playerIndex);
+	Timer::Stop("checkWinCondition");
 	
 	if (state != State::PLAYING) {
 		actions.push_back(new ActionSetEndState(this->getEndState()));
@@ -375,7 +383,7 @@ std::vector<std::pair<int, int>> Gomoku::getMoves() {
 	return moves;
 }
 
-std::vector<int> Gomoku::hashState() {
+std::vector<char> Gomoku::hashState() {
 	auto hash = _board;
 	hash.push_back(this->players[0]->getCaptures());
 	hash.push_back(this->players[1]->getCaptures());
@@ -528,12 +536,11 @@ int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 	}
 	
 	int score = 0;
-
+	
 	for (int i = 0; i < this->size; i++) {
 		score += this->evalLine(std::make_pair(i, 0), Gomoku::hLine, player, this->size, certainVictory);
 		score += this->evalLine(std::make_pair(0, i), Gomoku::vLine, player, this->size, certainVictory);
 	}
-
 	for (int i = 0; i <= this->size - this->winStreakLength; i++) {
 		score += this->evalLine(std::make_pair(0, i), Gomoku::dLine1, player, this->size - i, certainVictory);
 		if (i != 0) {
@@ -543,7 +550,6 @@ int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 			}
 		}
 	}
-
 	for (int i = this->size - 1; i >= this->winStreakLength - 1; i--) {
 		score += this->evalLine(std::make_pair(0, i), Gomoku::dLine2, player, i + 1, certainVictory);
 	}
@@ -552,32 +558,16 @@ int Gomoku::heuristicByPlayer(int player, int* certainVictory) {
 		score += this->evalLine(std::make_pair(i, this->size - 1), Gomoku::dLine2, player, this->size - i, certainVictory);
 	}
 
-	// TODO:
-
-	// if (this->players[0]->getPotentialCaptures() > 0 || this->players[1]->getPotentialCaptures() > 0) {
-	// 	std::cout << "pot capteures: " << this->players[0]->getPotentialCaptures() << " and " << this->players[1]->getPotentialCaptures() << std::endl;
-	// }
-	
-	// else {
-	// 	if (captures == 4 && potentialCaptures > 0) {
-	// 		return Minmax::CERTAIN_VICTORY / 2;
-	// 	}
-	// }
-
-	// int capturesValue = std::pow(captures + 1, 3);
-	// int potentialCapturesValue = capturesValue * potentialCaptures;
-
-	// std::cout << "potentialCaptures: " << potentialCaptures << ", capturesValue: " << capturesValue << ", potentialCapturesValue: " << potentialCapturesValue << std::endl;
-
-	// return capturesValue + potentialCapturesValue;
-	return score;// + capturesValue + potentialCapturesValue;
+	int capturesValue = std::pow(captures + 1, 4);
+	int potentialCapturesValue = capturesValue * this->players[player]->getPotentialCaptures();
+	return score + capturesValue + potentialCapturesValue;
 }
 
 
 int getThresholdValue(int i) {
 	switch (i) {
 		case 0:
-			return Minmax::INF_MAX;
+			return Minmax::VICTORY;
 		case 1:
 			return 100'000;
 		case 2:
@@ -591,21 +581,26 @@ int getThresholdValue(int i) {
 
 
 int Gomoku::heuristic(int depth) {
+	Timer::Start("Heuristic");
 	int certainVictories[][5] = {{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}};
-	int score0 = this->heuristicByPlayer(0, certainVictories[0]);
-	int score1 = this->heuristicByPlayer(1, certainVictories[1]);
+	int scores[2] = {0, 0};
+
+	for (int i = 0; i < 2; i++) {
+		scores[i] = this->heuristicByPlayer(i, certainVictories[i]);
+	}
 
 	for (int i = 0; i < 5; i++) {
 		if (certainVictories[0][i] > 0) {
-			score0 += getThresholdValue(i) - (this->minmax->maxDepth - depth);
+			scores[0] += getThresholdValue(i) - (this->minmax->getMaxDepth() - depth);
 			break;
 		}
 		if (certainVictories[1][i] > 0) {
-			score1 += getThresholdValue(i) - (this->minmax->maxDepth - depth);
+			scores[1] += getThresholdValue(i) - (this->minmax->getMaxDepth() - depth);
 			break;
 		}
 	}
-	return this->heuristicPlayer->getIndex() == 0 ? score0 - score1 : score1 - score0;
+	Timer::Stop("Heuristic");
+	return this->heuristicPlayer->getIndex() == 0 ? scores[0] - scores[1] : scores[1] - scores[0];
 }
 
 
@@ -642,6 +637,18 @@ void Gomoku::undoMove(std::vector<AAction*>& actions) {
 	}
 }
 
+void Gomoku::setUpStartConfiguration(int i) {
+	if (i < 0 || (unsigned)i >= Gomoku::startConfigurations.size()) {
+		std::cout << "Start configuration not available" << std::endl;
+		return ;
+	}
+
+	for (unsigned y = 0; y < Gomoku::startConfigurations[i].size(); y++) {
+		this->place(Gomoku::startConfigurations[i][y].first.first, Gomoku::startConfigurations[i][y].first.second, Gomoku::startConfigurations[i][y].second);
+	}
+}
+
+
 void Gomoku::printBoard() const {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
@@ -654,9 +661,9 @@ void Gomoku::printBoard() const {
 void Gomoku::printBoard(std::vector<std::vector<int>> board) const {
 	for (int j = 0; j < this->size; j++) {
 		for (int i = 0; i < this->size; i++) {
-			if (board[j][i] < Minmax::INF_MIN + 20) {
+			if (board[j][i] < Minmax::LOSS + 20) {
 				std::cout << std::setw(6) << "m" + std::to_string(std::abs(board[j][i] % 10)) << " ";
-			} else if (board[j][i] > Minmax::INF_MAX - 20) {
+			} else if (board[j][i] > Minmax::VICTORY - 20) {
 				std::cout << std::setw(6) << "M" + std::to_string(std::abs(board[j][i] % 10))  << " ";
 			} else {
 				std::cout << std::setw(6) << board[j][i] << " ";
@@ -671,9 +678,9 @@ void Gomoku::printBoard(std::vector<std::vector<int>> board, std::pair<int, int>
 		for (int i = 0; i < this->size; i++) {
 			std::string value;
 
-			if (board[j][i] < Minmax::INF_MIN + 20) {
+			if (board[j][i] < Minmax::LOSS + 20) {
 				value = "m" + std::to_string(std::abs(board[j][i] % 10));
-			} else if (board[j][i] > Minmax::INF_MAX - 20) {
+			} else if (board[j][i] > Minmax::VICTORY - 20) {
 				value = "M" + std::to_string(std::abs(board[j][i] % 10));
 			} else {
 				value = std::to_string(board[j][i]);
@@ -709,3 +716,14 @@ const std::pair<int, int> Gomoku::hLine = std::make_pair<int, int>(0, 1);
 const std::pair<int, int> Gomoku::vLine = std::make_pair<int, int>(1, 0);
 const std::pair<int, int> Gomoku::dLine1 = std::make_pair<int, int>(1, 1);
 const std::pair<int, int> Gomoku::dLine2 = std::make_pair<int, int>(1, -1);
+
+const std::vector<std::vector<std::pair<std::pair<int, int>, int>>> Gomoku::startConfigurations = {
+	{
+		{
+			{ 9, 9 }, 1
+		},
+		{
+			{ 8, 8 }, 0
+		}
+	},
+};
