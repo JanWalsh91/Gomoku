@@ -5,20 +5,17 @@ const int GUI::NbStoneSoundEffects = 3;
 GUI::GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window): gomoku(gomoku), window(window), _currentPlayer(0) {
 	TextBox::loadFont();
 
-	for (int i = 1; i <= NbStoneSoundEffects; i++) {
-		sf::SoundBuffer buffer;
+	 for (int i = 1; i <= NbStoneSoundEffects; i++) {
+	 	sf::SoundBuffer buffer;
 
-		if (buffer.loadFromFile("resources/sounds/stone_sound_" + std::to_string(i) + ".wav")) {
-			_stoneSoundEffects.push_back(buffer);
-		}
-	}
+	 	if (buffer.loadFromFile("resources/sounds/stone_sound_" + std::to_string(i) + ".wav")) {
+			std::cout << "Calling the constructor" << std::endl;
+	 		_stoneSoundEffects.push_back(buffer);
+	 	}
+	 }
 }
 
 GUI::~GUI() {
-	// for (auto soundBuffer: _stoneSoundEffects) {
-	// 	soundBuffer.clear();
-	// }
-
 }
 
 void GUI::setup() {
@@ -200,8 +197,8 @@ void GUI::updateBoard(std::pair<int, int> pos, int value) {
 		grid->removeStoneAt(pos);
 	}
 
-	_sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
-	_sfx.play();
+	 _sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
+	 _sfx.play();
 }
 
 void GUI::updateCaptures(int playerIndex, int value) {

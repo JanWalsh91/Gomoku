@@ -17,6 +17,7 @@ public:
 	};
 
 	Gomoku(int size, Player::Type player0Type, Player::Type player1Type);
+	~Gomoku();
 
 	std::vector<std::shared_ptr<Player>> players;
 	std::shared_ptr<Player> currentPlayer;

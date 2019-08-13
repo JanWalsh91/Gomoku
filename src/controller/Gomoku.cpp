@@ -19,6 +19,11 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 	}
 }
 
+Gomoku::~Gomoku() {
+	// _updateBoardCallbacks.clear();
+	// _captureCallbacks.clear();
+}
+
 void Gomoku::reset() {
 	this->_board = std::vector<char>(size * size, -1);
 	this->_endState = State::PLAYING;

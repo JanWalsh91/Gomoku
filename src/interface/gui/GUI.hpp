@@ -53,7 +53,7 @@ private:
 
 	int _currentPlayer;
 	std::vector<sf::SoundBuffer> _stoneSoundEffects;
-	sf::Sound _sfx;
+	 sf::Sound _sfx;
 
 	static const int NbStoneSoundEffects;
 

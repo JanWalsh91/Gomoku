@@ -83,7 +83,6 @@ int main(int argc, char *argv[]) {
 
 	std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
 
-
 	gomoku->minmax = minmax;
 
 	gui->setup();
@@ -93,11 +92,11 @@ int main(int argc, char *argv[]) {
 
 	std::future<std::pair<int, int>> future;
 
-	gomoku->onUpdateBoard([gui, gomoku](std::pair<int, int> pos, int value) {
+	gomoku->onUpdateBoard([&gui, gomoku](std::pair<int, int> pos, int value) {
 		gui->updateBoard(pos, value);
 	});
 
-	gomoku->onCapture([gui, gomoku](int playerIndex, int value) {
+	gomoku->onCapture([&gui, gomoku](int playerIndex, int value) {
 		gui->updateCaptures(playerIndex, value);
 	});
 
