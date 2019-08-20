@@ -386,12 +386,13 @@ int main(int argc, char *argv[]) {
 
 		if (future.valid() && future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
 			if (gomoku->hasBeenReset()) {
-				std::cout << "Has been reset in between, whoops!" << std::endl;
-				gomoku->clearReset();
 				return ;
 			}
 			auto pos = future.get();
 			std::cout << "pos: " << pos << std::endl;
+			if (pos.first < 0 || pos.second < 0) {
+				return;
+			}
 			gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
 			gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
 			gomoku->switchPlayer();

@@ -144,6 +144,10 @@ void displayDebug(Gomoku& gomoku, bool maximizing, int alpha, int beta, int dept
 bool showed[] = {false, false, false, false, false};
 
 int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue) {
+	if (_gomoku.hasBeenReset()) {
+		std::cout << "hasBeenReset in minmax" << std::endl;
+		return -1;
+	}
 	#if DEBUG_POS
 	_boards[depth] = std::vector<std::vector<int>>(_gomoku.size, std::vector<int>(_gomoku.size, 0));
 	_bestMove[depth] = std::make_pair(-1, -1);	
@@ -214,6 +218,10 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 			auto undoMoves = _gomoku.doMove(heuristicByMove.move);
 			int ret = _minmaxAlphaBeta(depth - 1, alpha, beta, false, false, heuristicByMove.heuristic);
 			_gomoku.undoMove(undoMoves);
+			if (_gomoku.hasBeenReset()) {
+				std::cout << "hasBeenReset in minmax" << std::endl;
+				return -1;
+			}
 			
 			#if DEBUG_POS
 			if (ret > _bestValue[depth]) {
@@ -282,6 +290,10 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 			auto undoMoves = _gomoku.doMove(heuristicByMove.move);
 			int ret = _minmaxAlphaBeta(depth - 1, alpha, beta, true, false, heuristicByMove.heuristic);
 			_gomoku.undoMove(undoMoves);
+			if (_gomoku.hasBeenReset()) {
+				std::cout << "hasBeenReset in minmax" << std::endl;
+				return -1;
+			}
 
 			#if DEBUG_POS
 			if (ret < _bestValue[depth]) {

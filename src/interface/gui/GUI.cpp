@@ -33,14 +33,12 @@ void GUI::setup() {
 	_grid = std::make_shared<Grid>(_gomoku->size, 800.0f, 40.0f);
 
 	_grid->hoverCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
-		//std::cout << "black: " << black << std::endl;
-
 		if (_gomoku->playing) {
 			auto circle = sf::CircleShape(_grid->getCellSize() / 2.0f);
 			circle.setFillColor(_currentPlayer == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
 			circle.setOutlineThickness(1.0f);
 			circle.setOutlineColor(sf::Color::Black);
-			circle.setPosition(mousePosition.y, mousePosition.x);
+			circle.setPosition(static_cast<float>(mousePosition.y), static_cast<float>(mousePosition.x));
 			_window->getWindow()->draw(circle);
 		}
 	});
@@ -117,20 +115,29 @@ void GUI::setup() {
 
 	_playButton->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		(void)mousePosition;
-		if (_gomoku->minmax->isRunning()) {
-			std::cout << "Pause the game first" << std::endl;
-			return;
-		}
+		// if (_gomoku->minmax->isRunning()) {
+		// 	std::cout << "Pause the game first" << std::endl;
+		// 	return;
+		// }
 		if (_gomoku->playing || _gomoku->getEndState() != -1) {
-			_playButton->setText("START !");
-			_gomoku->playing = false;
 			_gomoku->reset();
 			reset();
+			std::cout << "Reset gomoku" << std::endl;
+			if (_gomoku->players[0]->isAI()) {
+				_playButton->setText("START !");
+				std::cout << "set text only start" << std::endl;
+			} else {
+				std::cout << "set playing ot true" << std::endl;
+				_gomoku->playing = true;
+			}
 		}
 		else {
+			std::cout << "set text reset and playing to true" << std::endl;
+			_gomoku->clearReset();
 			_playButton->setText("RESET");
 			_gomoku->playing = true;
 		}
+		std::cout << "isAI? " << _gomoku->players[0]->isAI() << std::endl;
 	});
 
 	_currentPlayerPanel = std::make_shared<Background>(sf::Vector2f(360.0f, 150.0f), sf::Vector2f(820.0f, 400.0f), Colors::LightGrey);
@@ -156,8 +163,8 @@ void GUI::setup() {
 
 	_grid->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		if (_gomoku->playing) {
-			if (_gomoku->minmax->isRunning()) {
-				std::cout << "AI Turn, be patient" << std::endl;
+			if (_gomoku->currentPlayer->isAI() || _gomoku->minmax->isRunning()) {
+				std::cout << "AI Turn, be patient!" << std::endl;
 				return;
 			}
 			auto pos = _grid->windowToGridCoord(mousePosition);

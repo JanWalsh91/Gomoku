@@ -19,17 +19,15 @@ Gomoku::Gomoku(int size, Player::Type player0Type, Player::Type player1Type): si
 	}
 }
 
-Gomoku::~Gomoku() {
-	// _updateBoardCallbacks.clear();
-	// _captureCallbacks.clear();
-}
+Gomoku::~Gomoku() {}
 
 void Gomoku::reset() {
-	this->_board = std::vector<char>(size * size, -1);
-	this->_endState = State::PLAYING;
+	
+	std::fill(_board.begin(), _board.end(), -1);
+	_endState = State::PLAYING;
 	
 	this->currentPlayer = this->players[0];
-	this->heuristicPlayer = nullptr;
+	this->heuristicPlayer = this->currentPlayer;
 	this->lastMoves = std::vector<std::pair<int, int>>(2, std::make_pair<int, int>(-1, -1));
 	this->remainingStones = this->size * this->size;
 	this->playing = false;
