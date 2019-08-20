@@ -5,7 +5,7 @@
 class Button: public IRenderable {
 
 public:
-	Button(float width, float height, float xPos, float yPos, sf::Color backgroundColor);
+	Button(sf::Vector2f size, sf::Vector2f position, sf::Color backgroundColor);
 
 	void render(sf::RenderWindow&);
 	void click(sf::Vector2i mousePosition);
@@ -15,8 +15,5 @@ public:
 	void setFontColor(sf::Color color);
 
 private:
-	sf::Text text;
-
-	sf::Vector2f size; // TODO: in IRenderable?
-	sf::Vector2f pos;
+	sf::Text _text;
 };

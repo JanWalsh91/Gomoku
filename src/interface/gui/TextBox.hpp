@@ -5,7 +5,7 @@
 class TextBox : public IRenderable {
 
 public:
-	TextBox(float width, float height, float xPos, float yPos, sf::Color backgroundColor);
+	TextBox(sf::Vector2f size, sf::Vector2f position, sf::Color backgroundColor);
 
 	void render(sf::RenderWindow&);
 	void click(sf::Vector2i mousePosition);
@@ -19,8 +19,5 @@ public:
 	static sf::Font font;
 
 private:
-	sf::Text text;
-
-	sf::Vector2f size; // TODO: in IRenderable?
-	sf::Vector2f pos;
+	sf::Text _text;
 };

@@ -6,7 +6,7 @@ class Grid: public IRenderable {
 
 public:
 
-	Grid(int size, float boardSize, float margin);
+	Grid(int nbCells, float boardSize, float margin);
 	void render(sf::RenderWindow&);
 	void click(sf::Vector2i mousePosition);
 	void hover(sf::Vector2i mousePosition);
@@ -20,13 +20,13 @@ public:
 	void reset();
 
 private:
-	std::vector<std::shared_ptr<sf::Shape>> gridLines;
-	std::map<std::pair<int, int>, std::shared_ptr<sf::Shape>> stones;
+	std::vector<std::shared_ptr<sf::Shape>> _gridLines;
+	std::map<std::pair<int, int>, std::shared_ptr<sf::Shape>> _stones;
 	
-	int size;
-	float boardSize;
-	float cellSize;
-	float margin;
+	int _nbCells;
+	float _boardSize;
+	float _cellSize;
+	float _margin;
 
 	sf::Texture _blackStoneTexture;
 	sf::Texture _whiteStoneTexture;

@@ -2,199 +2,205 @@
 
 const int GUI::NbStoneSoundEffects = 3;
 
-GUI::GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window): gomoku(gomoku), window(window), _currentPlayer(0) {
+GUI::GUI(std::shared_ptr<Gomoku> gomoku, std::shared_ptr<SFMLWindow> window): _gomoku(gomoku), _window(window), _currentPlayer(0) {
 	TextBox::loadFont();
 
 	 for (int i = 1; i <= NbStoneSoundEffects; i++) {
-	 	sf::SoundBuffer buffer;
+		sf::SoundBuffer buffer;
 
-	 	if (buffer.loadFromFile("resources/sounds/stone_sound_" + std::to_string(i) + ".wav")) {
-			std::cout << "Calling the constructor" << std::endl;
-	 		_stoneSoundEffects.push_back(buffer);
-	 	}
-	 }
+		if (buffer.loadFromFile("resources/sounds/stone_sound_" + std::to_string(i) + ".wav")) {
+			_stoneSoundEffects.push_back(buffer);
+		}
+	}
+
+	if (!_bgm.openFromFile("resources/sounds/background_music.wav")) {
+		std::cerr << "Cannot load background music" << std::endl;
+		return ;
+	}
+	_bgm.play();
+	_bgm.setLoop(true);
 }
 
 GUI::~GUI() {
 }
 
 void GUI::setup() {
-	background = std::make_shared<Background>(790.0f, 790.0f, 5.0f, 5.0f, Colors::ForestGreen);
-	background->setBorder(5.0f, Colors::Grey);
-	background->setTexture("resources/textures/background.png");
+	_background = std::make_shared<Background>(sf::Vector2f(790.0f, 790.0f), sf::Vector2f(5.0f, 5.0f), Colors::ForestGreen);
+	_background->setBorder(5.0f, Colors::Grey);
+	_background->setTexture("resources/textures/background.png");
 
 
-	grid = std::make_shared<Grid>(gomoku->size, 800.0f, 40.0f);
+	_grid = std::make_shared<Grid>(_gomoku->size, 800.0f, 40.0f);
 
-	grid->hoverCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+	_grid->hoverCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		//std::cout << "black: " << black << std::endl;
 
-		if (gomoku->playing) {
-			auto circle = sf::CircleShape(grid->getCellSize() / 2.0f);
+		if (_gomoku->playing) {
+			auto circle = sf::CircleShape(_grid->getCellSize() / 2.0f);
 			circle.setFillColor(_currentPlayer == 0 ? sf::Color(50, 50, 50, 125) : sf::Color(200, 200, 200, 125));
 			circle.setOutlineThickness(1.0f);
 			circle.setOutlineColor(sf::Color::Black);
 			circle.setPosition(mousePosition.y, mousePosition.x);
-			window->getWindow()->draw(circle);
+			_window->getWindow()->draw(circle);
 		}
 	});
 
 
-	panel = std::make_shared<Background>(480.0f, 800.0f, 800.0f, 0.0f, Colors::LightGrey);
+	_panel = std::make_shared<Background>(sf::Vector2f(480.0f, 800.0f), sf::Vector2f(800.0f, 0.0f), Colors::LightGrey);
 	
-	playersPanel = std::make_shared<Background>(360.0f, 125.0f, 820.0f, 20.0f, Colors::LightGrey);
-	playersPanel->setBorder(2.5f, Colors::Grey);
+	_playersPanel = std::make_shared<Background>(sf::Vector2f(360.0f, 125.0f), sf::Vector2f(820.0f, 20.0f), Colors::LightGrey);
+	_playersPanel->setBorder(2.5f, Colors::Grey);
 
 
-	playerOneButton = std::make_shared<Button>(100.0f, 100.0f, 840.0f, 32.5f, gomoku->players[0]->isHuman() ? Colors::Human : Colors::AI);
-	playerOneButton->setText(gomoku->players[0]->isHuman() ? "Human" : "AI");
-	playerOneButton->setFontColor(sf::Color::Black);
-	playerOneButton->setBorder(3.f, sf::Color::Black);
-	playerOneButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+	_playerOneButton = std::make_shared<Button>(sf::Vector2f(100.0f, 100.0f), sf::Vector2f(840.0f, 32.5f), _gomoku->players[0]->isHuman() ? Colors::Human : Colors::AI);
+	_playerOneButton->setText(_gomoku->players[0]->isHuman() ? "Human" : "AI");
+	_playerOneButton->setFontColor(sf::Color::Black);
+	_playerOneButton->setBorder(3.f, sf::Color::Black);
+	_playerOneButton->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		(void)mousePosition;
-		if (gomoku->players[0]->isHuman()) {
-			playerOneButton->setText("AI");
-			playerOneButton->setBackgroundColor(Colors::AI);
-			gomoku->players[0]->changeType(Player::AI);
+		if (_gomoku->players[0]->isHuman()) {
+			_playerOneButton->setText("AI");
+			_playerOneButton->setBackgroundColor(Colors::AI);
+			_gomoku->players[0]->changeType(Player::AI);
 		}
 		else {
-			playerOneButton->setText("Human");
-			playerOneButton->setBackgroundColor(Colors::Human);
-			gomoku->players[0]->changeType(Player::HUMAN);
+			_playerOneButton->setText("Human");
+			_playerOneButton->setBackgroundColor(Colors::Human);
+			_gomoku->players[0]->changeType(Player::HUMAN);
 		}
 	});
 
-	playerTwoButton = std::make_shared<Button>(100.0f, 100.0f, 1060.0f, 32.5f, gomoku->players[1]->isHuman() ? Colors::Human : Colors::AI);
-	playerTwoButton->setText(gomoku->players[1]->isHuman() ? "Human" : "AI");
-	playerTwoButton->setFontColor(sf::Color::White);
-	playerTwoButton->setBorder(3.f, sf::Color::White);
-	playerTwoButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+	_playerTwoButton = std::make_shared<Button>(sf::Vector2f(100.0f, 100.0f), sf::Vector2f(1060.0f, 32.5f), _gomoku->players[1]->isHuman() ? Colors::Human : Colors::AI);
+	_playerTwoButton->setText(_gomoku->players[1]->isHuman() ? "Human" : "AI");
+	_playerTwoButton->setFontColor(sf::Color::White);
+	_playerTwoButton->setBorder(3.f, sf::Color::White);
+	_playerTwoButton->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		(void)mousePosition;
-		if (gomoku->players[1]->isHuman()) {
-			playerTwoButton->setText("AI");
-			gomoku->players[1]->changeType(Player::AI);
-			playerTwoButton->setBackgroundColor(Colors::AI);
+		if (_gomoku->players[1]->isHuman()) {
+			_playerTwoButton->setText("AI");
+			_gomoku->players[1]->changeType(Player::AI);
+			_playerTwoButton->setBackgroundColor(Colors::AI);
 		}
 		else {
-			playerTwoButton->setText("Human");
-			playerTwoButton->setBackgroundColor(Colors::Human);
-			gomoku->players[1]->changeType(Player::HUMAN);
+			_playerTwoButton->setText("Human");
+			_playerTwoButton->setBackgroundColor(Colors::Human);
+			_gomoku->players[1]->changeType(Player::HUMAN);
 		}
 	});
 
-	vsLabel = std::make_shared<TextBox>(50.0f, 50.0f, 975.0f, 60.0f, Colors::LightGrey);
-	vsLabel->setText("vs");
-	vsLabel->setFontColor(sf::Color::Black);
+	_vsLabel = std::make_shared<TextBox>(sf::Vector2f(50.0f, 50.0f), sf::Vector2f(975.0f, 60.0f), Colors::LightGrey);
+	_vsLabel->setText("vs");
+	_vsLabel->setFontColor(sf::Color::Black);
 
-	capturesPanel = std::make_shared<Background>(360.0f, 80.0f, 820.0f, 160.0f, Colors::LightGrey);
-	capturesPanel->setBorder(2.5f, Colors::Grey);
+	_capturesPanel = std::make_shared<Background>(sf::Vector2f(360.0f, 80.0f), sf::Vector2f(820.0f, 160.0f), Colors::LightGrey);
+	_capturesPanel->setBorder(2.5f, Colors::Grey);
 
-	captureLabel = std::make_shared<TextBox>(360.0f, 50.0f, 820.0f, 160.0f, sf::Color(220, 220, 220, 0));
-	captureLabel->setText("Captures:");
-	captureLabel->setFontColor(sf::Color::Black);
+	_captureLabel = std::make_shared<TextBox>(sf::Vector2f(360.0f, 50.0f), sf::Vector2f(820.0f, 160.0f), sf::Color(220, 220, 220, 0));
+	_captureLabel->setText("Captures:");
+	_captureLabel->setFontColor(sf::Color::Black);
 
-	playerOneCaptures = std::make_shared<TextBox>(180.0f, 50.0f, 800.0f, 190.0f, sf::Color(220, 220, 220, 0));
-	playerOneCaptures->setText("0");
-	playerOneCaptures->setFontColor(sf::Color::Black);
+	_playerOneCaptures = std::make_shared<TextBox>(sf::Vector2f(180.0f, 50.0f), sf::Vector2f(800.0f, 190.0f), sf::Color(220, 220, 220, 0));
+	_playerOneCaptures->setText("0");
+	_playerOneCaptures->setFontColor(sf::Color::Black);
 
-	playerTwoCaptures = std::make_shared<TextBox>(180.0f, 50.0f, 1020.0f, 190.0f, sf::Color(220, 220, 220, 0));
-	playerTwoCaptures->setText("0");
-	playerTwoCaptures->setFontColor(sf::Color::Black);
+	_playerTwoCaptures = std::make_shared<TextBox>(sf::Vector2f(180.0f, 50.0f), sf::Vector2f(1020.0f, 190.0f), sf::Color(220, 220, 220, 0));
+	_playerTwoCaptures->setText("0");
+	_playerTwoCaptures->setFontColor(sf::Color::Black);
 	
-	playPanel = std::make_shared<Background>(360.0f, 125.0f, 820.0f, 260.0f, Colors::LightGrey);
-	playPanel->setBorder(2.5f, Colors::Grey);
+	_playPanel = std::make_shared<Background>(sf::Vector2f(360.0f, 125.0f), sf::Vector2f(820.0f, 260.0f), Colors::LightGrey);
+	_playPanel->setBorder(2.5f, Colors::Grey);
 
-	playButton = std::make_shared<Button>(300.0f, 105.0f, 850.0f, 270.0f, Colors::ForestGreen);
-	playButton->setText("START !");
-	playButton->setFontColor(sf::Color::Black);
-	playButton->setBorder(2.5f, sf::Color::Black);
+	_playButton = std::make_shared<Button>(sf::Vector2f(300.0f, 105.0f), sf::Vector2f(850.0f, 270.0f), Colors::ForestGreen);
+	_playButton->setText("START !");
+	_playButton->setFontColor(sf::Color::Black);
+	_playButton->setBorder(2.5f, sf::Color::Black);
 
-	playButton->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+	_playButton->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		(void)mousePosition;
-		if (gomoku->minmax->isRunning()) {
+		if (_gomoku->minmax->isRunning()) {
 			std::cout << "Pause the game first" << std::endl;
 			return;
 		}
-		if (gomoku->playing || gomoku->getEndState() != -1) {
-			playButton->setText("START !");
-			gomoku->playing = false;
-			gomoku->reset();
-			this->reset();
+		if (_gomoku->playing || _gomoku->getEndState() != -1) {
+			_playButton->setText("START !");
+			_gomoku->playing = false;
+			_gomoku->reset();
+			reset();
 		}
 		else {
-			playButton->setText("RESET");
-			gomoku->playing = true;
+			_playButton->setText("RESET");
+			_gomoku->playing = true;
 		}
 	});
 
-	currentPlayerPanel = std::make_shared<Background>(360.0f, 150.0f, 820.0f, 400.0f, Colors::LightGrey);
-	currentPlayerPanel->setBorder(2.5f, Colors::Grey);
+	_currentPlayerPanel = std::make_shared<Background>(sf::Vector2f(360.0f, 150.0f), sf::Vector2f(820.0f, 400.0f), Colors::LightGrey);
+	_currentPlayerPanel->setBorder(2.5f, Colors::Grey);
 	
-	currentPlayerLabel = std::make_shared<TextBox>(360.0f, 50.0f, 820.0f, 400.0f, sf::Color(220, 220, 220, 0));
-	currentPlayerLabel->setText("Current Player: ");
-	currentPlayerLabel->setFontColor(sf::Color::Black);
+	_currentPlayerLabel = std::make_shared<TextBox>(sf::Vector2f(360.0f, 50.0f), sf::Vector2f(820.0f, 400.0f), sf::Color(220, 220, 220, 0));
+	_currentPlayerLabel->setText("Current Player: ");
+	_currentPlayerLabel->setFontColor(sf::Color::Black);
 
-	currentPlayerValue = std::make_shared<TextBox>(360.0f, 75.0f, 820.0f, 450.0f, sf::Color(220, 220, 220, 0));
-	currentPlayerValue->setText("Black");
-	currentPlayerValue->setFontSize(50);
-	currentPlayerValue->setFontColor(sf::Color::Black);
+	_currentPlayerValue = std::make_shared<TextBox>(sf::Vector2f(360.0f, 75.0f), sf::Vector2f(820.0f, 450.0f), sf::Color(220, 220, 220, 0));
+	_currentPlayerValue->setText("Black");
+	_currentPlayerValue->setFontSize(50);
+	_currentPlayerValue->setFontColor(sf::Color::Black);
 
-	messagePanel = std::make_shared<Background>(360.0f, 150.0f, 820.0f, 575.0f, Colors::LightGrey);
-	messagePanel->setBorder(2.5f, Colors::Grey);
+	_messagePanel = std::make_shared<Background>(sf::Vector2f(360.0f, 150.0f), sf::Vector2f(820.0f, 575.0f), Colors::LightGrey);
+	_messagePanel->setBorder(2.5f, Colors::Grey);
 
-	messageValue = std::make_shared<TextBox>(360.0f, 150.0f, 820.0f, 575.0f, sf::Color(220, 220, 220, 0));
-	messageValue->setText("-");
-	messageValue->setFontColor(sf::Color::Black);
+	_messageValue = std::make_shared<TextBox>(sf::Vector2f(360.0f, 150.0f), sf::Vector2f(820.0f, 575.0f), sf::Color(220, 220, 220, 0));
+	_messageValue->setText("-");
+	_messageValue->setFontColor(sf::Color::Black);
 
 
 
-	grid->callbacks.push_back([this](sf::Vector2i mousePosition) mutable {
-		if (gomoku->playing) {
-			if (gomoku->minmax->isRunning()) {
+	_grid->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
+		if (_gomoku->playing) {
+			if (_gomoku->minmax->isRunning()) {
 				std::cout << "AI Turn, be patient" << std::endl;
 				return;
 			}
-			auto pos = grid->windowToGridCoord(mousePosition);
-			if (pos.first != -1 && pos.second != -1 && gomoku->getValueOnBoard(pos) == -1 && gomoku->canPlace(pos)) {
-				gomoku->lastMoves[gomoku->currentPlayer->getIndex()] = pos;
-				gomoku->place(pos.first, pos.second, gomoku->currentPlayer->getIndex());
-				gomoku->switchPlayer();
-				this->nextTurn();
+			auto pos = _grid->windowToGridCoord(mousePosition);
+			if (pos.first != -1 && pos.second != -1 && _gomoku->getValueOnBoard(pos) == -1 && _gomoku->canPlace(pos)) {
+				_gomoku->lastMoves[_gomoku->currentPlayer->getIndex()] = pos;
+				_gomoku->place(pos.first, pos.second, _gomoku->currentPlayer->getIndex());
+				_gomoku->switchPlayer();
+				nextTurn();
 			}
 		}
 	});
 
-	window->addRenderable(background);
-	window->addRenderable(panel);
-	window->addRenderable(playersPanel);
-	window->addRenderable(grid);
+	_window->addRenderable(_background);
+	_window->addRenderable(_panel);
+	_window->addRenderable(_playersPanel);
+	_window->addRenderable(_grid);
 
-	window->addRenderable(playerOneButton);
-	window->addRenderable(playerTwoButton);
-	window->addRenderable(vsLabel);
+	_window->addRenderable(_playerOneButton);
+	_window->addRenderable(_playerTwoButton);
+	_window->addRenderable(_vsLabel);
 
-	window->addRenderable(capturesPanel);
-	window->addRenderable(playerOneCaptures);
-	window->addRenderable(playerTwoCaptures);
-	window->addRenderable(captureLabel);
+	_window->addRenderable(_capturesPanel);
+	_window->addRenderable(_playerOneCaptures);
+	_window->addRenderable(_playerTwoCaptures);
+	_window->addRenderable(_captureLabel);
 
-	window->addRenderable(playPanel);
-	window->addRenderable(playButton);
+	_window->addRenderable(_playPanel);
+	_window->addRenderable(_playButton);
 
-	window->addRenderable(currentPlayerPanel);
-	window->addRenderable(currentPlayerLabel);
-	window->addRenderable(currentPlayerValue);
+	_window->addRenderable(_currentPlayerPanel);
+	_window->addRenderable(_currentPlayerLabel);
+	_window->addRenderable(_currentPlayerValue);
 
-	window->addRenderable(messagePanel);
-	window->addRenderable(messageValue);
+	_window->addRenderable(_messagePanel);
+	_window->addRenderable(_messageValue);
 }
 
 void GUI::updateBoard(std::pair<int, int> pos, int value) {
 
 	if (value >= 0) {
-		grid->placeStoneAt(pos, value == 0 ? sf::Color::Black : sf::Color::White);
+		_grid->placeStoneAt(pos, value == 0 ? sf::Color::Black : sf::Color::White);
 	} else if (value == -1) {
-		grid->removeStoneAt(pos);
+		_grid->removeStoneAt(pos);
 	}
 
 	 _sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
@@ -203,37 +209,37 @@ void GUI::updateBoard(std::pair<int, int> pos, int value) {
 
 void GUI::updateCaptures(int playerIndex, int value) {
 	if (playerIndex == 0) {
-		playerOneCaptures->setText(std::to_string(value));
+		_playerOneCaptures->setText(std::to_string(value));
 	} else {
-		playerTwoCaptures->setText(std::to_string(value));
+		_playerTwoCaptures->setText(std::to_string(value));
 	}
 }
 
 
 void GUI::nextTurn() {
-	if (gomoku->getEndState() != -1) {
-		gomoku->playing = false;
-		if (gomoku->getEndState() >= 0) {
-			messageValue->setText((gomoku->getEndState() == 0 ? "Black" : "White") + std::string(" win! ") + std::to_string(gomoku->turn));
+	if (_gomoku->getEndState() != -1) {
+		_gomoku->playing = false;
+		if (_gomoku->getEndState() >= 0) {
+			_messageValue->setText((_gomoku->getEndState() == 0 ? "Black" : "White") + std::string(" win! ") + std::to_string(_gomoku->turn));
 		}
 		else {
-			messageValue->setText("DRAW");
+			_messageValue->setText("DRAW");
 		}
 	}
 	else {
-		currentPlayerValue->setText(gomoku->currentPlayer->getIndex() == 0 ? "Black" : "White");
-		currentPlayerValue->setFontColor(gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
-		messageValue->setText(std::to_string(gomoku->getTurn()));
+		_currentPlayerValue->setText(_gomoku->currentPlayer->getIndex() == 0 ? "Black" : "White");
+		_currentPlayerValue->setFontColor(_gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
+		_messageValue->setText(std::to_string(_gomoku->getTurn()));
 	}
 	_currentPlayer = _currentPlayer == 0 ? 1 : 0;
-	gomoku->nextTurn();
+	_gomoku->nextTurn();
 }
 
 void GUI::reset() {
-	grid->reset();
-	messageValue->setText("-");
+	_grid->reset();
+	_messageValue->setText("-");
 	_currentPlayer = 0;
-	currentPlayerValue->setText("Black");
-	playerOneCaptures->setText("0");
-	playerTwoCaptures->setText("0");
+	_currentPlayerValue->setText("Black");
+	_playerOneCaptures->setText("0");
+	_playerTwoCaptures->setText("0");
 }

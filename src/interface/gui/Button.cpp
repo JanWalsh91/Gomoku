@@ -2,35 +2,37 @@
 
 #include <iostream>
 
-Button::Button(float width, float height, float xPos, float yPos, sf::Color backgroundColor): size(sf::Vector2f(width, height)), pos(sf::Vector2f(xPos, yPos)) {
+Button::Button(sf::Vector2f size, sf::Vector2f position, sf::Color backgroundColor) {
 
-	this->shape = std::make_shared<sf::RectangleShape>(size);
-	this->shape->setPosition(pos);
-	this->shape->setFillColor(backgroundColor);
+	_position = position;
+	_size = size;
 
-	this->text.setFont(TextBox::font);
+	_shape = std::make_shared<sf::RectangleShape>(size);
+	_shape->setPosition(position);
+	_shape->setFillColor(backgroundColor);
 
-	sf::FloatRect textRect = text.getLocalBounds();
-	text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-	text.setPosition(sf::Vector2f(pos.x + width / 2.0f, pos.y + height / 2.0f));
+	_text.setFont(TextBox::font);
 
-	this->text.setPosition(pos.x, pos.y + size.y / 2.0f - 25 / 2.0f); // Take font size into account
-	this->text.setCharacterSize(25);
-	this->text.setStyle(sf::Text::Bold);
+	sf::FloatRect textRect = _text.getLocalBounds();
+	_text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+	_text.setPosition(sf::Vector2f(position.x + size.x / 2.0f, position.y + size.y / 2.0f));
+
+	_text.setPosition(position.x, position.y + size.y / 2.0f - 25 / 2.0f); // Take font size into account
+	_text.setCharacterSize(25);
+	_text.setStyle(sf::Text::Bold);
 }
 
 void Button::render(sf::RenderWindow& window) {
-	window.draw(*this->shape);
-	window.draw(this->text);
+	window.draw(*_shape);
+	window.draw(_text);
 }
 
 void Button::click(sf::Vector2i mousePosition) {
 	
-	if (mousePosition.x > pos.x && mousePosition.x < pos.x + size.x && mousePosition.y > pos.y && mousePosition.y < pos.y + size.y) {
-		for (auto& callback : callbacks) {
+	if (mousePosition.x > _position.x && mousePosition.x < _position.x + _size.x && mousePosition.y > _position.y && mousePosition.y < _position.y + _size.y) {
+		for (auto& callback : clickCallbacks) {
 			callback(mousePosition);
 		}
-		std::cout << "Clicked on button" << std::endl;
 	}
 }
 
@@ -39,12 +41,12 @@ void Button::hover(sf::Vector2i mousePosition) {
 }
 
 void Button::setFontColor(sf::Color color) {
-	this->text.setFillColor(color);
+	_text.setFillColor(color);
 }
 
 void Button::setText(const std::string& buttonText) {
-	this->text.setString(buttonText);
-	sf::FloatRect textRect = text.getLocalBounds();
-	text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-	text.setPosition(sf::Vector2f(pos.x + size.x / 2.0f, pos.y + size.y / 2.0f));
+	_text.setString(buttonText);
+	sf::FloatRect textRect = _text.getLocalBounds();
+	_text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+	_text.setPosition(sf::Vector2f(_position.x + _size.x / 2.0f, _position.y + _size.y / 2.0f));
 }

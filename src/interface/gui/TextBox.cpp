@@ -2,26 +2,28 @@
 
 #include <iostream>
 
-TextBox::TextBox(float width, float height, float xPos, float yPos, sf::Color backgroundColor) : size(sf::Vector2f(width, height)), pos(sf::Vector2f(xPos, yPos)) {
+TextBox::TextBox(sf::Vector2f size, sf::Vector2f position, sf::Color backgroundColor) {
 
-	this->shape = std::make_shared<sf::RectangleShape>(size);
-	this->shape->setPosition(pos);
-	this->shape->setFillColor(backgroundColor);
+	_position = position;
+	_size = size;
 
-	this->text.setFont(TextBox::font);
+	_shape = std::make_shared<sf::RectangleShape>(size);
+	_shape->setPosition(position);
+	_shape->setFillColor(backgroundColor);
 
-	sf::FloatRect textRect = text.getLocalBounds();
-	text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-	text.setPosition(sf::Vector2f(pos.x + width / 2.0f, pos.y + height / 2.0f));
+	_text.setFont(TextBox::font);
 
-	this->text.setPosition(pos.x, pos.y + size.y / 2.0f - 25 / 2.0f); // Take font size into account
-	this->text.setCharacterSize(25);
-	// this->text.setStyle(sf::Text::Bold);
+	sf::FloatRect textRect = _text.getLocalBounds();
+	_text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+	_text.setPosition(sf::Vector2f(position.x + size.x / 2.0f, position.y + size.y / 2.0f));
+
+	_text.setPosition(position.x, position.y + size.y / 2.0f - 25 / 2.0f);
+	_text.setCharacterSize(25);
 }
 
 void TextBox::render(sf::RenderWindow& window) {
-	window.draw(*this->shape);
-	window.draw(this->text);
+	window.draw(*_shape);
+	window.draw(_text);
 }
 
 void TextBox::click(sf::Vector2i mousePosition) {
@@ -34,28 +36,27 @@ void TextBox::hover(sf::Vector2i mousePosition) {
 }
 
 void TextBox::setFontColor(sf::Color color) {
-	this->text.setFillColor(color);
+	_text.setFillColor(color);
 }
 
 void TextBox::setText(const std::string& buttonText) {
-	this->text.setString(buttonText);
-	sf::FloatRect textRect = text.getLocalBounds();
-	text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-	text.setPosition(sf::Vector2f(pos.x + size.x / 2.0f, pos.y + size.y / 2.0f));
+	_text.setString(buttonText);
+	sf::FloatRect textRect = _text.getLocalBounds();
+	_text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+	_text.setPosition(sf::Vector2f(_position.x + _size.x / 2.0f, _position.y + _size.y / 2.0f));
 }
 
 void TextBox::setFontSize(unsigned fontSize) {
-	this->text.setCharacterSize(fontSize);
-	sf::FloatRect textRect = text.getLocalBounds();
-	text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-	text.setPosition(sf::Vector2f(pos.x + size.x / 2.0f, pos.y + size.y / 2.0f));
+	_text.setCharacterSize(fontSize);
+	sf::FloatRect textRect = _text.getLocalBounds();
+	_text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+	_text.setPosition(sf::Vector2f(_position.x + _size.x / 2.0f, _position.y + _size.y / 2.0f));
 }
 
 sf::Font TextBox::font;
 
 void TextBox::loadFont() {
-	// if (!TextBox::font.loadFromFile("../resources/Roboto-Regular.ttf")) {
 	if (!TextBox::font.loadFromFile("./resources/fonts/Catamaran-Regular.ttf")) {
-		std::cout << "Error while loading font" << std::endl;
+		std::cerr << "Error while loading font" << std::endl;
 	}
 }

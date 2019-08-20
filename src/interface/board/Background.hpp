@@ -5,7 +5,7 @@
 class Background: public IRenderable {
 
 public:
-	Background(float width, float height, float xPos, float yPos, sf::Color backgroundColor);
+	Background(sf::Vector2f size, sf::Vector2f position, sf::Color backgroundColor);
 
 	void render(sf::RenderWindow&);
 	void click(sf::Vector2i mousePosition);
