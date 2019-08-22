@@ -10,6 +10,7 @@ public:
 	static void Clear(std::string);
 	static void Stop(std::string);
 	static void Print(std::string, int depth = 0, bool sum = false);
+	static double Get(std::string, int depth = 0, bool sum = false);
 
 
 private:

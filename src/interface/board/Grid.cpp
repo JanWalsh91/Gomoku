@@ -110,5 +110,5 @@ float Grid::getCellSize() const {
 }
 
 void Grid::reset() {
-	_stones.clear(); // TODO: leaks? Check shared_ptr
+	_stones.clear();
 }

@@ -236,7 +236,14 @@ void GUI::nextTurn() {
 	else {
 		_currentPlayerValue->setText(_gomoku->currentPlayer->getIndex() == 0 ? "Black" : "White");
 		_currentPlayerValue->setFontColor(_gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
-		_messageValue->setText(std::to_string(_gomoku->getTurn()));
+		if (_gomoku->players[_currentPlayer]->isAI()) {
+			std::stringstream ss;
+			ss << std::fixed << std::setprecision(2) << Timer::Get("MinmaxRun") / 1000.0;
+			_messageValue->setText(std::to_string(_gomoku->getTurn()) + " (" + ss.str() + ")");
+		}
+		else {
+			_messageValue->setText(std::to_string(_gomoku->getTurn()));
+		}
 	}
 	_currentPlayer = _currentPlayer == 0 ? 1 : 0;
 	_gomoku->nextTurn();

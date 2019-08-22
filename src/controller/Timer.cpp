@@ -34,4 +34,23 @@ void Timer::Print(std::string name, int depth, bool sum) {
 	}
 }
 
+double Timer::Get(std::string name, int depth, bool sum) {
+
+	double total = 0.0;
+	for (size_t i = 0; i < Timer::_timers[name].size(); i++) {
+		total += std::chrono::duration_cast<std::chrono::microseconds>(Timer::_timers[name][i].second - Timer::_timers[name][i].first).count();
+	}
+
+	for (int i = 0; i < depth; i++) {
+		std::cout << "  ";
+	}
+
+	if (sum) {
+		return total / 1000.0;
+	}
+	else {
+		return (total / Timer::_timers[name].size()) / 1000.0;
+	}
+}
+
 std::map<std::string, std::vector<std::pair<std::chrono::high_resolution_clock::time_point , std::chrono::high_resolution_clock::time_point >>> Timer::_timers;
