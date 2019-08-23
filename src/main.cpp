@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	std::pair<Player::Type, Player::Type> playerTypes = { Player::AI, Player::AI };
+	std::pair<Player::Type, Player::Type> playerTypes = { Player::HUMAN, Player::AI };
 	if (playersType) {
 		std::string playersTypeString = args::get(playersType);
 
