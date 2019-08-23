@@ -219,7 +219,7 @@ void GUI::nextTurn() {
 	if (_gomoku->getEndState() != -1) {
 		_gomoku->playing = false;
 		if (_gomoku->getEndState() >= 0) {
-			_messageValue->setText((_gomoku->getEndState() == 0 ? "Black" : "White") + std::string(" win! ") + std::to_string(_gomoku->turn));
+			_messageValue->setText((_gomoku->getEndState() == 0 ? "Black" : "White") + std::string(" win in ") + std::to_string(_gomoku->turn) + " turns");
 		}
 		else {
 			_messageValue->setText("DRAW");
@@ -234,7 +234,7 @@ void GUI::nextTurn() {
 			_messageValue->setText("Turn: " + std::to_string(_gomoku->getTurn()) + "\n (" + ss.str() + "s)");
 		}
 		else {
-			_messageValue->setText(std::to_string(_gomoku->getTurn()));
+			_messageValue->setText("Turn: " + std::to_string(_gomoku->getTurn()) + "\n");
 		}
 	}
 	_currentPlayer = _currentPlayer == 0 ? 1 : 0;
