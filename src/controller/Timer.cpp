@@ -28,9 +28,9 @@ void Timer::Print(std::string name, int depth, bool sum) {
 	}
 
 	if (sum) {
-		std::cout << "\u001b[36mTimer::" << name << ": " << total / 1000.0 << " ms (" << Timer::_timers[name].size() << ")\u001b[0m" << std::endl;
+		std::cout << "\u001b[36mTimer::" << name << ": " << total / 1000.0 << " μs (" << Timer::_timers[name].size() << ")\u001b[0m" << std::endl;
 	} else {
-		std::cout << "\u001b[36mTimer::" << name << ": " << (total / Timer::_timers[name].size()) / 1000.0 << " ms (" << Timer::_timers[name].size() << ")\u001b[0m" << std::endl;
+		std::cout << "\u001b[36mTimer::" << name << ": " << (total / Timer::_timers[name].size()) / 1000.0 << " μs (" << Timer::_timers[name].size() << ")\u001b[0m" << std::endl;
 	}
 }
 

@@ -44,41 +44,8 @@ std::pair<int, int> Minmax::run() {
 	Timer::Stop("MinmaxRun");
 	Timer::Print("MinmaxRun");
 
-	Timer::Print("getSortedMoves", 1, true);
-	Timer::Clear("getSortedMoves");
-
-	Timer::Print("doMove", 2, true);
-	Timer::Clear("doMove");
-
-	// Timer::Print("triggerEffects", 3);
-	// Timer::Clear("triggerEffects");
-	// for (auto rule : _gomoku._rules) {
-	// 	Timer::Print("triggerEffects " + rule->name, 3);
-	// 	Timer::Clear("triggerEffects " + rule->name);
-	// }
-
-	Timer::Print("updatePotentialCaptures", 3, true);
-	Timer::Clear("updatePotentialCaptures");
-
-
-	Timer::Print("checkWinCondition", 3, true);
-	Timer::Clear("checkWinCondition");
-
-	// Timer::Print("undoMove", true);
-	// Timer::Clear("undoMove");
-
-	Timer::Print("Heuristic", 2, true);
-	Timer::Clear("Heuristic");
-
-	Timer::Print("SortingMoves", 1, true);
-	Timer::Clear("SortingMoves");
-
-
-
 	std::cout << "heuristicValues for player " << _gomoku.currentPlayer->getIndex() << std::endl;
 	_gomoku.printBoard(_heuristicValues, _bestMove);
-	// _gomoku.printBoard();
-	// std::cout << std::endl;
 
 	_running = false;
 	return _bestMove;
@@ -144,7 +111,7 @@ void displayDebug(Gomoku& gomoku, bool maximizing, int alpha, int beta, int dept
 bool showed[] = {false, false, false, false, false};
 
 int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue) {
-	if (_gomoku.hasBeenReset()) {
+	if (_gomoku.shouldReset()) {
 		std::cout << "hasBeenReset in minmax" << std::endl;
 		return -1;
 	}
@@ -156,8 +123,6 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 	#if USE_TRANSPOSITION_TABLES
 	int alphaOrig = alpha;
 	Minmax::TableEntry* entry = this->getTTEntry(_gomoku.hashState());
-	// if (entry) {
-	// }
 	if (entry && entry->depth >= depth) {
 		std::cout << "FOUND Entry Depth: " << entry->depth << " vs " << depth << std::endl;
 		TTCount++;
@@ -202,9 +167,7 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 
 
 	auto moves = _gomoku.getMoves();
-	Timer::Start("getSortedMoves");
 	auto heuristicsByMove = _getSortedMoves(moves, maximizing, depth);
-	Timer::Stop("getSortedMoves");
 
 	int value;
 	if (maximizing) {
@@ -218,7 +181,7 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 			auto undoMoves = _gomoku.doMove(heuristicByMove.move);
 			int ret = _minmaxAlphaBeta(depth - 1, alpha, beta, false, false, heuristicByMove.heuristic);
 			_gomoku.undoMove(undoMoves);
-			if (_gomoku.hasBeenReset()) {
+			if (_gomoku.shouldReset()) {
 				std::cout << "hasBeenReset in minmax" << std::endl;
 				return -1;
 			}
@@ -290,7 +253,7 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 			auto undoMoves = _gomoku.doMove(heuristicByMove.move);
 			int ret = _minmaxAlphaBeta(depth - 1, alpha, beta, true, false, heuristicByMove.heuristic);
 			_gomoku.undoMove(undoMoves);
-			if (_gomoku.hasBeenReset()) {
+			if (_gomoku.shouldReset()) {
 				std::cout << "hasBeenReset in minmax" << std::endl;
 				return -1;
 			}
@@ -343,12 +306,9 @@ std::vector<Minmax::HeuristicByMove> Minmax::_getSortedMoves(std::vector<std::pa
 	std::shared_ptr<Player> currentPlayer = _gomoku.currentPlayer;
 	std::shared_ptr<Player> otherPlayer = _gomoku.players[_gomoku.currentPlayer->getIndex() == 0 ? 1 : 0];
 
-	Timer::Start("CreateHeuristicsByMove");
 
 	for (auto& move: moves) {
-		Timer::Start("doMove");
 		auto undoMoves = _gomoku.doMove(move);
-		Timer::Stop("doMove");
 		if (_gomoku.getEndState() >= 0) {
 			if (maximizing) {
 				heuristicsByMove.push_back( {
@@ -371,14 +331,9 @@ std::vector<Minmax::HeuristicByMove> Minmax::_getSortedMoves(std::vector<std::pa
 			heuristicsByMove.push_back(hbm);
 		}
 
-		Timer::Start("undoMove");
 		_gomoku.undoMove(undoMoves);
-		Timer::Stop("undoMove");
 	}
-	Timer::Stop("CreateHeuristicsByMove");
 
-	Timer::Start("SortingMoves");
-	
 	std::vector<Minmax::HeuristicByMove> sortedHeuristicByMove;
 	if (maximizing) {
 		while (heuristicsByMove.size()) {
@@ -410,7 +365,6 @@ std::vector<Minmax::HeuristicByMove> Minmax::_getSortedMoves(std::vector<std::pa
 			moves.erase(moves.begin() + minValueIndex);
 		}
 	}
-	Timer::Stop("SortingMoves");
 	return sortedHeuristicByMove;
 }
 

@@ -45,19 +45,23 @@ void Tests::_evalLine(Tests::EvalLineParams& param) {
 	int score = Tests::_gomoku->evalLine(std::make_pair(0, 0), std::make_pair(0, 1), 0, Tests::_gomoku->size, certainVictories);
 
 	std::cout << "certainVictories: ";
-	for (int& i: certainVictories) {
-		std::cout << i << ", " << std::endl;
+	for (int i = 0; i < 5; i++) {
+		if (i == 4) {
+			std::cout << certainVictories[i];
+		} else {
+			std::cout << certainVictories[i] << ", ";
+		}
 	}
 	std::cout << std::endl;
 
 	for (int i = 0; i < Tests::_gomoku->size; i ++) {
 		if (i == Tests::_gomoku->size - 1) {
-			std::cout << Tests::_gomoku->getValueOnBoard(0, i);
+			std::cout << static_cast<int>(Tests::_gomoku->getValueOnBoard(0, i));
 		} else {
-			std::cout << Tests::_gomoku->getValueOnBoard(0, i) << ", ";
+			std::cout << static_cast<int>(Tests::_gomoku->getValueOnBoard(0, i)) << ", ";
 		}
 	}
-	std::cout << "\t => score: " << score << std::endl;
+	std::cout << "\t => score: " << score << std::endl << std::endl;
 }
 
 // === HEURISTIC === //
@@ -139,12 +143,11 @@ void Tests::_heuristic(Tests::HeuristicParams& param) {
 // === MINMAX === //
 
 void Tests::runMinmax(int index) {
-	std::cout << "runMinmax " << index << std::endl;
 	if (index == -1) {
 		Tests::runMinmax(static_cast<int>(Tests::_minmaxTestCases.size() - 1));
 		return ;
 	} 
-	if (0 < index && index < (int)_minmaxTestCases.size()) {
+	if (0 <= index && index < (int)_minmaxTestCases.size()) {
 		Tests::_minmaxUnitTest(Tests::_minmaxTestCases[index]);
 	} else {
 		std::cout << "Test case " << index << " does not exist"  << std::endl;

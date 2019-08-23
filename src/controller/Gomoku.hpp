@@ -25,7 +25,7 @@ public:
 
 	// Game Actions
 	void reset();
-	void clearReset();
+	void clearResetRequest();
 	void nextTurn();
 	void switchPlayer();
 
@@ -54,6 +54,7 @@ public:
 	void updatePotentialCaptures();
 	void updatePotentialCapturesByLine(std::pair<int, int> startPos, std::pair<int, int> dir, int length);
 
+	void setStartConfigurationIndex(int i);
 	void setUpStartConfiguration(int i);
 
 	// Heuristic
@@ -80,7 +81,7 @@ public:
 	int getRemainingStones();
 	void setRemainingStones(int i);
 
-	bool hasBeenReset() const;
+	bool shouldReset() const;
 	
 	// Debug
 	void printBoard() const;
@@ -98,7 +99,7 @@ public:
 	int winStreakLength;
 
 	int turn;
-	bool _hasBeenReset;
+	bool _resetRequest;
 
 	std::vector<std::function<void(std::pair<int, int>, int)>> _updateBoardCallbacks;
 	std::vector<std::function<void(int playerIndex, int value)>> _captureCallbacks;
@@ -108,6 +109,7 @@ public:
 private:
 	std::vector<char>	_board;
 	State				_endState;
+	int					_startConfigurationIndex;
 
 	static const std::pair<int, int> hLine;
 	static const std::pair<int, int> vLine;

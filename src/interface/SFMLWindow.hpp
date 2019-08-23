@@ -19,11 +19,6 @@ public:
 
 private:
 
-	// int width;
-	// int height;
-	// const std::string& title;
-
-
 	sf::RenderWindow window;
 	std::list<std::shared_ptr<IRenderable>> renderables;
 };

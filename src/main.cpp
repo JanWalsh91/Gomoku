@@ -3,7 +3,7 @@
 int main(int argc, char *argv[]) {
 	std::srand(std::time(nullptr));
 
-	args::ArgumentParser parser("This is a test program.", "This goes after the options.");
+	args::ArgumentParser parser("Gomoku options", "Thanks for playing.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::CompletionFlag completion(parser, {"complete"});
 	args::ValueFlag<int> boardSizeArgs(parser, "size", "Size of the board", {'s'});
@@ -11,7 +11,8 @@ int main(int argc, char *argv[]) {
 	args::ValueFlag<int> maxTurnArgs(parser, "maxTurn", "Pause the game after n turns", {'q'});
 	args::ValueFlag<int> runTestArgs(parser, "test", "Run unit test set", {'t'});
 	args::ValueFlag<int> testIndexArgs(parser, "testIndex", "Test index", {'i'});
-	args::ValueFlag<int> startConfigurationArgs(parser, "startConfiguration", "Test index", {'p'});
+	args::ValueFlag<int> startConfigurationArgs(parser, "startConfiguration", "Start Configuration index", {'c'});
+	args::ValueFlag<std::string> playersType(parser, "playersType", "Player Type, AI or Human (a / h)", {'p'});
 	args::Flag autoStartArgs(parser, "autoStart", "Auto Start", {'a'});
 
     try {
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]) {
 		boardSize = std::clamp(args::get(boardSizeArgs), 5, 19);
 	}
 	if (depthArgs) {
-		depth = std::clamp(args::get(depthArgs), 2, 10);
+		depth = std::clamp(args::get(depthArgs), 2, 4);
 	}
 	if (maxTurnArgs) {
 		maxTurn = std::clamp(args::get(maxTurnArgs), 1, 100'000);
@@ -75,13 +76,35 @@ int main(int argc, char *argv[]) {
 	}
 	if (startConfigurationArgs) {
 		startConfiguration = args::get(startConfigurationArgs);
+		if (startConfiguration >= 0) {
+			boardSize = 19;
+		}
 	}
 
-	std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
-	std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, Player::AI, Player::AI);
-	std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
+	std::pair<Player::Type, Player::Type> playerTypes = { Player::AI, Player::AI };
+	if (playersType) {
+		std::string playersTypeString = args::get(playersType);
 
+		if (playersTypeString.size() == 2) {
+			if (playersTypeString[0] == 'a') {
+				playerTypes.first = Player::AI;
+			} else if (playersTypeString[0] == 'h') {
+				playerTypes.first = Player::HUMAN;
+			}
+			if (playersTypeString[1] == 'a') {
+				playerTypes.second = Player::AI;
+			} else if (playersTypeString[1] == 'h') {
+				playerTypes.second = Player::HUMAN;
+			}
+		}
+	}
+	
+
+	std::shared_ptr<SFMLWindow> window = std::make_shared<SFMLWindow>(1200, 800, "Gomoku");
+	std::shared_ptr<Gomoku> gomoku = std::make_shared<Gomoku>(boardSize, playerTypes.first, playerTypes.second);
+	std::shared_ptr<Minmax> minmax = std::make_shared<Minmax>(*gomoku, depth);
 	std::shared_ptr<GUI> gui = std::make_shared<GUI>(gomoku, window);
+
 
 	gomoku->minmax = minmax;
 
@@ -100,10 +123,8 @@ int main(int argc, char *argv[]) {
 		gui->updateCaptures(playerIndex, value);
 	});
 
-	auto start = std::chrono::high_resolution_clock::now();
-	auto end = std::chrono::high_resolution_clock::now();
-
 	if (startConfiguration >= 0) {
+		gomoku->setStartConfigurationIndex(startConfiguration);
 		gomoku->setUpStartConfiguration(startConfiguration);
 	}
 
@@ -382,13 +403,15 @@ int main(int argc, char *argv[]) {
 		std::cout << "Auto Start: " << autoStart << std::endl;
 		gomoku->playing = true;
 	}
-	window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future, &start, &end]() mutable {
-
+	window->loop(std::function<void()>([gomoku, gui, &pause, &nextStep, maxTurn, &future]() mutable {
+		
 		if (future.valid() && future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
-			if (gomoku->hasBeenReset()) {
+			auto pos = future.get();
+			if (gomoku->shouldReset()) {
+				gomoku->clearResetRequest();
+				gomoku->reset();
 				return ;
 			}
-			auto pos = future.get();
 			std::cout << "pos: " << pos << std::endl;
 			if (pos.first < 0 || pos.second < 0) {
 				return;
@@ -404,7 +427,6 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		if (gomoku->playing && gomoku->currentPlayer->isAI() && (nextStep || !pause) && !gomoku->minmax->isRunning()) {
-			std::cout << "AI turn" << std::endl;
 			future = std::async(std::launch::async, &Minmax::run, gomoku->minmax);
 		}
 	}), [&pause, &nextStep](sf::Event event) mutable {

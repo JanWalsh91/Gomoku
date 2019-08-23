@@ -115,29 +115,19 @@ void GUI::setup() {
 
 	_playButton->clickCallbacks.push_back([this](sf::Vector2i mousePosition) mutable {
 		(void)mousePosition;
-		// if (_gomoku->minmax->isRunning()) {
-		// 	std::cout << "Pause the game first" << std::endl;
-		// 	return;
-		// }
 		if (_gomoku->playing || _gomoku->getEndState() != -1) {
-			_gomoku->reset();
 			reset();
-			std::cout << "Reset gomoku" << std::endl;
+			_gomoku->reset();
 			if (_gomoku->players[0]->isAI()) {
 				_playButton->setText("START !");
-				std::cout << "set text only start" << std::endl;
 			} else {
-				std::cout << "set playing ot true" << std::endl;
 				_gomoku->playing = true;
 			}
 		}
 		else {
-			std::cout << "set text reset and playing to true" << std::endl;
-			_gomoku->clearReset();
 			_playButton->setText("RESET");
 			_gomoku->playing = true;
 		}
-		std::cout << "isAI? " << _gomoku->players[0]->isAI() << std::endl;
 	});
 
 	_currentPlayerPanel = std::make_shared<Background>(sf::Vector2f(360.0f, 150.0f), sf::Vector2f(820.0f, 400.0f), Colors::LightGrey);
@@ -170,6 +160,8 @@ void GUI::setup() {
 			auto pos = _grid->windowToGridCoord(mousePosition);
 			if (pos.first != -1 && pos.second != -1 && _gomoku->getValueOnBoard(pos) == -1 && _gomoku->canPlace(pos)) {
 				_gomoku->lastMoves[_gomoku->currentPlayer->getIndex()] = pos;
+				std::cout << "{\n" << "\t{ "<< pos.first << ", " << pos.second << " }, " << _gomoku->currentPlayer->getIndex() << "\n}," << std::endl;
+
 				_gomoku->place(pos.first, pos.second, _gomoku->currentPlayer->getIndex());
 				_gomoku->switchPlayer();
 				nextTurn();
@@ -210,8 +202,8 @@ void GUI::updateBoard(std::pair<int, int> pos, int value) {
 		_grid->removeStoneAt(pos);
 	}
 
-	 _sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
-	 _sfx.play();
+	_sfx.setBuffer(_stoneSoundEffects[std::rand() % _stoneSoundEffects.size()]);
+	_sfx.play();
 }
 
 void GUI::updateCaptures(int playerIndex, int value) {
@@ -239,7 +231,7 @@ void GUI::nextTurn() {
 		if (_gomoku->players[_currentPlayer]->isAI()) {
 			std::stringstream ss;
 			ss << std::fixed << std::setprecision(2) << Timer::Get("MinmaxRun") / 1000.0;
-			_messageValue->setText(std::to_string(_gomoku->getTurn()) + " (" + ss.str() + ")");
+			_messageValue->setText("Turn: " + std::to_string(_gomoku->getTurn()) + "\n (" + ss.str() + "s)");
 		}
 		else {
 			_messageValue->setText(std::to_string(_gomoku->getTurn()));
@@ -254,6 +246,7 @@ void GUI::reset() {
 	_messageValue->setText("-");
 	_currentPlayer = 0;
 	_currentPlayerValue->setText("Black");
+	_currentPlayerValue->setFontColor(_gomoku->currentPlayer->getIndex() == 0 ? sf::Color::Black : sf::Color::White);
 	_playerOneCaptures->setText("0");
 	_playerTwoCaptures->setText("0");
 }
