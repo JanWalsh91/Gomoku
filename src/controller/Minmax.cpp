@@ -28,7 +28,7 @@ std::pair<int, int> Minmax::run() {
 	_running = true;
 
 	_gomoku.heuristicPlayer = _gomoku.currentPlayer;
-	std::cout << "Minmax run " << _maxDepth << " Heuritic player: " << _gomoku.heuristicPlayer->getIndex() << std::endl;
+	std::cout << "Minmax run for player " << _gomoku.heuristicPlayer->getIndex() << " at depth of " << _maxDepth << "." << std::endl;
 	
 	_bestMove = std::make_pair(-1, -1);
 	_bestValue = Minmax::LOSS;
@@ -44,7 +44,6 @@ std::pair<int, int> Minmax::run() {
 	Timer::Stop("MinmaxRun");
 	Timer::Print("MinmaxRun");
 
-	std::cout << "heuristicValues for player " << _gomoku.currentPlayer->getIndex() << std::endl;
 	_gomoku.printBoard(_heuristicValues, _bestMove);
 
 	_running = false;
@@ -112,7 +111,6 @@ bool showed[] = {false, false, false, false, false};
 
 int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bool root, int heuristicValue) {
 	if (_gomoku.shouldReset()) {
-		std::cout << "hasBeenReset in minmax" << std::endl;
 		return -1;
 	}
 	#if DEBUG_POS
@@ -182,7 +180,6 @@ int Minmax::_minmaxAlphaBeta(int depth, int alpha, int beta, bool maximizing, bo
 			int ret = _minmaxAlphaBeta(depth - 1, alpha, beta, false, false, heuristicByMove.heuristic);
 			_gomoku.undoMove(undoMoves);
 			if (_gomoku.shouldReset()) {
-				std::cout << "hasBeenReset in minmax" << std::endl;
 				return -1;
 			}
 			
